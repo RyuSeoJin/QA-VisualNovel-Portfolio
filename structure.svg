@@ -89,12 +89,12 @@
 <text class="t" x="777" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
 <text class="s" x="777" y="460" font-size="11.5" fill="#1f2328">TC 정리</text>
 </g>
-<path class="arrow" d="M492,448 H504" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
-<path class="arrow" d="M684,448 H696" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M492,448 H504" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M684,448 H696" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 
 <path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
-<rect class="pill" x="232" y="311" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
-<text class="lbl" x="286" y="324" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
+<rect class="pill" x="284" y="303" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
+<text class="lbl" x="338" y="316" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
 
 <path class="arrow" d="M435,140 V112" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
 <rect class="pill" x="444" y="115" width="112" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
