@@ -59,8 +59,47 @@ tbody td{padding:8px 12px;border-top:1px solid var(--grid);color:var(--ink-2);ve
 tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 .callout{border-left:3px solid var(--accent);background:var(--surface);
   border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--ink-2)}
+.callout.warn{border-left-color:var(--part);background:rgba(251,191,36,.06)}
+.callout.danger{border-left-color:var(--no);background:rgba(248,113,113,.06)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+.stat{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:16px 18px}
+.stat .num{font-size:26px;font-weight:700;color:var(--ink);line-height:1.2}
+.stat .num em{font-style:normal;color:var(--accent)}
+.stat .lbl{font-size:12.5px;color:var(--muted);margin-top:4px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card-grid .card{margin:0}
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-size:12px;
+  font-weight:600;color:var(--ink);border:1px solid transparent;white-space:nowrap}
+.chip-ok{background:var(--ok-bg);border-color:var(--ok)}
+.chip-no{background:var(--no-bg);border-color:var(--no)}
+.chip-part{background:var(--part-bg);border-color:var(--part)}
+.chip-unk{background:var(--unk-bg);border-color:var(--unk)}
+.steps{display:flex;flex-direction:column;gap:10px;margin:16px 0;counter-reset:step}
+.step{display:flex;gap:14px;background:var(--surface);border:1px solid var(--hair);
+  border-radius:10px;padding:14px 16px}
+.step::before{counter-increment:step;content:counter(step);flex:0 0 26px;height:26px;
+  border-radius:50%;background:var(--accent-dim);color:var(--ink);font-size:13px;
+  font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .body{color:var(--ink-2)}
+.step .body b{color:var(--ink)}
 .doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
   color:var(--muted);font-size:12.5px}
+/* ==== 구조도 — structure.svg 인라인 사본을 다크 테마로 덮어쓴다 (수정 시 양쪽 동기화) ==== */
+.sd{width:100%;height:auto;display:block}
+.sd .grp-entry{fill:#131316;stroke:#3a3a3f}
+.sd .nd-entry{fill:#1c1c21;stroke:#565660}
+.sd .grp-proc{fill:#0e1a24;stroke:#3987e5}
+.sd .nd-proc{fill:#152634;stroke:#3987e5}
+.sd .grp-form{fill:#16161f;stroke:#6b74d6}
+.sd .nd-form{fill:#1e1f2e;stroke:#6b74d6}
+.sd .grp-out{fill:#0f1c17;stroke:#199e70}
+.sd .nd-out{fill:#132923;stroke:#199e70}
+.sd text.t{fill:var(--ink)}
+.sd text.s{fill:var(--ink-2)}
+.sd text.lbl{fill:var(--ink-2)}
+.sd rect.pill{fill:var(--surface-2);stroke:var(--grid)}
+.sd path.arrow{stroke:#8b8f98}
+.sd marker path{fill:#8b8f98}
 </style>
 </head>
 <body>
@@ -98,6 +137,106 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <div class="callout">각 단계 사이에는 확인 게이트가 있다.
 <strong>기능 골격이 최종 확정되기 전에는 TC 설계로 넘어가지 않는다</strong> — 골격이 흔들린 채 TC를 쓰면
 그 뒤의 산출물을 전부 다시 만들어야 하기 때문이다.</div>
+
+<h2>저장소 구조</h2>
+<p>절차 기준은 특정 산출물이 아니라 <strong>모든 작업 전에 확인하는 규칙</strong>이고, 형식 기준은 중앙 허브부터
+프로젝트 문서까지 모든 HTML 산출물의 형식을 정하며, TC 생성 도구는 TC 엑셀을 만들어 냅니다.
+마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.</p>
+<div class="card">
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 566" role="img" aria-labelledby="sdt sdd">
+<title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
+<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 낸다.</desc>
+<defs>
+<marker id="ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
+<marker id="ar-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b74d6"/></marker>
+<marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3987e5"/></marker>
+</defs>
+
+<rect class="grp-entry" x="70" y="14" width="800" height="92" rx="8" fill="#f7f8fa" stroke="#c4c9d0"/>
+<text class="t" x="88" y="36" font-size="13" font-weight="500" fill="#1f2328">진입점</text>
+<g class="nd-entry" fill="#e8eaed" stroke="#9aa0a6">
+<rect x="90" y="44" width="250" height="52" rx="6"/><rect x="350" y="44" width="250" height="52" rx="6"/><rect x="610" y="44" width="250" height="52" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text class="t" x="215" y="66" font-size="12.5" font-weight="500" fill="#1f2328">README.md</text>
+<text class="s" x="215" y="84" font-size="11.5" fill="#1f2328">저장소 소개</text>
+<text class="t" x="475" y="66" font-size="12.5" font-weight="500" fill="#1f2328">index.html</text>
+<text class="s" x="475" y="84" font-size="11.5" fill="#1f2328">중앙 허브</text>
+<text class="t" x="735" y="66" font-size="12.5" font-weight="500" fill="#1f2328">CLAUDE.md</text>
+<text class="s" x="735" y="84" font-size="11.5" fill="#1f2328">클로드 작업 규칙</text>
+</g>
+
+<rect class="grp-proc" x="70" y="140" width="200" height="390" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<text class="t" x="86" y="162" font-size="12.5" font-weight="500" fill="#1f2328">절차 기준</text>
+<text class="s" x="86" y="179" font-size="11.5" fill="#57606a">project-process/</text>
+<g class="nd-proc" fill="#e0eefb" stroke="#3987e5">
+<rect x="86" y="192" width="168" height="72" rx="6"/><rect x="86" y="278" width="168" height="72" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text class="t" x="170" y="222" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
+<text class="s" x="170" y="240" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
+<text class="t" x="170" y="308" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
+<text class="s" x="170" y="326" font-size="11.5" fill="#1f2328">방법론 · 운영 규칙</text>
+<text class="s" x="170" y="392" font-size="11.5" fill="#57606a">무엇을 하든</text>
+<text class="s" x="170" y="410" font-size="11.5" fill="#57606a">가장 먼저 확인</text>
+</g>
+
+<rect class="grp-form" x="300" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<text class="t" x="316" y="162" font-size="12.5" font-weight="500" fill="#1f2328">형식 기준</text>
+<text class="s" x="316" y="179" font-size="11.5" fill="#57606a">design-guide/ · design-template/</text>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="316" y="190" width="238" height="44" rx="6"/><rect x="316" y="240" width="238" height="42" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text class="t" x="435" y="217" font-size="12.5" font-weight="500" fill="#1f2328">master css · html</text>
+<text class="t" x="435" y="266" font-size="12.5" font-weight="500" fill="#1f2328">template-catalog</text>
+</g>
+
+<rect class="grp-form" x="600" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<text class="t" x="616" y="162" font-size="12.5" font-weight="500" fill="#1f2328">TC 생성 도구</text>
+<text class="s" x="616" y="179" font-size="11.5" fill="#57606a">design-template/ · project-process/scripts/</text>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="616" y="190" width="238" height="44" rx="6"/><rect x="616" y="240" width="238" height="42" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text class="t" x="735" y="217" font-size="12.5" font-weight="500" fill="#1f2328">tc-sheet-master.xlsx</text>
+<text class="t" x="735" y="266" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
+</g>
+
+<rect class="grp-out" x="300" y="360" width="570" height="170" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
+<text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/</text>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70">
+<rect x="316" y="412" width="172" height="72" rx="6"/><rect x="508" y="412" width="172" height="72" rx="6"/><rect x="700" y="412" width="154" height="72" rx="6"/>
+</g>
+<g text-anchor="middle">
+<text class="t" x="402" y="442" font-size="12" font-weight="500" fill="#1f2328">reference/ · spec/</text>
+<text class="s" x="402" y="460" font-size="11.5" fill="#1f2328">참고 자료 · 기획서</text>
+<text class="t" x="594" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
+<text class="s" x="594" y="460" font-size="11.5" fill="#1f2328">골격 정리</text>
+<text class="t" x="777" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
+<text class="s" x="777" y="460" font-size="11.5" fill="#1f2328">TC 정리</text>
+</g>
+<path class="arrow" d="M492,448 H504" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow" d="M684,448 H696" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+
+<path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
+<rect class="pill" x="232" y="311" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
+<text class="lbl" x="286" y="324" text-anchor="middle" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
+
+<path class="arrow" d="M435,140 V112" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="444" y="115" width="112" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="450" y="128" font-size="11.5" fill="#1f2328">허브 · 템플릿 형식</text>
+
+<path class="arrow" d="M402,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="408" y="317" width="66" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="414" y="330" font-size="11.5" fill="#1f2328">문서 형식</text>
+
+<path class="arrow" d="M777,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="783" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="789" y="330" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
+</svg>
+</div>
 
 <h2>워크스페이스 문서</h2>
 <div class="tbl-scroll">

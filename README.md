@@ -28,63 +28,7 @@ TC를 자동으로 작성하기 위해 세 단계를 거칩니다.
 
 ## 구조
 
-```mermaid
-flowchart TB
-    subgraph entry["진입점"]
-        direction LR
-        RM["README.md<br/>저장소 소개"]
-        IX["index.html<br/>중앙 허브"]
-        CL["CLAUDE.md<br/>클로드 작업 규칙"]
-    end
-
-    subgraph proc["절차 기준 — project-process/"]
-        direction LR
-        PB["qa-doc-playbook<br/>절차 확인 문서"]
-        RU["rules/<br/>방법론 · 운영 규칙 정의"]
-    end
-
-    subgraph form["형식 기준 — design-guide/ · design-template/"]
-        direction LR
-        MS["master css · html<br/>HTML 디자인 스타일"]
-        TP["template-catalog<br/>카테고리별 템플릿 선정"]
-    end
-
-    subgraph tool["TC 생성 도구 — design-template/ · project-process/scripts/"]
-        direction LR
-        XL["tc-sheet-master.xlsx<br/>TC 기준 엑셀 서식"]
-        SC["scripts/<br/>엑셀 생성 도구"]
-    end
-
-    subgraph out["프로젝트별 산출물 — projects/"]
-        direction LR
-        RS["reference/ · spec/<br/>참고 자료 · 기획서"]
-        AN["analysis/<br/>골격 정리"]
-        TS["test-case/<br/>TC 정리"]
-    end
-
-    RS --> AN --> TS
-
-    proc -.->|"모든 작업에 적용"| out
-    form -->|"허브 · 템플릿 형식"| IX
-    form -->|"문서 형식"| RS
-    tool -->|"TC 엑셀 생성"| TS
-
-    classDef entryNode fill:#e8eaed,stroke:#9aa0a6,color:#1f2328
-    classDef procNode fill:#e0eefb,stroke:#3987e5,color:#1f2328
-    classDef designNode fill:#e3e9fd,stroke:#6b74d6,color:#1f2328
-    classDef outNode fill:#d9f2e6,stroke:#199e70,color:#1f2328
-
-    class RM,IX,CL entryNode
-    class PB,RU procNode
-    class MS,TP,XL,SC designNode
-    class RS,AN,TS outNode
-
-    style entry fill:#f7f8fa,stroke:#c4c9d0,color:#1f2328
-    style proc fill:#f0f7fd,stroke:#3987e5,color:#1f2328
-    style form fill:#f2f5fe,stroke:#6b74d6,color:#1f2328
-    style tool fill:#f2f5fe,stroke:#6b74d6,color:#1f2328
-    style out fill:#eef9f4,stroke:#199e70,color:#1f2328
-```
+<img src="structure.svg" alt="저장소 구조와 관계 — 절차 기준은 모든 작업에, 형식 기준은 허브와 프로젝트 문서에, TC 생성 도구는 테스트 케이스에 연결된다" width="940">
 
 관계는 세 종류로 묶여 있습니다. **절차 기준**(`qa-doc-playbook`·`rules/`)은 특정 산출물이 아니라
 모든 작업 전에 확인하는 규칙이고, **형식 기준**(`master css·html`·`template-catalog`)은 중앙 허브부터

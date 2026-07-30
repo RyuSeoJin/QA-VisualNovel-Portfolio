@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 566" width="940" height="566" role="img" aria-labelledby="t d">
+<title id="t">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
+<desc id="d">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 낸다.</desc>
+<!--
+  CHANGELOG
+  v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
+
+  README.md는 이 파일을 이미지로 참조하고, index.html은 같은 마크업을
+  inline으로 품는다(자기완결 규칙). 수정 시 양쪽을 함께 갱신할 것.
+  색은 밝은 배경 기준으로 인라인 지정되어 있고, index.html에서는
+  클래스(grp/nd/t/s/pill/lbl/arrow)를 CSS로 덮어 다크 테마로 표시한다.
+-->
+<defs>
+<marker id="ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
+<marker id="ar-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b74d6"/></marker>
+<marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3987e5"/></marker>
+</defs>
+
+<rect class="grp-entry" x="70" y="14" width="800" height="92" rx="8" fill="#f7f8fa" stroke="#c4c9d0"/>
+<text class="t" x="88" y="36" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="13" font-weight="500" fill="#1f2328">진입점</text>
+<g class="nd-entry" fill="#e8eaed" stroke="#9aa0a6">
+<rect x="90" y="44" width="250" height="52" rx="6"/><rect x="350" y="44" width="250" height="52" rx="6"/><rect x="610" y="44" width="250" height="52" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="215" y="66" font-size="12.5" font-weight="500" fill="#1f2328">README.md</text>
+<text class="s" x="215" y="84" font-size="11.5" fill="#1f2328">저장소 소개</text>
+<text class="t" x="475" y="66" font-size="12.5" font-weight="500" fill="#1f2328">index.html</text>
+<text class="s" x="475" y="84" font-size="11.5" fill="#1f2328">중앙 허브</text>
+<text class="t" x="735" y="66" font-size="12.5" font-weight="500" fill="#1f2328">CLAUDE.md</text>
+<text class="s" x="735" y="84" font-size="11.5" fill="#1f2328">클로드 작업 규칙</text>
+</g>
+
+<rect class="grp-proc" x="70" y="140" width="200" height="390" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="86" y="162" font-size="12.5" font-weight="500" fill="#1f2328">절차 기준</text>
+<text class="s" x="86" y="179" font-size="11.5" fill="#57606a">project-process/</text>
+</g>
+<g class="nd-proc" fill="#e0eefb" stroke="#3987e5">
+<rect x="86" y="192" width="168" height="72" rx="6"/><rect x="86" y="278" width="168" height="72" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="170" y="222" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
+<text class="s" x="170" y="240" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
+<text class="t" x="170" y="308" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
+<text class="s" x="170" y="326" font-size="11.5" fill="#1f2328">방법론 · 운영 규칙</text>
+<text class="s" x="170" y="392" font-size="11.5" fill="#57606a">무엇을 하든</text>
+<text class="s" x="170" y="410" font-size="11.5" fill="#57606a">가장 먼저 확인</text>
+</g>
+
+<rect class="grp-form" x="300" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="316" y="162" font-size="12.5" font-weight="500" fill="#1f2328">형식 기준</text>
+<text class="s" x="316" y="179" font-size="11.5" fill="#57606a">design-guide/ · design-template/</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="316" y="190" width="238" height="44" rx="6"/><rect x="316" y="240" width="238" height="42" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="435" y="217" font-size="12.5" font-weight="500" fill="#1f2328">master css · html</text>
+<text class="t" x="435" y="266" font-size="12.5" font-weight="500" fill="#1f2328">template-catalog</text>
+</g>
+
+<rect class="grp-form" x="600" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="616" y="162" font-size="12.5" font-weight="500" fill="#1f2328">TC 생성 도구</text>
+<text class="s" x="616" y="179" font-size="11.5" fill="#57606a">design-template/ · project-process/scripts/</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="616" y="190" width="238" height="44" rx="6"/><rect x="616" y="240" width="238" height="42" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="735" y="217" font-size="12.5" font-weight="500" fill="#1f2328">tc-sheet-master.xlsx</text>
+<text class="t" x="735" y="266" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
+</g>
+
+<rect class="grp-out" x="300" y="360" width="570" height="170" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
+<text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/</text>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70">
+<rect x="316" y="412" width="172" height="72" rx="6"/><rect x="508" y="412" width="172" height="72" rx="6"/><rect x="700" y="412" width="154" height="72" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="402" y="442" font-size="12" font-weight="500" fill="#1f2328">reference/ · spec/</text>
+<text class="s" x="402" y="460" font-size="11.5" fill="#1f2328">참고 자료 · 기획서</text>
+<text class="t" x="594" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
+<text class="s" x="594" y="460" font-size="11.5" fill="#1f2328">골격 정리</text>
+<text class="t" x="777" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
+<text class="s" x="777" y="460" font-size="11.5" fill="#1f2328">TC 정리</text>
+</g>
+<path class="arrow" d="M492,448 H504" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow" d="M684,448 H696" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+
+<path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
+<rect class="pill" x="232" y="311" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
+<text class="lbl" x="286" y="324" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
+
+<path class="arrow" d="M435,140 V112" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="444" y="115" width="112" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="450" y="128" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">허브 · 템플릿 형식</text>
+
+<path class="arrow" d="M402,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="408" y="317" width="66" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="414" y="330" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">문서 형식</text>
+
+<path class="arrow" d="M777,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="783" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="789" y="330" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
+</svg>
