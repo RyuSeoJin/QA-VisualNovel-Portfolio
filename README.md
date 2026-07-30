@@ -1,10 +1,30 @@
 # QA-VisualNovel-Portfolio
 
-출시된 서비스와 기획서를 QA 관점에서 분석해 **기능 골격(Depth 트리) → 테스트 케이스(xlsx)**까지
-산출하는 QA 포트폴리오 워크스페이스입니다.
+여러 **미연시 AI 서비스를 분석**해서, 미연시 AI 관련 앱을 개발하게 될 때 실제로 진행할 법한
+**테스트 케이스를 만들어 내는 TC 자동 작성 포트폴리오**입니다.
 
 한 번 만들고 끝나는 산출물이 아니라, 기능이 바뀔 때마다 골격을 갱신하고 그 이력을 추적하는
 **살아있는 자산**으로 운영합니다. 이 저장소의 구조 자체가 그 운영 방식을 보여주도록 설계했습니다.
+
+📄 **문서 미리보기** — https://ryuseojin.github.io/QA-VisualNovel-Portfolio/
+(HTML 산출물은 GitHub에서 소스로 보이므로, 렌더링된 문서는 이 주소에서 확인하세요.)
+
+> **현재 상태** — 워크스페이스(규약·디자인 시스템·템플릿) 셋업 완료. 첫 프로젝트 분석 착수 전이라
+> `projects/`는 비어 있습니다.
+
+## 워크플로우
+
+TC를 자동으로 작성하기 위해 세 단계를 거칩니다.
+
+1. **레퍼런스 앱 분석** — 미연시 AI 서비스들을 수집·분해합니다. 확인되지 않은 값은 추측으로
+   채우지 않고 `?`로 남겨 실측 대상으로 관리합니다.
+2. **공통 기능 산출** — 분석한 서비스들이 공통으로 갖는 기능을 뽑아 Depth 계층의 기능 골격으로
+   정규화하고, 노드마다 검증유형(결정적·확률적·루브릭·금칙)을 판정합니다.
+3. **TC 산출** — 확정된 골격의 노드를 정상·경계·예외·우회로 전개해 실행용 TC 시트(xlsx)로 냅니다.
+
+각 단계 사이에는 **확인 게이트**가 있습니다. 문서를 쓰기 전에 아웃라인과 템플릿을 먼저 확인받고,
+**기능 골격이 최종 확정되기 전에는 TC 설계로 넘어가지 않습니다.** 골격이 흔들린 채 TC를 쓰면
+그 뒤의 모든 산출물을 다시 만들어야 하기 때문입니다.
 
 ## 구조
 
@@ -71,18 +91,73 @@ flowchart TB
 프로젝트 문서까지 모든 HTML 산출물의 형식을 결정하며, **TC 생성 도구**(`tc-sheet-master.xlsx`·`scripts/`)는
 TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.
 
-| 폴더 | 역할 |
-|---|---|
-| `project-process/` | 모든 작업이 따르는 절차·규칙. 파이프라인 절차서(`qa-doc-playbook.md`), 중앙 용어집 색인(`qa-dictionary.md`), 방법론·운영 규칙 정의(`rules/`), xlsx 생성 도구(`scripts/`) |
-| `design-guide/` | 디자인 일관성의 기준 — 스타일 정본 CSS + 시각 규칙서 HTML |
-| `design-template/` | 문서 포맷 템플릿(`NN-{템플릿명}.html`)과 판별 기준(`template-catalog.md`), TC 시트 기준 서식(`tc-sheet-master.xlsx`) |
-| `projects/{프로젝트}/` | 프로젝트별 산출물 — 허브·용어집·변경 이력·참고 자료(`reference/`)·기획서(`spec/`)·기능 골격(`analysis/`)·TC(`test-case/`) |
+## 폴더 구조
 
-## 워크플로우
+최상위 구성은 아래와 같습니다. 각 폴더를 펼치면 안에 무엇이 들어 있는지 볼 수 있습니다.
 
-1. **분석** — 대상(출시 서비스 또는 기획서)을 수집·분해합니다. 미확인 값은 추측으로 채우지 않고 `?`로 남깁니다.
-2. **골격** — 기능을 Depth 계층으로 정규화한 기능 트리를 세우고, 노드마다 검증유형(결정적·확률적·루브릭·금칙)을 판정합니다.
-3. **TC** — 골격이 확정되면 노드를 정상·경계·예외·우회로 전개해 실행용 TC 시트(xlsx)로 산출합니다.
+- [`README.md`](README.md) — 저장소 소개 (이 문서)
+- [`CLAUDE.md`](CLAUDE.md) — 작업 규칙 진입점. 정본 관리·참조 규칙·git 규칙이 여기 명문화되어 있습니다
+- [`index.html`](index.html) — 중앙 허브. 워크스페이스 문서와 프로젝트 목록으로 가는 진입점
+
+<details>
+<summary><a href="design-guide/"><code>design-guide/</code></a> — 디자인 일관성의 기준</summary>
+
+- [`design-guide-master.css`](design-guide/design-guide-master.css) — 색·타이포·컴포넌트 스타일의 정본
+- [`design-guide-master.html`](design-guide/design-guide-master.html) — 그 스타일이 실제로 어떻게 보이는지 확인하는 시각 규칙서 ([렌더링 보기](https://ryuseojin.github.io/QA-VisualNovel-Portfolio/design-guide/design-guide-master.html))
+
+새 디자인 요소가 필요하면 마스터를 임의로 고치지 않고, 판별 절차를 거쳐 버전을 올리는 방식으로만 추가합니다.
+
+</details>
+
+<details>
+<summary><a href="design-template/"><code>design-template/</code></a> — 문서 서식과 판별 기준</summary>
+
+- [`template-catalog.md`](design-template/template-catalog.md) — 템플릿 목록과 어떤 요청에 어떤 서식을 쓸지 판별하는 단일 소스
+- [`01-feature-tree.html`](design-template/01-feature-tree.html) — 기능 골격 트리·관계도 문서 서식
+- [`02-reverse-analysis.html`](design-template/02-reverse-analysis.html) — 출시 서비스 역분석 문서 서식
+- [`03-spec-analysis.html`](design-template/03-spec-analysis.html) — 기획서 분석 문서 서식
+- `tc-sheet-master.xlsx` — TC 시트 기준 서식. 내부 '명세서' 시트가 작성 규칙의 정본입니다 *(배치 예정)*
+
+</details>
+
+<details>
+<summary><a href="project-process/"><code>project-process/</code></a> — 모든 작업이 따르는 절차·방법론</summary>
+
+- [`qa-doc-playbook.md`](project-process/qa-doc-playbook.md) — 분석 → 골격 → TC 파이프라인 절차서. 확인 게이트와 체크리스트가 여기 있습니다
+- [`qa-dictionary.md`](project-process/qa-dictionary.md) — 중앙 용어집. 정의를 새로 쓰지 않고 정본 문서를 가리키는 색인입니다
+- [`rules/`](project-process/rules/) — 방법론·운영 규칙 정의
+  - [`depth-and-tn.md`](project-process/rules/depth-and-tn.md) — Depth 계층·TN 번호·우선순위
+  - [`verification-types.md`](project-process/rules/verification-types.md) — 검증유형과 PASS/FAIL 판정 규칙
+  - [`case-expansion.md`](project-process/rules/case-expansion.md) — 노드 하나를 정상·경계·예외·우회로 전개하는 규칙
+  - [`tc-relations.md`](project-process/rules/tc-relations.md) — 케이스 사이의 선행 관계와 실행 순서
+  - [`tc-sheet-format.md`](project-process/rules/tc-sheet-format.md) — TC 시트 컬럼·문체·수식
+  - [`html-report-guide.md`](project-process/rules/html-report-guide.md) — HTML 문서 디자인 규칙
+  - [`qa-git-rules.md`](project-process/rules/qa-git-rules.md) — 커밋·push·브랜치 운영 규칙
+- [`scripts/`](project-process/scripts/) — 정본에서 산출물을 찍어내는 도구
+  - [`parse_feature_tree.py`](project-process/scripts/parse_feature_tree.py) — 기능 골격 정본(md)을 구조 데이터로 변환
+  - [`build_tc_template_xlsx.py`](project-process/scripts/build_tc_template_xlsx.py) — TC 시트 생성
+  - [`norm.py`](project-process/scripts/norm.py) — Test-Step·Expected-Result 문체 정규화
+
+</details>
+
+<details>
+<summary><a href="projects/"><code>projects/{프로젝트}/</code></a> — 프로젝트별 산출물</summary>
+
+프로젝트가 생기면 아래 구성으로 만들어집니다.
+
+- `{프로젝트}-index.html` — 프로젝트 허브 (이 프로젝트의 문서 목록)
+- `{프로젝트}-dictionary.html` — 프로젝트 용어집 (고유명사 허용)
+- `{프로젝트}-change-log.md` — 문서 변경 이력. 작업 전 항상 먼저 읽는 파일
+- `reference/` — 참고 자료
+- `spec/` — 기획서
+- `analysis/` — 기능 골격 작업 공간
+  - `{프로젝트}-feature-tree.md` — **정본.** 손으로 고치는 유일한 파일
+  - `{프로젝트}-feature-tree.html` — 정본에서 재생성하는 트리 시각화 (직접 수정하지 않음)
+  - `{프로젝트}-analysis-change-log.md` — 골격 변경 이력. 평소에는 열지 않습니다
+  - `archive/` — 큰 개정 직전의 골격을 통째로 동결한 스냅샷
+- `test-case/` — 산출된 TC 엑셀 (기준 골격 버전 기록 + 이슈 관리 시트 내장)
+
+</details>
 
 ## 왜 이렇게 설계했나
 
@@ -95,13 +170,16 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 삭제·수정된 옛 기능 정보가 현재 작업에 섞여 들어오는 것을 막기 위해서입니다 — 참조 규칙이
 정반대인 두 기록을 한 파일에 두면 격리가 불가능합니다.
 
-**archive/ 동결 스냅샷.** TC 시트에는 "기준 골격 v1.0"이 기록되는데 정본은 계속 진화합니다.
-과거 TC를 검토하거나 롤백을 판단할 때 그 시점 골격 전체를 파일 하나로 대조할 수 있도록,
-큰 개정 직전의 정본을 통째로 동결해 둡니다.
-
 **TC 시트 규칙의 이중화.** 시트 작성 규칙은 md 문서(`rules/tc-sheet-format.md`)와 기준 xlsx의
 '명세서' 시트 양쪽에 두고 교차 검증합니다. 한 곳에서만 관리하다 잘못 수정되면 설계 전체가
 틀어지는 것을 막는 안전장치입니다.
+
+<details>
+<summary>나머지 설계 결정 (archive · 이슈 시트 · 용어집 · 골격 재사용 · 디자인 갱신)</summary>
+
+**archive/ 동결 스냅샷.** TC 시트에는 "기준 골격 v1.0"이 기록되는데 정본은 계속 진화합니다.
+과거 TC를 검토하거나 롤백을 판단할 때 그 시점 골격 전체를 파일 하나로 대조할 수 있도록,
+큰 개정 직전의 정본을 통째로 동결해 둡니다.
 
 **이슈 관리 시트 내장.** 실무 정석은 JIRA 같은 트래커 분리 운영이지만, 이 저장소는 포트폴리오
 열람 편의를 위해 TC와 이슈 흐름을 한 파일에서 볼 수 있도록 xlsx 안에 이슈 관리 시트를 내장했습니다.
@@ -115,6 +193,8 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 
 **디자인은 승인 갱신만.** 문서가 늘어도 디자인이 일관되도록, 새 디자인 요소는 템플릿
 카탈로그의 판별 절차(Case A/B/C)를 거쳐 마스터를 버전 갱신하는 방식으로만 추가됩니다.
+
+</details>
 
 ## 방법론 핵심
 

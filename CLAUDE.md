@@ -52,6 +52,7 @@
 
 - HTML 산출물(분석 문서·허브·용어집·feature-tree.html)은 생성 시점의 마스터 CSS를 `<style>`에 **inline한 자기완결 단일 파일**로 만든다(단독 열람 보장). 기준 마스터 버전을 파일 상단 CHANGELOG 주석과 footer에 기록한다.
 - `<link>` 참조는 디자인 규칙서(design-guide-master.html, design-template의 템플릿)에만 허용한다.
+- **GitHub Pages 링크 규칙** — 이 저장소는 Pages로 공개된다(https://ryuseojin.github.io/QA-VisualNovel-Portfolio/). Pages에서 `.md`는 원본 텍스트로 뜨고 폴더 경로는 404가 되므로, HTML 문서 안에서 **md·폴더로 거는 링크는 GitHub 저장소 절대 URL**(`https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob|tree/main/…`)로, **HTML 문서 링크는 상대 경로**로 적는다.
 - HTML은 만들고 나서 렌더해 눈으로 확인한다 — 콘솔 에러 0, 라벨 충돌·글자 깨짐 없음.
 
 ## 저작권 게이트 (필수)
