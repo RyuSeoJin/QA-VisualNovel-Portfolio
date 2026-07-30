@@ -1,0 +1,34 @@
+# qa-dictionary — 중앙 용어집 (색인)
+
+범용 QA 용어의 색인. **정의를 새로 쓰는 곳이 아니다** — 용어 + 한 줄 요약 + 정의가 사는 정본 문서를 가리킨다. 정의가 두 군데 존재하면 어긋나므로, 상세는 반드시 정본 문서에서 확인한다.
+
+프로젝트 고유명사는 여기 두지 않는다 → 각 프로젝트의 `{프로젝트}-dictionary.html`. 배치 기준: "정의 문장에서 프로젝트 이름을 지워도 성립하는가?"
+
+| 용어 | 한 줄 요약 | 정본 |
+|---|---|---|
+| Depth | 기능 트리의 계층. 화면→영역→구성 요소→세부 순으로 내려가며, 의미 있는 깊이까지만 쓴다 | `rules/depth-and-tn.md` |
+| TN (테스트 넘버링) | 한 케이스 **안**의 스텝 번호. 마지막 Depth에서 이어지는 동작을 1→2→3으로 눕힌 것. 케이스 사이의 순서가 아니다 | `rules/depth-and-tn.md` |
+| Pre-Condition | 케이스 실행의 전제 상태(로그인·구독·플랫폼 등). 상태는 Depth로 쪼개지 않고 여기로 흡수한다 | `rules/depth-and-tn.md` |
+| 지원 표기 (O/X/△/?) | 노드별 지원 여부. O 확인 / X 미지원 확인 / △ 부분·조건부 / ? 미확인(실측 필요) | `rules/depth-and-tn.md` |
+| 우선순위 (High/Medium/Low) | 케이스의 속성(스텝 아님). High는 금전·보호·유실·중단·법규 축 | `rules/depth-and-tn.md` |
+| 검증유형 | 모든 TC가 갖는 판정 방식 분류 — 결정적·확률적·루브릭·금칙. 유형이 반복 횟수와 판정 규칙을 결정한다 | `rules/verification-types.md` |
+| 결정적 (Deterministic) | LLM 출력과 무관하게 시스템이 보장해야 하는 값·상태 전이. 1회 실행, 불일치 즉 FAIL | `rules/verification-types.md` |
+| 확률적 (Probabilistic) | 출력 품질에 의존하나 통계 임계로 관리 가능한 항목. N회 반복 후 성공률을 임계와 비교 | `rules/verification-types.md` |
+| 루브릭 (Rubric) | 정량화 어려운 품질을 5점 루브릭으로 채점. 기본 합격선 4점 | `rules/verification-types.md` |
+| 금칙 (Prohibited) | 단 1건도 발생하면 안 되는 항목. 우회 변형 포함 다회 시도, 0건이어야 PASS | `rules/verification-types.md` |
+| 케이스 전개 | 트리 노드 하나를 정상·경계·예외·우회 네 갈래로 TC로 펼치는 규칙 | `rules/case-expansion.md` |
+| 경계값 (Boundary) | 수치 제약마다 경계-1/경계/경계+1 세 점을 찍는 전개. 등호 포함 여부 확인 필수 | `rules/case-expansion.md` |
+| TC 관계도 | 케이스 **사이**의 선행·실행 순서 층위(test dependency). TN과 다른 층위다 | `rules/tc-relations.md` |
+| 실행 단계 | 선행을 루트까지 거슬러 올라간 깊이. 깊을수록 실행 비용이 높다 | `rules/tc-relations.md` |
+| Blocked | 선행 케이스가 Fail이라 실행 불가한 상태. Fail로 적으면 결함이 과대 계상된다. Pass율 분모에서 제외 | `rules/tc-relations.md` |
+| 한 행 = 한 TN = 한 스텝 | TC 시트의 핵심 배치 규칙. Depth는 행마다 반복, Pre-Condition·Priority는 TN 1행에만 | `rules/tc-sheet-format.md` |
+| Total Result | 케이스의 여러 스텝 Result를 Fail 우선으로 요약하는 수식 열 | `rules/tc-sheet-format.md` |
+| 명세서 시트 | `tc-sheet-master.xlsx` 안의 서식 규칙 정본 시트. `tc-sheet-format.md`와 교차 검증하는 짝 | `CLAUDE.md` §TC 시트 규칙 |
+| 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `analysis/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |
+| 정본 / 파생 | 손으로 고치는 유일한 파일(정본)과 거기서 재생성되는 출력물(파생). 파생은 직접 수정 금지 | `CLAUDE.md` §정본과 파생 |
+| archive | major 개정 직전의 골격 전체를 동결 보관하는 폴더. 기본 참조 금지 | `CLAUDE.md` §change-log 참조 규칙 |
+| change-log 이원화 | 문서 이력(항상 먼저 읽음)과 골격 이력(기본 참조 금지)을 분리하는 규칙 | `CLAUDE.md` §change-log 참조 규칙 |
+| 미확인 목록 | 정본 안의 `?` 항목 모음. 추측으로 채우지 않고 실측으로 확정하는 대기열 | `qa-doc-playbook.md` STEP 5 |
+| Case A/B/C | 문서 제작 시 템플릿 판별 3분류 — 기존 템플릿 / 마스터 갱신 필요 / 신규 템플릿 필요 | `design-template/template-catalog.md` |
+| 골격 재사용 | 신규 프로젝트가 기존 프로젝트 골격에서 선택분만 복사해 시작하는 절차. 복사 후 완전 독립 | `qa-doc-playbook.md` §신규 프로젝트 시작 절차 |
+| 커밋 승인 플로우 | 커밋은 사용자 요청 시 제목·본문·브랜치 제시 → 승인 후 수행. push는 별도 승인 | `rules/qa-git-rules.md` |

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QA-VisualNovel-Portfolio — 중앙 허브</title>
+<!-- ============================================================
+  CHANGELOG
+  v1.0 (2026-07-31) 최초 수립 — 중앙 허브. 워크스페이스 문서·프로젝트
+    목록만 담는다(용어집은 project-process/qa-dictionary.md).
+  기준 디자인: design-guide-master v1.0 (아래 <style>에 스냅샷 inline)
+  ============================================================ -->
+<style>
+/* ==== design-guide-master.css v1.0 스냅샷 ==== */
+:root{
+  --page:#0d0d0d;--surface:#16161a;--surface-2:#1c1c21;
+  --ink:#f4f4f5;--ink-2:#c3c2b7;--muted:#898781;
+  --grid:#2c2c2a;--axis:#383835;--hair:rgba(255,255,255,.10);
+  --accent:#818cf8;--accent-dim:#4f46e5;
+  --cat-1:#3987e5;--cat-2:#d95926;--cat-3:#199e70;--cat-4:#c98500;
+  --ok:#34d399;--no:#f87171;--part:#fbbf24;--unk:#9ca3af;
+  --ok-bg:rgba(52,211,153,.14);--no-bg:rgba(248,113,113,.14);
+  --part-bg:rgba(251,191,36,.14);--unk-bg:rgba(156,163,175,.14);
+  --pri-high:#f87171;--pri-mid:#fbbf24;--pri-low:#9ca3af;
+  --vt-det:#3987e5;--vt-prob:#c98500;--vt-rub:#199e70;--vt-ban:#e24b4a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:26px;line-height:1.35;margin:0 0 8px}
+h2{font-size:19px;margin:48px 0 12px;padding-left:12px;border-left:3px solid var(--accent)}
+h3{font-size:16px;margin:28px 0 8px;color:var(--ink)}
+p{margin:8px 0;color:var(--ink-2)}
+strong{color:var(--ink)}
+small,.foot{color:var(--muted);font-size:12.5px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:var(--surface-2);border:1px solid var(--grid);border-radius:4px;
+  padding:1px 6px;font-size:13px;font-family:ui-monospace,Consolas,monospace;color:var(--ink)}
+.doc-header{padding:8px 0 20px;border-bottom:1px solid var(--grid);margin-bottom:8px}
+.doc-lead{color:var(--ink-2);max-width:72ch}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{display:inline-block;background:var(--surface);border:1px solid var(--hair);
+  border-radius:999px;padding:3px 12px;font-size:12.5px;color:var(--ink-2)}
+.badge b{color:var(--ink);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:20px;margin:14px 0}
+.card h3{margin-top:0}
+.tbl-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:10px;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+thead th{background:var(--surface-2);color:var(--ink-2);text-align:left;
+  padding:9px 12px;position:sticky;top:0;white-space:nowrap;font-weight:600}
+tbody td{padding:8px 12px;border-top:1px solid var(--grid);color:var(--ink-2);vertical-align:top}
+tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
+.callout{border-left:3px solid var(--accent);background:var(--surface);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--ink-2)}
+.doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
+  color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-header">
+  <h1>QA-VisualNovel-Portfolio — 중앙 허브</h1>
+  <p class="doc-lead">이 워크스페이스의 모든 문서와 프로젝트로 가는 진입점.
+  분석 → 기능 골격(Depth 트리) → 테스트 케이스(xlsx) 파이프라인으로 산출물을 만든다.</p>
+  <div class="meta-row">
+    <span class="badge">디자인 기준 <b>design-guide-master v1.0</b></span>
+    <span class="badge">용어집 <b>project-process/qa-dictionary.md</b></span>
+  </div>
+</header>
+
+<h2>워크스페이스 문서</h2>
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>문서</th><th>역할</th></tr></thead>
+  <tbody>
+    <tr><td><a href="project-process/qa-doc-playbook.md">qa-doc-playbook.md</a></td><td>분석→골격→TC 파이프라인 절차서 (확인 게이트 · 체크리스트)</td></tr>
+    <tr><td><a href="project-process/qa-dictionary.md">qa-dictionary.md</a></td><td>중앙 용어집 색인 — 범용 QA 용어와 정의가 사는 정본 문서 안내</td></tr>
+    <tr><td><a href="project-process/rules/">rules/</a></td><td>방법론·운영 규칙 정의 (Depth·TN, 검증유형, 케이스 전개, 관계도, 시트 서식, git 규칙 등)</td></tr>
+    <tr><td><a href="design-guide/design-guide-master.html">design-guide-master.html</a></td><td>디자인 시각 규칙서 (스타일 정본은 design-guide-master.css)</td></tr>
+    <tr><td><a href="design-template/template-catalog.md">template-catalog.md</a></td><td>문서 템플릿 목록 + Case A/B/C 판별 기준</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>프로젝트</h2>
+<div class="callout">아직 등록된 프로젝트가 없다. 첫 프로젝트가 시작되면 이 표에 행이 추가된다
+(프로젝트당 행 1개 — 상세 목록은 각 프로젝트 허브가 담당).</div>
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>프로젝트</th><th>허브</th><th>골격 버전</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr><td colspan="4">—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer class="doc-footer">
+  QA-VisualNovel-Portfolio 중앙 허브 v1.0 · design-guide-master v1.0 스냅샷 ·
+  문서를 만들 때마다 이 허브를 갱신한다 (CLAUDE.md §트랙별 허브 갱신)
+</footer>
+
+</div>
+</body>
+</html>
