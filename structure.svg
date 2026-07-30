@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 566" width="940" height="566" role="img" aria-labelledby="t d">
 <title id="t">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
-<desc id="d">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 낸다.</desc>
+<desc id="d">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다.</desc>
 <!--
   CHANGELOG
   v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
