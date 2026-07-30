@@ -12,26 +12,64 @@
 flowchart TB
     subgraph entry["진입점"]
         direction LR
-        R["README.md<br/>저장소 소개"] ~~~ I["index.html<br/>중앙 허브"] ~~~ C["CLAUDE.md<br/>작업 규칙"]
+        RM["README.md<br/>저장소 소개"]
+        IX["index.html<br/>중앙 허브"]
+        CL["CLAUDE.md<br/>클로드 작업 규칙"]
     end
-    subgraph base["작업 기준"]
+
+    subgraph proc["절차 기준 — project-process/"]
         direction LR
-        subgraph pp["project-process/ — 규약·방법론"]
-            direction LR
-            PB["qa-doc-playbook<br/>절차·확인 게이트"] ~~~ RU["rules/<br/>방법론·운영 규칙 정의"] ~~~ SC["scripts/<br/>xlsx 생성 도구"]
-        end
-        subgraph ds["design-guide/ · design-template/ — 디자인 시스템"]
-            direction LR
-            MG["master css·html<br/>스타일 정본"] ~~~ TC["template-catalog<br/>템플릿 판별"] ~~~ XL["tc-sheet-master.xlsx<br/>TC 기준 서식"]
-        end
+        PB["qa-doc-playbook<br/>절차 확인 문서"]
+        RU["rules/<br/>방법론 · 운영 규칙 정의"]
     end
-    subgraph proj["projects/{프로젝트}/ — 프로젝트 산출물"]
+
+    subgraph form["형식 기준 — design-guide/ · design-template/"]
         direction LR
-        SP["reference/ · spec/<br/>참고 자료·기획서"] --> AN["analysis/<br/>기능 골격 정본"] --> TCF["test-case/<br/>TC xlsx"]
+        MS["master css · html<br/>HTML 디자인 스타일"]
+        TP["template-catalog<br/>카테고리별 템플릿 선정"]
     end
-    entry ~~~ base
-    base -->|"규약·디자인 기준 적용"| proj
+
+    subgraph tool["TC 생성 도구 — design-template/ · project-process/scripts/"]
+        direction LR
+        XL["tc-sheet-master.xlsx<br/>TC 기준 엑셀 서식"]
+        SC["scripts/<br/>엑셀 생성 도구"]
+    end
+
+    subgraph out["프로젝트별 산출물 — projects/"]
+        direction LR
+        RS["reference/ · spec/<br/>참고 자료 · 기획서"]
+        AN["analysis/<br/>골격 정리"]
+        TS["test-case/<br/>TC 정리"]
+    end
+
+    RS --> AN --> TS
+
+    proc -.->|"모든 작업에 적용"| out
+    form -->|"허브 · 템플릿 형식"| IX
+    form -->|"문서 형식"| RS
+    tool -->|"TC 엑셀 생성"| TS
+
+    classDef entryNode fill:#e8eaed,stroke:#9aa0a6,color:#1f2328
+    classDef procNode fill:#e0eefb,stroke:#3987e5,color:#1f2328
+    classDef designNode fill:#e3e9fd,stroke:#6b74d6,color:#1f2328
+    classDef outNode fill:#d9f2e6,stroke:#199e70,color:#1f2328
+
+    class RM,IX,CL entryNode
+    class PB,RU procNode
+    class MS,TP,XL,SC designNode
+    class RS,AN,TS outNode
+
+    style entry fill:#f7f8fa,stroke:#c4c9d0,color:#1f2328
+    style proc fill:#f0f7fd,stroke:#3987e5,color:#1f2328
+    style form fill:#f2f5fe,stroke:#6b74d6,color:#1f2328
+    style tool fill:#f2f5fe,stroke:#6b74d6,color:#1f2328
+    style out fill:#eef9f4,stroke:#199e70,color:#1f2328
 ```
+
+관계는 세 종류로 묶여 있습니다. **절차 기준**(`qa-doc-playbook`·`rules/`)은 특정 산출물이 아니라
+모든 작업 전에 확인하는 규칙이고, **형식 기준**(`master css·html`·`template-catalog`)은 중앙 허브부터
+프로젝트 문서까지 모든 HTML 산출물의 형식을 결정하며, **TC 생성 도구**(`tc-sheet-master.xlsx`·`scripts/`)는
+TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.
 
 | 폴더 | 역할 |
 |---|---|
