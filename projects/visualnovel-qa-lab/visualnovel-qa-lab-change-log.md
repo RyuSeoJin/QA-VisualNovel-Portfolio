@@ -2,8 +2,8 @@
 
 작업 전 **항상 먼저 읽는 파일**입니다. 현재 상태와 확정된 결정, 남은 작업이 여기 있습니다.
 
-골격 이력(`spec/visualnovel-qa-lab-tree-change-log.md`)과 `spec/archive/`·`test-case/archive/`는
-기본 참조 금지입니다. 특정 기능의 행방을 물을 때만 엽니다.
+`spec/archive/`와 `test-case/archive/`는 기본 참조 금지입니다. 골격 이력
+(`visualnovel-qa-lab-tree-change-log.md`)도 그 안에 있습니다. 특정 기능의 행방을 물을 때만 엽니다.
 
 ---
 
@@ -53,21 +53,25 @@
 
 ## 확정된 결정
 
-### 폴더 체계 (커밋 완료 — `ef12178`)
+### 폴더 체계 (규칙 정의 완료 — `ef12178`)
+
+폴더 자체는 첫 산출물과 함께 만들어집니다. git이 빈 폴더를 담지 못하므로 현재 실재하는 것은
+`analysis/` 하나입니다.
 
 ```
 projects/visualnovel-qa-lab/
-├─ analysis/     조사 전량 — 버리지 않고 모음
-├─ reference/    채택분 — 쓰기로 고른 것들의 구체 사양
-├─ spec/         확정 결정 — 정본이 사는 곳. TC 기대값은 여기서만
-│   └─ archive/  기본 참조 금지
-├─ test-case/    설계 원본 json + 설계 시트 xlsx
-│   └─ archive/  기본 참조 금지
-├─ sut/          테스트 대상 (HTML 미연시)
+├─ analysis/        조사 전량 — 버리지 않고 모음
+├─ reference/       채택분 — 쓰기로 고른 것들의 구체 사양
+├─ spec/            확정 결정 — 정본이 사는 곳. TC 기대값은 여기서만
+│   ├─ rationale/   근거 — 참조 자유
+│   └─ archive/     골격 이력 + 동결 스냅샷 — 기본 참조 금지
+├─ test-case/       설계 원본 json + 설계 시트 xlsx
+│   └─ archive/     기본 참조 금지
+├─ sut/             테스트 대상 (HTML 미연시)
 └─ automation/
-    ├─ tests/    테스트 코드
-    ├─ report/   리포트 HTML (Pages 공개)
-    └─ result/   결과 시트
+    ├─ tests/       테스트 코드
+    ├─ report/      리포트 HTML (Pages 공개)
+    └─ result/      결과 시트
         └─ history/   지난 결과 — 열람 자유
 ```
 
@@ -79,15 +83,24 @@ projects/visualnovel-qa-lab/
 | 파일 | 성격 | 커밋 |
 |---|---|---|
 | `spec/…-feature-tree.md` | **골격 정본** — 손으로 고치는 유일한 파일 | 필수 |
-| `spec/…-tree-change-log.md` | 골격 변경 이력 | 필수 (기본 참조 금지) |
+| `spec/rationale/…-addition-rationale.md` | **판단 기록** — 조사로 방어되지 않는 부분의 근거 | 필수 |
+| `spec/archive/…-tree-change-log.md` | 골격 변경 이력 | 필수 (기본 참조 금지) |
 | `nodes.json` | 순수 중간물 — 명령 한 줄로 재생성, 결과 항상 같음 | **불필요** (`.gitignore`) |
 | `test-case/…-tc-input-v{X.Y}.json` | **TC 설계 원본** — 케이스 전개라는 사람의 판단이 들어감 | 필수 |
 | `test-case/…-tc-v{X.Y}.xlsx` | 파생 (배포물) | 필수 |
 | `automation/report/`, `result/` | 파생 (대표 1부만) | 필수 |
 
 정본에 **`REF`/`ADD` 컬럼**을 둡니다. `REF`는 레퍼런스에서 채택한 것, `ADD`는 레퍼런스에 없어
-직접 정한 보강분입니다. `ADD` 항목의 근거는 `spec/…-addition-rationale.md`에 모읍니다.
-`spec/`은 하위 폴더 없이 평면으로 씁니다(문서 15개 넘고 두 부류가 안 섞일 때 재검토).
+직접 정한 보강분입니다. 근거는 `spec/rationale/visualnovel-qa-lab-addition-rationale.md`에 모으고,
+노드를 세운 근거(**§1 노드 보강**)와 값이 공개되지 않아 직접 정한 수치의 근거(**§2 수치 확정**)를
+섹션으로 나눕니다. 면접에서 가장 많이 받을 질문이 "그 숫자는 왜 그렇게 정했나요?"이므로 §2를 함께
+모읍니다.
+
+**`spec/` 평면에는 확정안만 둡니다** (2026-07-31 변경 — 하위 폴더 없는 평면 구조에서 참조 규칙별
+분리로). 파일마다 열어도 되는지를 외우면 실수로 옛 정보를 끌어오게 되므로, 근거는 `rationale/`,
+지나간 상태는 `archive/`로 갈라 폴더 이름이 곧 참조 규칙이 되게 했습니다. `history/`라는 이름은
+쓰지 않습니다 — `automation/result/history/`가 열람 자유를 뜻해 같은 이름이 상반된 규칙을 갖게
+됩니다.
 
 ### 파일명 규칙
 
@@ -240,7 +253,7 @@ SUT에 시스템을 하나 더 만들어야 합니다. **계정/인증**은 뺐�
 |---|---|
 | 오전 | **`data-testid` 명명 규칙을 먼저 확정** → SUT 골격(화면 전환·대화·선택지) |
 | 오후 | 상태 시스템(호감도·관계 단계·세이브 슬롯·재화), mock LLM, 연령 게이팅 |
-| 저녁 | 결함 주입 스위치, `addition-rationale.md`, **브라우저 콘솔에서 `__VN__` 직접 호출해 손으로 검증** |
+| 저녁 | 결함 주입 스위치, `addition-rationale.md` 마감(적립은 골격·명세 작업 중에 한 줄씩), **브라우저 콘솔에서 `__VN__` 직접 호출해 손으로 검증** |
 
 명명 규칙을 뒤로 미루면 Day 3에 셀렉터가 깨져 하루가 날아갑니다. 저녁의 수동 검증을 해두면
 테스트가 실패했을 때 원인이 SUT인지 테스트 코드인지 바로 갈립니다.
@@ -291,4 +304,7 @@ SUT에 시스템을 하나 더 만들어야 합니다. **계정/인증**은 뺐�
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-31 | 문장 구조 규칙이 doc-write-style.md에만 있어 커밋 작성 시 놓쳤으므로, qa-git-rules.md에 사유 항목의 이유 → 작업 → 결과 순서(§3)와 원인이 다른 작업을 한 커밋에 담을 때 본문에서 단위를 나눠 적는 규칙(§2)을 추가 |
+| 2026-07-31 | 승인한 안과 산출물이 갈라지지 않도록 CLAUDE.md에 §수정 범위 규칙 신설 — 요청 범위를 벗어나는 수정은 적용하지 않고 근거를 담아 제안. 이번 작업에서 승인 없이 진행한 두 건(폴더 이름 변경, 폴더 체계 표현 수정)이 계기 |
+| 2026-07-31 | `spec/` 하위를 참조 규칙 기준으로 분리 — 근거는 `rationale/`, 골격 이력과 동결 스냅샷은 `archive/`. `addition-rationale.md`가 담을 내용을 §1 노드 보강·§2 수치 확정으로 확정. CLAUDE.md·qa-doc-playbook·qa-dictionary·qa-git-rules·README에 반영 |
 | 2026-07-31 | 프로젝트 스캐폴드 생성. AI 챗 3사 공통 트리를 `project-process/rules/`에서 `analysis/`로 이관(별도 시드 파일을 두지 않는다는 playbook 규칙 이행). 워크스페이스 폴더 체계를 조사→채택→확정 3단으로 재정의하고 정본을 `spec/`으로 이동 — 상세는 커밋 `ef12178`~`adf4fb8` |

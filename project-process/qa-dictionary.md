@@ -26,8 +26,9 @@
 | 명세서 시트 | `tc-sheet-master.xlsx` 안의 서식 규칙 정본 시트. `tc-sheet-format.md`와 교차 검증하는 짝 | `CLAUDE.md` §TC 시트 규칙 |
 | 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `spec/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |
 | 정본 / 파생 | 손으로 고치는 유일한 파일(정본)과 거기서 재생성되는 출력물(파생). 파생은 직접 수정 금지 | `CLAUDE.md` §정본과 파생 |
-| archive | major 개정 직전의 골격 전체를 동결 보관하는 폴더. 기본 참조 금지 | `CLAUDE.md` §change-log 참조 규칙 |
-| change-log 이원화 | 문서 이력(항상 먼저 읽음)과 골격 이력(기본 참조 금지)을 분리하는 규칙 | `CLAUDE.md` §change-log 참조 규칙 |
+| archive | 지나간 상태를 격리 보관하는 폴더. 골격 이력과 major 개정 직전의 동결 스냅샷이 함께 들어가며, 기본 참조 금지 | `CLAUDE.md` §참조 규칙 |
+| rationale | 확정안의 근거를 모으는 폴더. 레퍼런스에 없어 직접 세운 노드와 직접 정한 수치의 판단 과정이 들어가며, 참조 자유 | `qa-doc-playbook.md` STEP 5 |
+| change-log 이원화 | 문서 이력(항상 먼저 읽음)과 골격 이력(기본 참조 금지)을 분리하는 규칙 | `CLAUDE.md` §참조 규칙 |
 | 미확인 목록 | 정본 안의 `?` 항목 모음. 추측으로 채우지 않고 실측으로 확정하는 대기열 | `qa-doc-playbook.md` STEP 5 |
 | Case A/B/C | 문서 제작 시 템플릿 판별 3분류 — 기존 템플릿 / 마스터 갱신 필요 / 신규 템플릿 필요 | `design-template/template-catalog.md` |
 | 골격 재사용 | 신규 프로젝트가 기존 프로젝트 골격에서 선택분만 복사해 시작하는 절차. 복사 후 완전 독립 | `qa-doc-playbook.md` §신규 프로젝트 시작 절차 |
