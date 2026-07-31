@@ -144,9 +144,9 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 프로젝트 문서까지 모든 HTML 산출물의 형식을 정하며, TC 생성 도구는 TC 엑셀을 만들어 냅니다.
 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.</p>
 <div class="card">
-<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 566" role="img" aria-labelledby="sdt sdd">
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 650" role="img" aria-labelledby="sdt sdd">
 <title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
-<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다.</desc>
+<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나옵니다.</desc>
 <defs>
 <marker id="ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
 <marker id="ar-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b74d6"/></marker>
@@ -177,7 +177,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="t" x="170" y="222" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
 <text class="s" x="170" y="240" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
 <text class="t" x="170" y="308" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
-<text class="s" x="170" y="326" font-size="11.5" fill="#1f2328">방법론 · 운영 규칙</text>
+<text class="s" x="170" y="326" font-size="11.5" fill="#1f2328">방법론 · 운영 · 자동화 규칙</text>
 <text class="s" x="170" y="392" font-size="11.5" fill="#57606a">무엇을 하든</text>
 <text class="s" x="170" y="410" font-size="11.5" fill="#57606a">가장 먼저 확인</text>
 </g>
@@ -204,22 +204,37 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="t" x="735" y="266" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
 </g>
 
-<rect class="grp-out" x="300" y="360" width="570" height="170" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<rect class="grp-out" x="300" y="360" width="570" height="252" rx="8" fill="#eef9f4" stroke="#199e70"/>
 <text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
 <text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/</text>
 <g class="nd-out" fill="#d9f2e6" stroke="#199e70">
-<rect x="316" y="412" width="172" height="72" rx="6"/><rect x="508" y="412" width="172" height="72" rx="6"/><rect x="700" y="412" width="154" height="72" rx="6"/>
+<rect x="316" y="412" width="118" height="68" rx="6"/><rect x="456" y="412" width="118" height="68" rx="6"/><rect x="596" y="412" width="118" height="68" rx="6"/><rect x="736" y="412" width="118" height="68" rx="6"/>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70" stroke-dasharray="4 3">
+<rect x="596" y="534" width="118" height="46" rx="6"/><rect x="736" y="534" width="118" height="46" rx="6"/>
 </g>
 <g text-anchor="middle">
-<text class="t" x="402" y="442" font-size="12" font-weight="500" fill="#1f2328">reference/ · spec/</text>
-<text class="s" x="402" y="460" font-size="11.5" fill="#1f2328">참고 자료 · 기획서</text>
-<text class="t" x="594" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
-<text class="s" x="594" y="460" font-size="11.5" fill="#1f2328">골격 정리</text>
-<text class="t" x="777" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
-<text class="s" x="777" y="460" font-size="11.5" fill="#1f2328">TC 정리</text>
+<text class="t" x="375" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
+<text class="s" x="375" y="460" font-size="11.5" fill="#1f2328">조사 전량</text>
+<text class="t" x="515" y="442" font-size="12" font-weight="500" fill="#1f2328">reference/</text>
+<text class="s" x="515" y="460" font-size="11.5" fill="#1f2328">채택분</text>
+<text class="t" x="655" y="442" font-size="12" font-weight="500" fill="#1f2328">spec/</text>
+<text class="s" x="655" y="460" font-size="11.5" fill="#1f2328">확정 · 정본</text>
+<text class="t" x="795" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
+<text class="s" x="795" y="460" font-size="11.5" fill="#1f2328">TC 시트</text>
+<text class="t" x="655" y="562" font-size="12" font-weight="500" fill="#1f2328">sut/</text>
+<text class="t" x="795" y="562" font-size="12" font-weight="500" fill="#1f2328">automation/</text>
 </g>
-<path class="arrow arrow-gray" d="M492,448 H504" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
-<path class="arrow arrow-gray" d="M684,448 H696" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>
+<text class="lbl" x="444" y="513" text-anchor="middle" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
+<text class="s" x="316" y="600" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<path class="arrow arrow-gray" d="M438,446 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M578,446 H590" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M718,446 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M548,509 L612,486" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M655,480 V528" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M795,480 V528" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M718,557 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 
 <path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
 <rect class="pill" x="284" y="303" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
@@ -229,13 +244,13 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <rect class="pill" x="444" y="115" width="112" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
 <text class="lbl" x="450" y="128" font-size="11.5" fill="#1f2328">허브 · 템플릿 형식</text>
 
-<path class="arrow" d="M402,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
-<rect class="pill" x="408" y="317" width="66" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
-<text class="lbl" x="414" y="330" font-size="11.5" fill="#1f2328">문서 형식</text>
+<path class="arrow" d="M435,290 V354" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="441" y="313" width="66" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="447" y="326" font-size="11.5" fill="#1f2328">문서 형식</text>
 
-<path class="arrow" d="M777,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
-<rect class="pill" x="783" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
-<text class="lbl" x="789" y="330" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
+<path class="arrow" d="M795,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="801" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="807" y="330" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
 </svg>
 </div>
 
