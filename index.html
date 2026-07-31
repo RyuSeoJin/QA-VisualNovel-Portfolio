@@ -86,7 +86,8 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 .step .body b{color:var(--ink)}
 .doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
   color:var(--muted);font-size:12.5px}
-/* ==== 구조도 — structure.svg 인라인 사본을 다크 테마로 덮어쓴다 (수정 시 양쪽 동기화) ==== */
+/* ==== 구조도 — structure.svg 인라인 사본을 다크 테마로 덮어쓴다
+   (정본은 structure.svg. 마커 사이는 scripts/inline_structure_svg.py로만 갱신) ==== */
 .sd{width:100%;height:auto;display:block}
 .sd .grp-entry{fill:#131316;stroke:#3a3a3f}
 .sd .nd-entry{fill:#1c1c21;stroke:#565660}
@@ -144,9 +145,29 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 프로젝트 문서까지 모든 HTML 산출물의 형식을 정하며, TC 생성 도구는 TC 엑셀을 만들어 냅니다.
 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.</p>
 <div class="card">
-<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 650" role="img" aria-labelledby="sdt sdd">
+<!-- STRUCTURE-SVG:START — 정본은 structure.svg. 직접 고치지 말고 inline_structure_svg.py로 주입할 것 -->
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 650" width="940" height="650" role="img" aria-labelledby="sdt sdd">
 <title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
 <desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나옵니다.</desc>
+<!--
+  CHANGELOG
+  v1.2 (2026-07-31) spec/의 두 번째 입력(보강·ADD)을 추가. rules/에 자동화 규칙 포함 표기.
+  v1.1 (2026-07-31) 프로젝트 산출물 행을 조사→채택→확정 파이프라인으로 재배치.
+                    sut/·automation/을 조건부 행으로 분리.
+  v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
+
+  이 파일이 구조도의 정본이다. README.md는 이미지로 참조하고, index.html은
+  자기완결 규칙 때문에 같은 마크업을 inline으로 품는다. index.html 쪽은 파생이므로
+  직접 고치지 말고 아래 도구로 주입한다.
+
+      python project-process/scripts/inline_structure_svg.py          # 주입
+      python project-process/scripts/inline_structure_svg.py --check  # 동기 확인
+
+  index.html에 그대로 들어가도록 root에 class="sd"를 달고 id를 sdt/sdd로 맞춰 두었다.
+  width/height는 index.html의 .sd{width:100%;height:auto}가 덮으므로 남겨 둔다.
+  색은 밝은 배경 기준으로 인라인 지정되어 있고, index.html에서는
+  클래스(grp/nd/t/s/pill/lbl/arrow)를 CSS로 덮어 다크 테마로 표시한다.
+-->
 <defs>
 <marker id="ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
 <marker id="ar-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b74d6"/></marker>
@@ -154,11 +175,11 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 </defs>
 
 <rect class="grp-entry" x="70" y="14" width="800" height="92" rx="8" fill="#f7f8fa" stroke="#c4c9d0"/>
-<text class="t" x="88" y="36" font-size="13" font-weight="500" fill="#1f2328">진입점</text>
+<text class="t" x="88" y="36" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="13" font-weight="500" fill="#1f2328">진입점</text>
 <g class="nd-entry" fill="#e8eaed" stroke="#9aa0a6">
 <rect x="90" y="44" width="250" height="52" rx="6"/><rect x="350" y="44" width="250" height="52" rx="6"/><rect x="610" y="44" width="250" height="52" rx="6"/>
 </g>
-<g text-anchor="middle">
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
 <text class="t" x="215" y="66" font-size="12.5" font-weight="500" fill="#1f2328">README.md</text>
 <text class="s" x="215" y="84" font-size="11.5" fill="#1f2328">저장소 소개</text>
 <text class="t" x="475" y="66" font-size="12.5" font-weight="500" fill="#1f2328">index.html</text>
@@ -168,12 +189,14 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 </g>
 
 <rect class="grp-proc" x="70" y="140" width="200" height="390" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="86" y="162" font-size="12.5" font-weight="500" fill="#1f2328">절차 기준</text>
 <text class="s" x="86" y="179" font-size="11.5" fill="#57606a">project-process/</text>
+</g>
 <g class="nd-proc" fill="#e0eefb" stroke="#3987e5">
 <rect x="86" y="192" width="168" height="72" rx="6"/><rect x="86" y="278" width="168" height="72" rx="6"/>
 </g>
-<g text-anchor="middle">
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
 <text class="t" x="170" y="222" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
 <text class="s" x="170" y="240" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
 <text class="t" x="170" y="308" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
@@ -183,37 +206,43 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 </g>
 
 <rect class="grp-form" x="300" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="316" y="162" font-size="12.5" font-weight="500" fill="#1f2328">형식 기준</text>
 <text class="s" x="316" y="179" font-size="11.5" fill="#57606a">design-guide/ · design-template/</text>
+</g>
 <g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
 <rect x="316" y="190" width="238" height="44" rx="6"/><rect x="316" y="240" width="238" height="42" rx="6"/>
 </g>
-<g text-anchor="middle">
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
 <text class="t" x="435" y="217" font-size="12.5" font-weight="500" fill="#1f2328">master css · html</text>
 <text class="t" x="435" y="266" font-size="12.5" font-weight="500" fill="#1f2328">template-catalog</text>
 </g>
 
 <rect class="grp-form" x="600" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="616" y="162" font-size="12.5" font-weight="500" fill="#1f2328">TC 생성 도구</text>
 <text class="s" x="616" y="179" font-size="11.5" fill="#57606a">design-template/ · project-process/scripts/</text>
+</g>
 <g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
 <rect x="616" y="190" width="238" height="44" rx="6"/><rect x="616" y="240" width="238" height="42" rx="6"/>
 </g>
-<g text-anchor="middle">
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
 <text class="t" x="735" y="217" font-size="12.5" font-weight="500" fill="#1f2328">tc-sheet-master.xlsx</text>
 <text class="t" x="735" y="266" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
 </g>
 
 <rect class="grp-out" x="300" y="360" width="570" height="252" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
 <text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/</text>
+</g>
 <g class="nd-out" fill="#d9f2e6" stroke="#199e70">
 <rect x="316" y="412" width="118" height="68" rx="6"/><rect x="456" y="412" width="118" height="68" rx="6"/><rect x="596" y="412" width="118" height="68" rx="6"/><rect x="736" y="412" width="118" height="68" rx="6"/>
 </g>
 <g class="nd-out" fill="#d9f2e6" stroke="#199e70" stroke-dasharray="4 3">
 <rect x="596" y="534" width="118" height="46" rx="6"/><rect x="736" y="534" width="118" height="46" rx="6"/>
 </g>
-<g text-anchor="middle">
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
 <text class="t" x="375" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
 <text class="s" x="375" y="460" font-size="11.5" fill="#1f2328">조사 전량</text>
 <text class="t" x="515" y="442" font-size="12" font-weight="500" fill="#1f2328">reference/</text>
@@ -226,8 +255,8 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="t" x="795" y="562" font-size="12" font-weight="500" fill="#1f2328">automation/</text>
 </g>
 <rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>
-<text class="lbl" x="444" y="513" text-anchor="middle" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
-<text class="s" x="316" y="600" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<text class="lbl" x="444" y="513" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
+<text class="s" x="316" y="600" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
 <path class="arrow arrow-gray" d="M438,446 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M578,446 H590" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M718,446 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
@@ -238,20 +267,21 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 
 <path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
 <rect class="pill" x="284" y="303" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
-<text class="lbl" x="338" y="316" text-anchor="middle" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
+<text class="lbl" x="338" y="316" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
 
 <path class="arrow" d="M435,140 V112" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
 <rect class="pill" x="444" y="115" width="112" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
-<text class="lbl" x="450" y="128" font-size="11.5" fill="#1f2328">허브 · 템플릿 형식</text>
+<text class="lbl" x="450" y="128" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">허브 · 템플릿 형식</text>
 
 <path class="arrow" d="M435,290 V354" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
 <rect class="pill" x="441" y="313" width="66" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
-<text class="lbl" x="447" y="326" font-size="11.5" fill="#1f2328">문서 형식</text>
+<text class="lbl" x="447" y="326" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">문서 형식</text>
 
 <path class="arrow" d="M795,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
 <rect class="pill" x="801" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
-<text class="lbl" x="807" y="330" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
+<text class="lbl" x="807" y="330" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
 </svg>
+<!-- STRUCTURE-SVG:END -->
 </div>
 
 <h2>워크스페이스 문서</h2>

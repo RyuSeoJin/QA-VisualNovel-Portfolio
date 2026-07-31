@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 650" width="940" height="650" role="img" aria-labelledby="t d">
-<title id="t">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
-<desc id="d">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나옵니다.</desc>
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 650" width="940" height="650" role="img" aria-labelledby="sdt sdd">
+<title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
+<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나옵니다.</desc>
 <!--
   CHANGELOG
   v1.2 (2026-07-31) spec/의 두 번째 입력(보강·ADD)을 추가. rules/에 자동화 규칙 포함 표기.
@@ -8,8 +8,15 @@
                     sut/·automation/을 조건부 행으로 분리.
   v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
 
-  README.md는 이 파일을 이미지로 참조하고, index.html은 같은 마크업을
-  inline으로 품는다(자기완결 규칙). 수정 시 양쪽을 함께 갱신할 것.
+  이 파일이 구조도의 정본이다. README.md는 이미지로 참조하고, index.html은
+  자기완결 규칙 때문에 같은 마크업을 inline으로 품는다. index.html 쪽은 파생이므로
+  직접 고치지 말고 아래 도구로 주입한다.
+
+      python project-process/scripts/inline_structure_svg.py          # 주입
+      python project-process/scripts/inline_structure_svg.py --check  # 동기 확인
+
+  index.html에 그대로 들어가도록 root에 class="sd"를 달고 id를 sdt/sdd로 맞춰 두었다.
+  width/height는 index.html의 .sd{width:100%;height:auto}가 덮으므로 남겨 둔다.
   색은 밝은 배경 기준으로 인라인 지정되어 있고, index.html에서는
   클래스(grp/nd/t/s/pill/lbl/arrow)를 CSS로 덮어 다크 테마로 표시한다.
 -->

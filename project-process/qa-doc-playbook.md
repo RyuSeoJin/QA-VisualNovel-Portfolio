@@ -92,4 +92,5 @@
 
 - HTML 산출물은 생성 시점 마스터 CSS를 `<style>`에 inline한 자기완결 단일 파일입니다. 네트워크 요청은 0건이어야 하고, 기준 마스터 버전을 CHANGELOG 주석·footer에 기록합니다.
 - 차트·다이어그램도 인라인합니다(런타임 CDN 금지). 상세 규칙은 `rules/html-report-guide.md`에 있습니다.
+- 구조도를 고쳤으면 `structure.svg`(정본)만 수정하고 `scripts/inline_structure_svg.py`로 `index.html`에 주입합니다. 커밋 전 `--check`로 동기를 확인합니다.
 - 문서를 만들 때마다 해당 허브를 갱신하고, 어려운 용어는 배치 기준에 맞는 용어집에 추가합니다.
