@@ -10,7 +10,7 @@
 ## 현재 상태 (2026-07-31)
 
 **결정은 대부분 끝났고 산출물은 아직 없습니다.** 워크스페이스 규칙과 폴더 체계는 확정·커밋됐고,
-프로젝트 산출물(골격 정본·TC·SUT·자동화)은 하나도 만들지 않았습니다.
+프로젝트 산출물(골격 정본·TC·SUT)은 하나도 만들지 않았고, 자동화는 환경과 스모크만 준비했습니다.
 
 | 항목 | 상태 |
 |---|---|
@@ -18,7 +18,7 @@
 | TC 버전 | 없음 |
 | 조사 자료 | `analysis/visualnovel-qa-lab-reference-tree.md` — AI 챗 3사 공통 트리 (15영역 188노드) |
 | SUT | 없음 |
-| 자동화 | 없음 |
+| 자동화 | 환경 확정 — Python 3.14.2 + Playwright 1.61.0, 스모크 3건 통과. 테스트 코드는 없음 |
 
 ---
 
@@ -214,7 +214,7 @@ SUT에 시스템을 하나 더 만들어야 합니다. **계정/인증**은 뺐�
 - [ ] **CLAUDE.md 폴더 구조 세부** — `automation/` 하위(`tests`·`report`·`result`),
       `result/history/`(열람 자유), `test-case/archive/`(참조 금지)
 - [ ] **CLAUDE.md 파일 지위 표** — 위 "정본과 파일 지위" 표를 반영
-- [ ] **`.gitignore`에 `nodes.json` 추가**
+- [x] **`.gitignore`에 `nodes.json` 추가** — `.venv/`와 함께 반영 완료
 - [ ] **`rules/sut-automation.md` 신설** — 아래 구성으로
       1. SUT 제작 규칙 — `data-testid` 명명, 상태 조회 훅, 시드 고정, 결함 주입 스위치
       2. 자동화 케이스 규칙 — 케이스명=TC ID, 검증유형별 작성법, `parametrize` 금지 사유
@@ -304,6 +304,7 @@ SUT에 시스템을 하나 더 만들어야 합니다. **계정/인증**은 뺐�
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-07-31 | Day 3 아침에 환경 문제가 드러나면 자동화 시간이 사라지므로 Playwright 설치를 앞당겨 확인 — Python 3.14.2에 휠이 있어(`greenlet-3.5.4-cp314`, `playwright-1.61.0`) **Node LTS 전환 불필요**. chromium·headless shell·ffmpeg 확보(실행 GIF 별도 설치 없음). 손잡이 방식(`data-testid`·`window.__VN__`·매 테스트 `reset()`)을 스모크 3건으로 검증하고 `automation/`에 `requirements.txt`·`tests/test_smoke.py` 생성. 재생성 가능한 것과 환경에 묶인 것은 커밋하지 않는다는 기준으로 `.gitignore`에 `.venv/`·`nodes.json` 추가 |
 | 2026-07-31 | 문장 구조 규칙이 doc-write-style.md에만 있어 커밋 작성 시 놓쳤으므로, qa-git-rules.md에 사유 항목의 이유 → 작업 → 결과 순서(§3)와 원인이 다른 작업을 한 커밋에 담을 때 본문에서 단위를 나눠 적는 규칙(§2)을 추가 |
 | 2026-07-31 | 승인한 안과 산출물이 갈라지지 않도록 CLAUDE.md에 §수정 범위 규칙 신설 — 요청 범위를 벗어나는 수정은 적용하지 않고 근거를 담아 제안. 이번 작업에서 승인 없이 진행한 두 건(폴더 이름 변경, 폴더 체계 표현 수정)이 계기 |
 | 2026-07-31 | `spec/` 하위를 참조 규칙 기준으로 분리 — 근거는 `rationale/`, 골격 이력과 동결 스냅샷은 `archive/`. `addition-rationale.md`가 담을 내용을 §1 노드 보강·§2 수치 확정으로 확정. CLAUDE.md·qa-doc-playbook·qa-dictionary·qa-git-rules·README에 반영 |

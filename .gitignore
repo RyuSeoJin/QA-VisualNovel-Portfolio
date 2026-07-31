@@ -1,2 +1,8 @@
 .DS_Store
 **/.DS_Store
+
+# 재생성 가능한 것과 환경에 묶인 것은 커밋하지 않습니다. 만드는 방법만 커밋합니다.
+.venv/
+nodes.json
+__pycache__/
+*.pyc
