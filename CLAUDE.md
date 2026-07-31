@@ -7,7 +7,7 @@
 - `project-process/` — 모든 작업이 따르는 절차·규칙. `qa-doc-playbook.md`(파이프라인 절차서), `qa-dictionary.md`(중앙 용어집 색인), `rules/`(방법론·운영 규칙 정의), `scripts/`(xlsx 생성 도구).
 - `design-guide/` — 디자인 일관성의 기준. `design-guide-master.css`(스타일 정본) + `design-guide-master.html`(시각 규칙서).
 - `design-template/` — 문서 포맷 템플릿(성장 영역). `template-catalog.md`(템플릿 목록+판별 기준의 단일 소스), `NN-{템플릿명}.html`, `tc-sheet-master.xlsx`(TC 시트 기준 서식 — '명세서' 시트가 규칙 정본).
-- `projects/{프로젝트}/` — 프로젝트별 산출물. 허브(`{프로젝트}-index.html`)·용어집(`{프로젝트}-dictionary.html`)·이력(`{프로젝트}-change-log.md`)·`reference/`·`spec/`·`analysis/`·`test-case/`.
+- `projects/{프로젝트}/` — 프로젝트별 산출물. 허브(`{프로젝트}-index.html`)·용어집(`{프로젝트}-dictionary.html`)·이력(`{프로젝트}-change-log.md`) + `analysis/`(조사 전량)·`reference/`(채택분)·`spec/`(확정 결정 — 정본이 사는 곳)·`test-case/`. 테스트 대상을 직접 만드는 프로젝트는 `sut/`(테스트 대상)·`automation/`(자동화 스크립트·리포트)을 더합니다.
 
 ## 문서 제작 요청 시 (필수)
 
@@ -19,8 +19,9 @@
 
 ## 정본과 파생 (필수)
 
-- 기능 골격의 정본은 `analysis/{프로젝트}-feature-tree.md` **하나뿐입니다.** HTML 시각화와 TC xlsx는 전부 정본에서 재생성하는 파생물이므로 직접 수정하지 않습니다.
-- **정본 수정 체크리스트(한 묶음으로 강제)**: ① 정본 md 수정 → ② HTML 재생성 → ③ analysis-change-log 기록(+프로젝트 change-log에 골격 버전 한 줄 포인터) → ④ 커밋 시점 제안.
+- 기능 골격의 정본은 `spec/{프로젝트}-feature-tree.md` **하나뿐입니다.** HTML 시각화와 TC xlsx는 전부 정본에서 재생성하는 파생물이므로 직접 수정하지 않습니다.
+- 조사한 것을 그대로 기대값으로 쓰면 TC가 처음부터 틀리므로, `analysis/`(조사 전량) → `reference/`(채택분) → `spec/`(확정 결정) 순으로 좁혀갑니다. 그래서 **TC의 기대값은 `spec/`의 문서에서만 가져옵니다** — analysis·reference의 수치는 아직 남의 값이거나 미확정 값입니다.
+- **정본 수정 체크리스트(한 묶음으로 강제)**: ① 정본 md 수정 → ② HTML 재생성 → ③ `spec/{프로젝트}-tree-change-log.md` 기록(+프로젝트 change-log에 골격 버전 한 줄 포인터) → ④ 커밋 시점 제안.
 - 미확인 값은 추측으로 채우지 않고 `?`로 표기하며, 정본의 "미확인 목록" 섹션에 모읍니다.
 
 ## change-log 참조 규칙 (필수)
@@ -28,8 +29,8 @@
 | 파일 | 규칙 |
 |---|---|
 | `{프로젝트}-change-log.md` | 작업 전 **항상 먼저 읽습니다** (최신 문서 상태·골격 버전 파악) |
-| `analysis/{프로젝트}-analysis-change-log.md` | **기본 참조 금지.** 사용자가 특정 기능의 행방·이력을 물을 때만 로드해 "언제 삭제/수정되어 현재 미사용" 형태로 답합니다 |
-| `analysis/archive/` | **기본 참조 금지.** 과거 골격 버전과의 대조가 필요할 때만 엽니다 |
+| `spec/{프로젝트}-tree-change-log.md` | **기본 참조 금지.** 사용자가 특정 기능의 행방·이력을 물을 때만 로드해 "언제 삭제/수정되어 현재 미사용" 형태로 답합니다 |
+| `spec/archive/` | **기본 참조 금지.** 과거 골격 버전과의 대조가 필요할 때만 엽니다 |
 
 삭제·수정된 옛 기능 정보가 평상시 작업에 섞이는 것을 막기 위한 격리 장치입니다. 그래서 정본 트리에는 현재 상태만 남기고, 삭제 노드의 흔적(tombstone)을 두지 않습니다.
 
@@ -53,16 +54,13 @@
 
 - 단독 열람을 보장하기 위해, HTML 산출물(분석 문서·허브·용어집·feature-tree.html)은 생성 시점의 마스터 CSS를 `<style>`에 **inline한 자기완결 단일 파일**로 만듭니다. 기준 마스터 버전은 파일 상단 CHANGELOG 주석과 footer에 기록합니다.
 - `<link>` 참조는 디자인 규칙서(design-guide-master.html, design-template의 템플릿)에만 허용합니다.
+- SUT(`sut/`)는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규칙의 예외입니다. HTML·JS·CSS를 파일로 나눠 쓰고, 테스트가 붙잡을 `data-testid`와 상태 조회 훅을 처음부터 심어 만듭니다.
 - **GitHub Pages 링크 규칙** — 이 저장소는 Pages로 공개됩니다(https://ryuseojin.github.io/QA-VisualNovel-Portfolio/). Pages에서 `.md`는 원본 텍스트로 뜨고 폴더 경로는 404가 되므로, HTML 문서 안에서 **md·폴더로 거는 링크는 GitHub 저장소 절대 URL**(`https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob|tree/main/…`)로, **HTML 문서 링크는 상대 경로**로 적습니다.
 - HTML은 만들고 나서 렌더해 눈으로 확인합니다 — 콘솔 에러 0, 라벨 충돌·글자 깨짐 없음.
 
 ## 저작권 게이트 (필수)
 
 역분석 대상 자료(스크린샷·원문 텍스트·상표)는 **처음 다루는 작업 시점부터** 저작권 점검 체크리스트(`qa-doc-playbook.md` 참조)를 적용합니다. 이 저장소는 public이므로 push 전 점검은 `qa-git-rules.md` §5를 따릅니다.
-
-## 보관 상태
-
-- 루트 `SKILL.md`와 `rules/feature-tree-ai-chat.md`는 초안 이전 자산의 보관본입니다. 작업 기준으로 참조하지 않으며, 사용자가 제거를 요청하면 삭제합니다.
 
 ## 트랙별 허브 갱신 (필수)
 

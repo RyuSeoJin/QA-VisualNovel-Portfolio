@@ -11,7 +11,7 @@
 ## STEP 0 — 상태 파악
 
 1. 대상 프로젝트의 `{프로젝트}-change-log.md`를 읽어 최신 상태(현행 골격 버전·최근 변경점)를 파악합니다.
-2. `analysis-change-log.md`와 `archive/`는 열지 않습니다(기본 참조 금지 — CLAUDE.md 참조).
+2. `spec/{프로젝트}-tree-change-log.md`와 `spec/archive/`는 열지 않습니다(기본 참조 금지 — CLAUDE.md 참조).
 3. 신규 프로젝트라면 [신규 프로젝트 시작 절차](#신규-프로젝트-시작-절차)를 먼저 수행합니다.
 
 ## STEP 1 — 자료 수집 + 저작권 점검
@@ -48,13 +48,15 @@
 
 ## STEP 5 — 기능 골격 작업
 
-정본은 `analysis/{프로젝트}-feature-tree.md` 하나뿐입니다.
+정본은 `spec/{프로젝트}-feature-tree.md` 하나뿐입니다.
+
+`analysis/`는 조사 전량, `reference/`는 채택분, `spec/`은 확정 결정입니다. TC의 기대값은 `spec/`의 문서에서만 가져옵니다 — analysis·reference의 수치를 TC에 직접 쓰지 않습니다. 아직 남의 값이거나 미확정 값이기 때문입니다.
 
 1. **Depth 정규화** — 명칭이 아니라 역할로 묶고, 상태(로그인·구독·플랫폼)는 Depth가 아니라 Pre-Condition으로 흡수합니다. → `rules/depth-and-tn.md`
 2. **검증유형 표기** — LLM이 응답을 만드는 서비스라면 검증유형 분리가 기능 목록보다 먼저입니다. → `rules/verification-types.md`
 3. **지원 표기** — `O / X / △ / ?`. `?`는 정본의 "미확인 목록" 섹션에 모읍니다(실측 우선순위).
-4. **정본 수정 체크리스트(한 묶음)** — ① md 수정 → ② `feature-tree.html` 재생성 → ③ `analysis-change-log.md` 기록(날짜/노드 경로/유형/사유/변경 전 상태) + 골격 버전이 바뀌면 프로젝트 change-log에 한 줄 포인터 → ④ 커밋 시점 제안.
-5. **버전** — 방향성이 바뀌는 큰 개정 = major(v1.x→v2.0), 노드 추가·수정 = minor. major 개정 시 개정 직전 정본을 `archive/{프로젝트}-feature-tree-vX.Y.md`로 동결하고, 태그(`{프로젝트}-tree-vX.Y`)와 버전을 일치시킵니다.
+4. **정본 수정 체크리스트(한 묶음)** — ① md 수정 → ② `feature-tree.html` 재생성 → ③ `spec/{프로젝트}-tree-change-log.md` 기록(날짜/노드 경로/유형/사유/변경 전 상태) + 골격 버전이 바뀌면 프로젝트 change-log에 한 줄 포인터 → ④ 커밋 시점 제안.
+5. **버전** — 방향성이 바뀌는 큰 개정 = major(v1.x→v2.0), 노드 추가·수정 = minor. major 개정 시 개정 직전 정본을 `spec/archive/{프로젝트}-feature-tree-vX.Y.md`로 동결하고, 태그(`{프로젝트}-tree-vX.Y`)와 버전을 일치시킵니다.
 
 사용자가 골격을 1차 확인·최종 확정한 뒤에만 STEP 6으로 넘어갑니다.
 
@@ -80,7 +82,7 @@
 
 ## 신규 프로젝트 시작 절차
 
-1. `projects/{프로젝트}/` 스캐폴드를 만듭니다: 허브·용어집·change-log + `reference/`·`spec/`·`analysis/`(+`archive/`)·`test-case/`.
+1. `projects/{프로젝트}/` 스캐폴드를 만듭니다: 허브·용어집·change-log + `analysis/`·`reference/`·`spec/`(+`archive/`)·`test-case/`. 테스트 대상을 직접 만드는 프로젝트면 `sut/`·`automation/`을 더합니다.
 2. **골격 재사용 체크** — 기존 프로젝트와 공통으로 쓸 방향이 있는지 확인합니다. 없으면 백지에서 시작합니다.
 3. 있어 보이면: ① "○○ 프로젝트에서 끌어다 써도 되는 게 맞나요?" 재확인 → ② 그 골격 **전체를 보여주고** 어떤 부분을 끌어올지 재질문 → ③ 선택분만 신규 feature-tree.md의 시작점으로 복사(이전 프로젝트 고유명사·고유 수치는 제거).
 4. **복사된 순간부터 완전 독립** — 이후 수정은 새 프로젝트 안에서만 이루어집니다. 원본 정본에는 영향이 없습니다. 별도 시드 파일은 두지 않습니다.

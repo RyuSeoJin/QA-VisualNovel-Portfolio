@@ -24,7 +24,7 @@
 | 한 행 = 한 TN = 한 스텝 | TC 시트의 핵심 배치 규칙. Depth는 행마다 반복, Pre-Condition·Priority는 TN 1행에만 | `rules/tc-sheet-format.md` |
 | Total Result | 케이스의 여러 스텝 Result를 Fail 우선으로 요약하는 수식 열 | `rules/tc-sheet-format.md` |
 | 명세서 시트 | `tc-sheet-master.xlsx` 안의 서식 규칙 정본 시트. `tc-sheet-format.md`와 교차 검증하는 짝 | `CLAUDE.md` §TC 시트 규칙 |
-| 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `analysis/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |
+| 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `spec/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |
 | 정본 / 파생 | 손으로 고치는 유일한 파일(정본)과 거기서 재생성되는 출력물(파생). 파생은 직접 수정 금지 | `CLAUDE.md` §정본과 파생 |
 | archive | major 개정 직전의 골격 전체를 동결 보관하는 폴더. 기본 참조 금지 | `CLAUDE.md` §change-log 참조 규칙 |
 | change-log 이원화 | 문서 이력(항상 먼저 읽음)과 골격 이력(기본 참조 금지)을 분리하는 규칙 | `CLAUDE.md` §change-log 참조 규칙 |

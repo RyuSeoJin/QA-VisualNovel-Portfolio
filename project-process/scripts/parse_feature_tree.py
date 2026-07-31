@@ -4,7 +4,7 @@ feature-tree.md (정본) -> 트리 구조 JSON
 
 파이프라인에서의 위치
 --------------------
-  analysis/{프로젝트}-feature-tree.md   (정본 — 손으로 고치는 유일한 파일)
+  spec/{프로젝트}-feature-tree.md       (정본 — 손으로 고치는 유일한 파일)
     │  이 스크립트
     ▼
   nodes.json                            (트리 구조 데이터)
