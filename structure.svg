@@ -8,17 +8,11 @@
                     sut/·automation/을 조건부 행으로 분리.
   v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
 
-  이 파일이 구조도의 정본이다. README.md는 이미지로 참조하고, index.html은
-  자기완결 규칙 때문에 같은 마크업을 inline으로 품는다. index.html 쪽은 파생이므로
-  직접 고치지 말고 아래 도구로 주입한다.
+  이 파일이 정본이다. 고친 뒤 index.html 사본에 주입할 것.
+      python project-process/scripts/inline_structure_svg.py
 
-      python project-process/scripts/inline_structure_svg.py          # 주입
-      python project-process/scripts/inline_structure_svg.py --check  # 동기 확인
-
-  index.html에 그대로 들어가도록 root에 class="sd"를 달고 id를 sdt/sdd로 맞춰 두었다.
-  width/height는 index.html의 .sd{width:100%;height:auto}가 덮으므로 남겨 둔다.
-  색은 밝은 배경 기준으로 인라인 지정되어 있고, index.html에서는
-  클래스(grp/nd/t/s/pill/lbl/arrow)를 CSS로 덮어 다크 테마로 표시한다.
+  변환 없이 그대로 주입되므로 root의 class="sd"와 id(sdt/sdd)는 바꾸지 않는다.
+  색은 밝은 배경 기준이고, index.html에서는 클래스를 CSS로 덮어 다크 테마로 표시한다.
 -->
 <defs>
 <marker id="ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
