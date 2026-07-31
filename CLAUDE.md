@@ -55,7 +55,7 @@
 - 단독 열람을 보장하기 위해, HTML 산출물(분석 문서·허브·용어집·feature-tree.html)은 생성 시점의 마스터 CSS를 `<style>`에 **inline한 자기완결 단일 파일**로 만듭니다. 기준 마스터 버전은 파일 상단 CHANGELOG 주석과 footer에 기록합니다.
 - `<link>` 참조는 디자인 규칙서(design-guide-master.html, design-template의 템플릿)에만 허용합니다.
 - SUT(`sut/`)는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규칙의 예외입니다. HTML·JS·CSS를 파일로 나눠 쓰고, 테스트가 붙잡을 `data-testid`와 상태 조회 훅을 처음부터 심어 만듭니다.
-- **구조도의 정본은 `structure.svg` 하나입니다.** `README.md`는 이 파일을 이미지로 참조하고, `index.html`은 자기완결 규칙 때문에 같은 마크업을 인라인으로 품습니다. 손으로 맞추면 한쪽만 고쳤을 때 두 그림이 갈라지는데 에러가 나지 않아 오래 발견되지 않으므로, 인라인 사본은 `project-process/scripts/inline_structure_svg.py`로만 갱신하고 커밋 전 `--check`로 동기를 확인합니다.
+- **구조도의 정본은 `structure.svg` 하나입니다.** `index.html`의 인라인 사본은 파생이므로 직접 고치지 않고 `project-process/scripts/inline_structure_svg.py`로만 갱신하며, 커밋 전 `--check`로 동기를 확인합니다. 규칙 정의는 `rules/html-report-guide.md` §다이어그램에 있습니다.
 - **GitHub Pages 링크 규칙** — 이 저장소는 Pages로 공개됩니다(https://ryuseojin.github.io/QA-VisualNovel-Portfolio/). Pages에서 `.md`는 원본 텍스트로 뜨고 폴더 경로는 404가 되므로, HTML 문서 안에서 **md·폴더로 거는 링크는 GitHub 저장소 절대 URL**(`https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob|tree/main/…`)로, **HTML 문서 링크는 상대 경로**로 적습니다.
 - HTML은 만들고 나서 렌더해 눈으로 확인합니다 — 콘솔 에러 0, 라벨 충돌·글자 깨짐 없음.
 

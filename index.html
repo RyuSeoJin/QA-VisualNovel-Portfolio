@@ -146,11 +146,13 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.</p>
 <div class="card">
 <!-- STRUCTURE-SVG:START — 정본은 structure.svg. 직접 고치지 말고 inline_structure_svg.py로 주입할 것 -->
-<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 690" width="940" height="690" role="img" aria-labelledby="sdt sdd">
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 710" width="940" height="710" role="img" aria-labelledby="sdt sdd">
 <title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
 <desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다.</desc>
 <!--
   CHANGELOG
+  v1.4 (2026-07-31) 생성 도구 → automation/ 화살표 추가(껍데기·리포트 생성).
+                    test-case/를 관통하지 않도록 오른쪽 여백으로 우회시켰다.
   v1.3 (2026-07-31) 현재 폴더 구조에 맞춰 재작성 — qa-dictionary 추가,
                     'TC 생성 도구'를 '생성 도구'로 넓혀 tc-input-master 포함,
                     automation 내부 표기, archive·history 참조 규칙 각주.
@@ -231,7 +233,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="t" x="735" y="275" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
 </g>
 
-<rect class="grp-out" x="300" y="360" width="570" height="290" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<rect class="grp-out" x="300" y="360" width="570" height="308" rx="8" fill="#eef9f4" stroke="#199e70"/>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
 <text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/{프로젝트}/</text>
@@ -259,8 +261,9 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>
 <text class="lbl" x="444" y="513" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
-<text class="s" x="316" y="612" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
-<text class="s" x="316" y="630" font-size="11.5" fill="#57606a">spec/ · test-case/의 archive/는 기본 참조 금지, automation/result/history/는 열람 자유</text>
+<text class="s" x="316" y="612" font-size="11.5" fill="#57606a">생성 도구는 spec/의 정본과 test-case/의 입력 json을 읽어 TC 엑셀 · 테스트 껍데기 · 리포트를 만듭니다</text>
+<text class="s" x="316" y="630" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<text class="s" x="316" y="648" font-size="11.5" fill="#57606a">spec/ · test-case/의 archive/는 기본 참조 금지, automation/result/history/는 열람 자유</text>
 </g>
 <path class="arrow arrow-gray" d="M438,446 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M578,446 H590" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
@@ -285,6 +288,8 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <path class="arrow" d="M795,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
 <rect class="pill" x="801" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
 <text class="lbl" x="807" y="330" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
+
+<path class="arrow" d="M870,240 H905 V558 H858" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
 </svg>
 <!-- STRUCTURE-SVG:END -->
 </div>
