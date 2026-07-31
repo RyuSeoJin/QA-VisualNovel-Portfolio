@@ -146,11 +146,14 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.</p>
 <div class="card">
 <!-- STRUCTURE-SVG:START — 정본은 structure.svg. 직접 고치지 말고 inline_structure_svg.py로 주입할 것 -->
-<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 650" width="940" height="650" role="img" aria-labelledby="sdt sdd">
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 690" width="940" height="690" role="img" aria-labelledby="sdt sdd">
 <title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
-<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, TC 생성 도구는 테스트 케이스를 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나옵니다.</desc>
+<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다.</desc>
 <!--
   CHANGELOG
+  v1.3 (2026-07-31) 현재 폴더 구조에 맞춰 재작성 — qa-dictionary 추가,
+                    'TC 생성 도구'를 '생성 도구'로 넓혀 tc-input-master 포함,
+                    automation 내부 표기, archive·history 참조 규칙 각주.
   v1.2 (2026-07-31) spec/의 두 번째 입력(보강·ADD)을 추가. rules/에 자동화 규칙 포함 표기.
   v1.1 (2026-07-31) 프로젝트 산출물 행을 조사→채택→확정 파이프라인으로 재배치.
                     sut/·automation/을 조건부 행으로 분리.
@@ -182,21 +185,23 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="s" x="735" y="84" font-size="11.5" fill="#1f2328">클로드 작업 규칙</text>
 </g>
 
-<rect class="grp-proc" x="70" y="140" width="200" height="390" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<rect class="grp-proc" x="70" y="140" width="200" height="340" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="86" y="162" font-size="12.5" font-weight="500" fill="#1f2328">절차 기준</text>
 <text class="s" x="86" y="179" font-size="11.5" fill="#57606a">project-process/</text>
 </g>
 <g class="nd-proc" fill="#e0eefb" stroke="#3987e5">
-<rect x="86" y="192" width="168" height="72" rx="6"/><rect x="86" y="278" width="168" height="72" rx="6"/>
+<rect x="86" y="192" width="168" height="62" rx="6"/><rect x="86" y="264" width="168" height="62" rx="6"/><rect x="86" y="336" width="168" height="62" rx="6"/>
 </g>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
-<text class="t" x="170" y="222" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
-<text class="s" x="170" y="240" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
-<text class="t" x="170" y="308" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
-<text class="s" x="170" y="326" font-size="11.5" fill="#1f2328">방법론 · 운영 · 자동화 규칙</text>
-<text class="s" x="170" y="392" font-size="11.5" fill="#57606a">무엇을 하든</text>
-<text class="s" x="170" y="410" font-size="11.5" fill="#57606a">가장 먼저 확인</text>
+<text class="t" x="170" y="218" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
+<text class="s" x="170" y="236" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
+<text class="t" x="170" y="290" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
+<text class="s" x="170" y="308" font-size="11.5" fill="#1f2328">방법론 · 운영 · 자동화 규칙</text>
+<text class="t" x="170" y="362" font-size="12.5" font-weight="500" fill="#1f2328">qa-dictionary</text>
+<text class="s" x="170" y="380" font-size="11.5" fill="#1f2328">중앙 용어집 색인</text>
+<text class="s" x="170" y="428" font-size="11.5" fill="#57606a">무엇을 하든</text>
+<text class="s" x="170" y="446" font-size="11.5" fill="#57606a">가장 먼저 확인</text>
 </g>
 
 <rect class="grp-form" x="300" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
@@ -205,36 +210,37 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="s" x="316" y="179" font-size="11.5" fill="#57606a">design-guide/ · design-template/</text>
 </g>
 <g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
-<rect x="316" y="190" width="238" height="44" rx="6"/><rect x="316" y="240" width="238" height="42" rx="6"/>
+<rect x="316" y="192" width="238" height="42" rx="6"/><rect x="316" y="242" width="238" height="42" rx="6"/>
 </g>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
-<text class="t" x="435" y="217" font-size="12.5" font-weight="500" fill="#1f2328">master css · html</text>
-<text class="t" x="435" y="266" font-size="12.5" font-weight="500" fill="#1f2328">template-catalog</text>
+<text class="t" x="435" y="218" font-size="12.5" font-weight="500" fill="#1f2328">master css · html</text>
+<text class="t" x="435" y="268" font-size="12.5" font-weight="500" fill="#1f2328">template-catalog</text>
 </g>
 
 <rect class="grp-form" x="600" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
-<text class="t" x="616" y="162" font-size="12.5" font-weight="500" fill="#1f2328">TC 생성 도구</text>
+<text class="t" x="616" y="162" font-size="12.5" font-weight="500" fill="#1f2328">생성 도구</text>
 <text class="s" x="616" y="179" font-size="11.5" fill="#57606a">design-template/ · project-process/scripts/</text>
 </g>
 <g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
-<rect x="616" y="190" width="238" height="44" rx="6"/><rect x="616" y="240" width="238" height="42" rx="6"/>
+<rect x="616" y="188" width="238" height="30" rx="6"/><rect x="616" y="222" width="238" height="30" rx="6"/><rect x="616" y="256" width="238" height="30" rx="6"/>
 </g>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
-<text class="t" x="735" y="217" font-size="12.5" font-weight="500" fill="#1f2328">tc-sheet-master.xlsx</text>
-<text class="t" x="735" y="266" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
+<text class="t" x="735" y="207" font-size="12.5" font-weight="500" fill="#1f2328">tc-sheet-master.xlsx</text>
+<text class="t" x="735" y="241" font-size="12.5" font-weight="500" fill="#1f2328">tc-input-master.json</text>
+<text class="t" x="735" y="275" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
 </g>
 
-<rect class="grp-out" x="300" y="360" width="570" height="252" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<rect class="grp-out" x="300" y="360" width="570" height="290" rx="8" fill="#eef9f4" stroke="#199e70"/>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
-<text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/</text>
+<text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/{프로젝트}/</text>
 </g>
 <g class="nd-out" fill="#d9f2e6" stroke="#199e70">
 <rect x="316" y="412" width="118" height="68" rx="6"/><rect x="456" y="412" width="118" height="68" rx="6"/><rect x="596" y="412" width="118" height="68" rx="6"/><rect x="736" y="412" width="118" height="68" rx="6"/>
 </g>
 <g class="nd-out" fill="#d9f2e6" stroke="#199e70" stroke-dasharray="4 3">
-<rect x="596" y="534" width="118" height="46" rx="6"/><rect x="736" y="534" width="118" height="46" rx="6"/>
+<rect x="596" y="534" width="118" height="52" rx="6"/><rect x="736" y="534" width="118" height="52" rx="6"/>
 </g>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
 <text class="t" x="375" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
@@ -245,19 +251,24 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="s" x="655" y="460" font-size="11.5" fill="#1f2328">확정 · 정본</text>
 <text class="t" x="795" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
 <text class="s" x="795" y="460" font-size="11.5" fill="#1f2328">TC 시트</text>
-<text class="t" x="655" y="562" font-size="12" font-weight="500" fill="#1f2328">sut/</text>
-<text class="t" x="795" y="562" font-size="12" font-weight="500" fill="#1f2328">automation/</text>
+<text class="t" x="655" y="556" font-size="12" font-weight="500" fill="#1f2328">sut/</text>
+<text class="s" x="655" y="574" font-size="11.5" fill="#1f2328">테스트 대상</text>
+<text class="t" x="795" y="556" font-size="12" font-weight="500" fill="#1f2328">automation/</text>
+<text class="s" x="795" y="574" font-size="11.5" fill="#1f2328">코드 · 리포트 · 결과</text>
 </g>
 <rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>
 <text class="lbl" x="444" y="513" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
-<text class="s" x="316" y="600" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="316" y="612" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<text class="s" x="316" y="630" font-size="11.5" fill="#57606a">spec/ · test-case/의 archive/는 기본 참조 금지, automation/result/history/는 열람 자유</text>
+</g>
 <path class="arrow arrow-gray" d="M438,446 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M578,446 H590" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M718,446 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M548,509 L612,486" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M655,480 V528" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M795,480 V528" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
-<path class="arrow arrow-gray" d="M718,557 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M718,560 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 
 <path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
 <rect class="pill" x="284" y="303" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
