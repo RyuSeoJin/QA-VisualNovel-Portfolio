@@ -7,11 +7,17 @@
 레이아웃을 만드는 것은 이 스킬에서 가장 흔한 실수입니다 — 반드시 먼저 물어보거나 기존 파일을
 읽으세요.
 
+이 워크스페이스의 기준 서식은 `design-template/tc-sheet-master.xlsx`이며, 그 안의
+**'명세서' 시트가 규칙 정본**입니다. 이 문서는 md 쪽 짝으로, 작업 시 둘을 교차 검증하고
+불일치가 발견되면 임의로 판단하지 않고 사용자에게 어느 쪽 기준인지 질문합니다.
+
 ---
 
-## 표준 서식 (기본값)
+## 표준 서식 (기본값 — 2026-08-01 확정)
 
 한 행이 곧 한 스텝입니다. 상단에 테스트 환경 블록, 그 아래 데이터 행이 이어집니다.
+워크북은 Test Case(작성·실행) · Summary(케이스 단위 집계) · Issue(결함 기록, 내장 운영) ·
+명세서(규칙 정본) 시트로 구성합니다. Issue 시트의 서식은 추후 확정 예정입니다.
 
 ### 컬럼
 
@@ -24,9 +30,9 @@
 | Test-Step | 수행 동작 | `~한다` 체 |
 | Expected-Result | 기대 결과 | `~된다` 체. 판정 가능한 문장 |
 | Priority | 우선순위 | **TN 1행에만**. High/Medium/Low |
-| Total Result | 케이스 판정 | 플랫폼별(예: Web/And/iOS). Result 행을 훑는 수식 |
-| Result | 스텝 실행 결과 | 플랫폼별. Pass/Fail/Blocked/N/A/Skip 드롭다운 |
-| JIRA No. | 이슈 링크 | 실행 시 입력 |
+| Total Result | 케이스 판정 | 플랫폼별 수식 열. 케이스 행 범위를 세로 병합, 직접 입력 금지 |
+| Result | 스텝 실행 결과 | 플랫폼별. **Pass/Fail/NI/Blocked** 드롭다운 |
+| Issue No. | 이슈 연결 | Issue 시트의 ID. 실행 시 입력 |
 | Comment | 메타 | TC ID · 실행 단계 · 선행 TC · 대상. → `tc-relations.md` |
 | Note | 검증 정보 | 검증유형과 판정 규칙, 주의사항 |
 | Test Case Edit | 편집 이력 | 자유 |
@@ -38,8 +44,23 @@
 
 ### 입력 셀 구분
 
-실행자가 채우는 칸(환경 정보 / Result / JIRA No. / Comment)은 배경색(노란색 등)으로 구분해,
+실행자가 채우는 칸(환경 정보 / Result / Issue No.)은 배경색(노란색)으로 구분해,
 설계 산출물(Depth·절차·기대결과)과 시각적으로 분리합니다. 설계 칸은 실행 중 건드리지 않습니다.
+
+---
+
+## 상태값 4종 (2026-08-01 확정)
+
+| 상태 | 정의 | Pass율 분모 |
+|---|---|---|
+| Pass | 성공 | 포함 |
+| Fail | 실패 | 포함 |
+| NI (Not Implemented) | 미구현이거나 스펙에 없어 실행 대상이 아님 | **제외** |
+| Blocked | 기능은 구현됐으나 선행 TC의 Fail로 확인 불가 | **제외** |
+
+결함 1건이 후속 Blocked 수만큼 중복 계상되는 것을 막기 위해, NI·Blocked는 Pass율 분모에
+넣지 않습니다. 대신 확인 못 한 규모가 지표 뒤에 숨지 않도록 **Blocked 개수를 Summary에 별도
+열로 노출**합니다. Blocked의 판정 기준 자체는 `tc-relations.md`를 따릅니다.
 
 ---
 
@@ -77,29 +98,40 @@ No  1-Depth  2-Depth       Pre-Condition           TN  Test-Step           Expec
 
 ## Total Result 수식
 
-케이스의 여러 스텝 Result를 하나로 요약합니다. Fail 우선, 다음 Blocked, 다음 Pass.
+케이스의 여러 스텝 Result를 하나로 요약합니다. 우선순위는 **Fail > Blocked > NI > Pass**입니다.
 
 ```
-=IF(COUNTIF(Result범위,"Fail")>0,"Fail",
- IF(COUNTIF(Result범위,"Blocked")>0,"Blocked",
- IF(COUNTIF(Result범위,"Pass")>0,"Pass","")))
+=IF(COUNTIF(범위,"Fail")>0,"Fail",
+ IF(COUNTIF(범위,"Blocked")>0,"Blocked",
+ IF(COUNTIF(범위,"NI")>0,"NI",
+ IF(COUNTIF(범위,"Pass")>0,"Pass",""))))
 ```
 
-플랫폼 열이 여러 개면(Web/And/iOS) 각 열마다 별도로 요약합니다. 웹 클라이언트가 없는 앱 전용
-서비스면 그 열은 두되 N/A로 채우거나, 대상 서비스에 맞게 열 자체를 줄입니다.
+플랫폼 열이 여러 개면(Web/And/iOS) 각 열마다 별도로 요약하고, 케이스의 스텝 행 범위를 세로
+병합합니다.
+
+### 플랫폼 열 규칙
+
+마스터의 기본값은 Web/And/iOS 3열입니다. 프로젝트에서 TC 설계를 시작할 때 **대상 플랫폼을
+사용자에게 재확인**하고, Test Case의 Total Result·Result 하위 열과 Summary의 플랫폼 열을
+함께 조정합니다.
 
 ---
 
-## 커버리지 집계
+## 커버리지 집계 (Summary)
 
-별도 Summary 시트에서 영역별로 집계합니다. 수식으로 자동 계산되게 두어, 행을 추가해도 범위만
-넓히면 갱신되도록 합니다.
+Summary 시트는 **전부 케이스 단위**로 집계합니다. TC 수(케이스)와 스텝 수(행)를 섞어 두면
+"TC 2개인데 Pass 4"처럼 단위가 어긋난 표가 되므로, 결과 집계도 스텝이 아니라 케이스 판정을
+셉니다. 수식으로 자동 계산되게 두어, 행을 추가해도 범위만 넓히면 갱신되도록 합니다.
 
 - TC 수 = TN 1행의 개수 (케이스 단위)
-- 테스트 스텝 = 전체 데이터 행 수 (스텝 단위)
-- Pass율 = Pass / (Pass + Fail) — **Blocked는 분모에서 제외**. → `tc-relations.md`
+- Pass / Fail / Blocked = **Total Result(케이스 판정) 열의 집계** — 플랫폼별
+- Pass율 = Pass / (Pass + Fail) — NI·Blocked는 분모에서 제외
+- Priority 분포 — Priority는 TN 1행에만 있으므로 자연히 케이스 단위와 일치합니다
 
-Priority는 TN 1행에만 있으므로 우선순위 집계는 자연히 케이스 단위와 일치합니다.
+**기준 골격 버전은 Summary 상단(C4)에 수기로 기입**합니다. 이 TC가 어느 기능 트리 버전을
+보고 만들어졌는지의 기록이며, 골격이 개정된 뒤 시트를 열었을 때 누락과 미존재를 가르는
+근거가 됩니다.
 
 ---
 
@@ -110,8 +142,8 @@ TN 스텝으로 자동 분해하고, `scripts/norm.py`가 문체를 `~한다` / 
 
 ```bash
 python scripts/build_tc_template_xlsx.py input.json -o 결과.xlsx
-python /mnt/skills/public/xlsx/scripts/recalc.py 결과.xlsx   # 수식 검증 (필수)
 ```
 
-**조직 서식이 표준과 다르면 스크립트를 그 서식에 맞게 고쳐 쓰거나, 생성 후 컬럼을 재배치합니다.**
-스크립트의 서식이 조직 서식보다 우선하지 않습니다.
+생성 후에는 수식 검증(재계산)을 수행합니다. **스크립트 출력은 md·명세서 시트와 3자 동기화
+대상**이며, 서식이 개정되면 스크립트도 함께 갱신합니다(2026-08-01 서식 확정분 반영은 TC 산출
+단계 전까지 완료).

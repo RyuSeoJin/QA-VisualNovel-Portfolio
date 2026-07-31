@@ -20,7 +20,8 @@
 | 경계값 (Boundary) | 수치 제약마다 경계-1/경계/경계+1 세 점을 찍는 전개. 등호 포함 여부 확인 필수 | `rules/case-expansion.md` |
 | TC 관계도 | 케이스 **사이**의 선행·실행 순서 층위(test dependency). TN과 다른 층위다 | `rules/tc-relations.md` |
 | 실행 단계 | 선행을 루트까지 거슬러 올라간 깊이. 깊을수록 실행 비용이 높다 | `rules/tc-relations.md` |
-| Blocked | 선행 케이스가 Fail이라 실행 불가한 상태. Fail로 적으면 결함이 과대 계상됩니다. Pass율 분모에서 제외 | `rules/tc-relations.md` |
+| Blocked | 기능은 구현됐으나 선행 케이스의 Fail로 실행 불가한 상태. Fail로 적으면 결함이 과대 계상됩니다. Pass율 분모에서 제외하되 개수를 Summary에 별도 노출 | `rules/tc-relations.md` |
+| NI (Not Implemented) | 미구현이거나 스펙에 없어 실행 대상이 아닌 상태. Pass율 분모에서 제외 | `rules/tc-sheet-format.md` §상태값 4종 |
 | 한 행 = 한 TN = 한 스텝 | TC 시트의 핵심 배치 규칙. Depth는 행마다 반복, Pre-Condition·Priority는 TN 1행에만 | `rules/tc-sheet-format.md` |
 | Total Result | 케이스의 여러 스텝 Result를 Fail 우선으로 요약하는 수식 열 | `rules/tc-sheet-format.md` |
 | 명세서 시트 | `tc-sheet-master.xlsx` 안의 서식 규칙 정본 시트. `tc-sheet-format.md`와 교차 검증하는 짝 | `CLAUDE.md` §TC 시트 규칙 |
