@@ -27,5 +27,6 @@ change-log가 담당합니다. 갱신일: 2026-08-01 (SUT 청사진 확정 직�
 
 - CLAUDE.md에 `automation/` 하위 구조(`tests`·`report`·`result/history`)와 "정본과 파일 지위" 표 반영 (현재 정본은 change-log §확정된 결정)
 - `scripts/gen_test_skeleton.py` — 시간 부족 시 버리는 순서 2번, 수동 작성으로 대체 가능
-- 플레이툰 잔여 실측 소소 3건 — 내 작품 탭·홈 칩별 목록 구성·빈 검색 결과 UX (`analysis/…-plaitoon-inventory.md` B-3)
+- 플레이툰 잔여 실측 소소 2건 — 내 작품 탭·빈 검색 결과 UX (`analysis/…-plaitoon-inventory.md` B-3. 홈 칩별 목록 구성은 2026-08-02 실측 완료)
+- MY 프로필 편집 — 2026-08-02 미편입 확정, 추후 편입 가능성 있음(사용자 의향). 편입 시 트리 개정 필요
 - 워크스페이스 잔재 파일 정리 — SKILL.md·feature-tree-ai-chat.md 제거(사용자 요청 대기)
