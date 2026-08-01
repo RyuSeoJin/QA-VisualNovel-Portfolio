@@ -33,6 +33,7 @@
 | SUT 테스트 인터페이스 | SUT가 테스트 코드에 공식적으로 열어주는 접점 — 요소 셀렉터(data-testid) · 상태 조회/제어 API · 실행 조건 파라미터(시드·결함 주입). 격리 계열 검증과 실패 재현을 가능하게 함 | `rules/sut-automation.md` §1 |
 | 결함 주입 매트릭스 | 행=주입한 결함, 열=담당 TC로 짠 표. 대각선만 FAIL이면 정상이고, 대각선이 PASS면 그 TC가 결함을 못 잡는다는 증거 | `rules/sut-automation.md` §5 |
 | change-log 이원화 | 문서 이력(항상 먼저 읽음)과 골격 이력(기본 참조 금지)을 분리하는 규칙 | `CLAUDE.md` §참조 규칙 |
+| remaining-work | 할 일의 정본 파일. 다음 작업 큐·결정 대기·백로그 3섹션이며 완료 항목은 삭제(완료 기록은 change-log 담당). 작업 전 change-log와 함께 항상 읽음 | `rules/remaining-work.md` |
 | 미확인 목록 | 정본 안의 `?` 항목 모음. 추측으로 채우지 않고 실측으로 확정하는 대기열 | `qa-doc-playbook.md` STEP 5 |
 | Case A/B/C | 문서 제작 시 템플릿 판별 3분류 — 기존 템플릿 / 마스터 갱신 필요 / 신규 템플릿 필요 | `design-template/template-catalog.md` |
 | 골격 재사용 | 신규 프로젝트가 기존 프로젝트 골격에서 선택분만 복사해 시작하는 절차. 복사 후 완전 독립 | `qa-doc-playbook.md` §신규 프로젝트 시작 절차 |
