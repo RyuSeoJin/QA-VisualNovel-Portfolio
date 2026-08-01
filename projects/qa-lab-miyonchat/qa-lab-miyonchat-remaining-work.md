@@ -6,16 +6,17 @@ change-log가 담당합니다. 갱신일: 2026-08-02 (design 명세 확정 직�
 ## 다음 작업 큐
 
 1. **TC 설계·산출** (playbook STEP 6)
-   - 선행: `build_tc_template_xlsx.py`를 확정 서식과 3자 동기화, `design-template/tc-input-master.json` 생성, 대상 플랫폼 재확인(Web 단독 예상 → 시트 열 조정)
-   - 산출: `…-tc-input-v1.0.json` → xlsx(기준 골격 v1.1 기록)
+   - 선행 완료(2026-08-02): 스크립트 3자 동기화 · `tc-input-master.json` 생성 · 이슈 관리 시트 편입
+   - 남은 선행: 대상 플랫폼 재확인(Web 단독 예상 → 시트 열 조정), 목록 시트의 프로젝트 값 채우기(레이블=트리 1-Depth 10영역·담당자·스프린트)
+   - 산출: `…-tc-input-v1.0.json` → xlsx(기준 골격 v1.1은 `tree_version`으로 자동 기입)
 2. **SUT 구현** (`sut/`) — 청사진 준수, data-testid 전체 목록을 청사진에 확정 등재, 스모크의 STUB를 실제 SUT로 교체(test_smoke.py [주의] 참조)
 3. **자동화** — conftest(reset)·thresholds·영역별 테스트 파일 → 결정적·금칙 격리부터 → 결함 주입 매트릭스(대각선만 FAIL) → 리포트(+"SUT 한계와 검증 범위")
 4. **CI·묶기** — 워크플로(경로 필터, deploy-pages 금지), 추적 매트릭스, 프로젝트 허브·용어집 생성, README 실행 GIF, 저작권 게이트 → push
 
 ## 사용자 결정 대기
 
-- **Issue 시트 포맷** — 사용자가 직접 제공 예정. tc-sheet-master.xlsx에 추가 후 명세서 시트 갱신 (1번 TC 산출 전까지 필요)
 - **자동화 리포트 템플릿(Case C)** — 기본 리포트로 시작 권고 유지, 여유 시 재논의 (3번 리포트 단계 전까지)
+- **Issue No. 연결의 보존 위치** — 결과 시트는 실행 시 덮어쓰므로, 사람이 적은 Issue No.가 지워집니다. TC 설계 단계에서 연결을 어디에 남길지 결정 필요(제안: 이슈 관리 시트가 정본이고 결과 시트는 표시만)
 - **`build_tc_xlsx.py` 존치** — 분석 문서를 HTML로 내기로 해 역할 중복, 보류 중
 - **미push 커밋 push 시점** — f5bd6fe 이후 누적분, 저작권 게이트 걸릴 항목 없음
 

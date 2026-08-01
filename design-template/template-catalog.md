@@ -9,7 +9,14 @@
 | `01-feature-tree.html` | 기능 골격 트리 + TC 관계도 시각화 | "골격 보여줘", "기능 트리 문서", feature-tree.md 정본의 파생 HTML |
 | `02-reverse-analysis.html` | 출시 서비스 역분석 문서 | "○○ 역분석해줘", 기획서 없이 동작하는 제품을 분해할 때 |
 | `03-spec-analysis.html` | 기획서 분석 문서 | "이 기획서 분석해줘", 기획서를 받아 테스트 관점으로 분해할 때 |
-| `tc-sheet-master.xlsx` | TC 시트 기준 서식 (HTML 아님) | TC 설계 산출 시 항상. '명세서' 시트가 서식 규칙의 정본 — `rules/tc-sheet-format.md`와 교차 검증 |
+| `tc-sheet-master.xlsx` | TC 시트 기준 서식 (HTML 아님) | TC 설계 산출 시 항상. Test Case·Summary·이슈 관리 시트·목록·명세서 5시트이며, '명세서' 시트가 구조 규칙의 정본 — `rules/tc-sheet-format.md`와 교차 검증 |
+
+### 부속 문서 (템플릿이 아니라 그 템플릿을 만드는 규칙·입력)
+
+| 파일 | 역할 |
+|---|---|
+| `xlsx-design-guide.md` | **xlsx 산출물 서식의 정본** — 공통 기준(헤더·데이터·테두리·폰트·날짜), 보조 톤, 상태 배색, 시트별 옵션 표, 목록 시트 규약 |
+| `tc-input-master.json` | TC 설계 입력의 빈 포맷 골격(전 프로젝트 공용). `tc-sheet-master.xlsx`의 생성 입력이기도 합니다 |
 
 ## 판별 기준
 
