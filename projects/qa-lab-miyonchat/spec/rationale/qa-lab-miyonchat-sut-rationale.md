@@ -1,4 +1,4 @@
-# visualnovel-qa-lab — SUT 판단 기록 (sut-rationale)
+# qa-lab-miyonchat — SUT 판단 기록 (sut-rationale)
 
 SUT 청사진(`sut-design/…-sut-blueprint.md`)의 짝 문서입니다. 청사진은 구현자가 읽는 선언만 담고,
 그 선언을 고른 이유는 전부 여기에 모입니다. 도메인 판단(ADD 노드·수치의 근거)은 이 파일이

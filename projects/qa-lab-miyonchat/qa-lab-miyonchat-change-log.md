@@ -1,9 +1,9 @@
-# visualnovel-qa-lab — change-log
+# qa-lab-miyonchat — change-log
 
 작업 전 **항상 먼저 읽는 파일**입니다. 현재 상태와 확정된 결정, 남은 작업이 여기 있습니다.
 
 `spec/archive/`와 `test-case/archive/`는 기본 참조 금지입니다. 골격 이력
-(`visualnovel-qa-lab-tree-change-log.md`)도 그 안에 있습니다. 특정 기능의 행방을 물을 때만 엽니다.
+(`qa-lab-miyonchat-tree-change-log.md`)도 그 안에 있습니다. 특정 기능의 행방을 물을 때만 엽니다.
 
 ---
 
@@ -14,10 +14,10 @@
 
 | 항목 | 상태 |
 |---|---|
-| 골격 버전 | 없음 (정본 미작성) |
+| 골격 버전 | **v1.0 (2026-08-01 확정)** — `spec/qa-lab-miyonchat-feature-tree.md`, 구현 62잎·보류 7·제외 8영역·미확인 13. HTML 파생 생성 완료(`gen_feature_tree_html.py`, 렌더 검증 콘솔 에러 0) |
 | TC 버전 | 없음 |
 | 조사 자료 | `analysis/` — AI 챗 3사 공통 트리(reference-tree) + 행동 인벤토리 3종 |
-| 채택분 | `reference/visualnovel-qa-lab-adopted-features.md` (2026-08-01) — 구현 범위 10영역+보류 7건의 채택표, 수치 후보 총괄, 버린 것 목록 |
+| 채택분 | `reference/qa-lab-miyonchat-adopted-features.md` (2026-08-01) — 구현 범위 10영역+보류 7건의 채택표, 수치 후보 총괄, 버린 것 목록 |
 | SUT | 없음 |
 | 자동화 | 환경 확정 — Python 3.14.2 + Playwright 1.61.0, 스모크 3건 통과. 테스트 코드는 없음 |
 
@@ -66,7 +66,7 @@
 `analysis/` 하나입니다.
 
 ```
-projects/visualnovel-qa-lab/
+projects/qa-lab-miyonchat/
 ├─ analysis/        조사 전량 — 버리지 않고 모음
 ├─ reference/       채택분 — 쓰기로 고른 것들의 구체 사양
 ├─ spec/            확정 결정 — 정본이 사는 곳
@@ -103,7 +103,7 @@ projects/visualnovel-qa-lab/
 | `automation/report/`, `result/` | 파생 (대표 1부만) | 필수 |
 
 정본에 **`REF`/`ADD` 컬럼**을 둡니다. `REF`는 레퍼런스에서 채택한 것, `ADD`는 레퍼런스에 없어
-직접 정한 보강분입니다. 근거는 `spec/rationale/visualnovel-qa-lab-addition-rationale.md`에 모으고,
+직접 정한 보강분입니다. 근거는 `spec/rationale/qa-lab-miyonchat-addition-rationale.md`에 모으고,
 노드를 세운 근거(**§1 노드 보강**)와 값이 공개되지 않아 직접 정한 수치의 근거(**§2 수치 확정**)를
 섹션으로 나눕니다. 면접에서 가장 많이 받을 질문이 "그 숫자는 왜 그렇게 정했나요?"이므로 §2를 함께
 모읍니다.
@@ -117,9 +117,9 @@ projects/visualnovel-qa-lab/
 ### 파일명 규칙
 
 ```
-test-case/visualnovel-qa-lab-tc-input-v1.0.json
-test-case/visualnovel-qa-lab-tc-v1.0.xlsx
-automation/result/visualnovel-qa-lab-tc-v1.0-result.xlsx        고정 이름, 실행 시 덮어씀
+test-case/qa-lab-miyonchat-tc-input-v1.0.json
+test-case/qa-lab-miyonchat-tc-v1.0.xlsx
+automation/result/qa-lab-miyonchat-tc-v1.0-result.xlsx        고정 이름, 실행 시 덮어씀
 automation/result/history/…-result-20260802.xlsx                기록할 값어치가 있을 때만
 design-template/tc-input-master.json                            빈 포맷 골격 (전 프로젝트 공용)
 ```
@@ -218,6 +218,16 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
 | 8 | 세이브/로드 | 슬롯 저장·복원 · 슬롯 간 격리 (슬롯형+타임머신 분기 병행 확정) | 결정적 · 금칙 격리 |
 | 9 | 메모리 | 현재 상태 대시보드+핀 우선 · 삭제 메모리 재등장 · 단기 맥락(계측) | 결정적 · 금칙 격리 · 확률적 |
 | 10 | 세이프티 | 연령 게이팅 · 입력 필터 · 출력 필터 · 프롬프트 누출 | 금칙 |
+
+#### 시작 세트 확장 — 사용자 SUT 구상 반영 (2026-08-01 확정)
+
+- **SUT 이름: MiyonChat** (NovelAI는 실존 서비스명이라 배제)
+- **재화 영역 확장** — 미션 보상 수령(데일리·웰컴)·획득 히스토리 편입, **생성 실패 시 재화 미차감** 편입(채택 단계 제안 승인). 재화가 소모·획득·실패 복구를 모두 갖춤
+- **탐색 영역 구체화** — 탭: 추천·랭킹·신작·카테고리(칩 최대 3). 추천 탭 전용 캐러셀(최대 7)·최근 대화 조건부 노출(없으면 미노출). 랭킹: 기간 필터(일/주/월)+정렬 2종, **이용수 집계 규칙 = 유저×캐릭터×날짜 중복 없이 +1**(이벤트 테이블 기반 실집계·실검증)
+- **좋아요·스크랩 구현 편입** — 토글 상태 유지, MY 활동 목록 정합, 좋아요 수가 랭킹 정렬과 연동
+- **테스트 설비 확정**(트리 밖 — 청사진 소속): ① 상태 스위처(미로그인/로그인 성인 인증/로그인 미성년/세션 만료 — 계정 B=미성년으로 정의) ② **데이터 시트**(mock 데이터 편집 콘솔, 4테이블: 캐릭터 속성=리뷰 수·좋아요 수·태그·세이프 플래그 / 이벤트 테이블=유저×캐릭터×날짜 / 계정 속성=팔로워·팔로잉 / 알림 항목. 사람은 UI로, 자동화는 `__VN__.setData()`로 — 테스트 인터페이스 넷째 갈래 "데이터 주입") ③ 갱신 버튼(F5 아닌 웹 내 재렌더)
+- **스텁 확정**(화면 존재·구현 X — "검증 범위 제외+사유+트리 링크" 표시): 내 작품 탭, 내 서재, MY 공지·FAQ·문의, 설정(언어·푸시·다크 모드). **전시용 정적**: 커뮤니티 탭(창작 게시글 2~4개 읽기 전용), 알림(시트 항목 표시만, 발생 로직 없음), 팔로워/팔로잉(시트 값 표시만). 로그아웃은 구현(잔존 검증)
+- **화면 구조 변경** — 상단 바(로고·검색·알림·재화·간편 프로필=미션 허브) + 하단 내비 5탭(홈·내 작품·채팅·커뮤니티·MY) + 푸터 디스클레이머(포트폴리오 안내+트리 링크). 청사진은 트리 확정 후 개정
 
 **확장 대기열**(트리에 지원 표기로 존재, Day 3 여유 시 v1.1로 1회 반영, 순서 고정):
 백로그/History → 오토·스킵·재생 속도 → CG 갤러리·회수율 → 엔딩 목록 → 시한부 응답 →
@@ -323,6 +333,8 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-08-01 | SUT명(MiyonChat)과 프로젝트 정체("QA 실험실")가 이름에서 함께 읽히도록 **프로젝트명을 `visualnovel-qa-lab` → `qa-lab-miyonchat`으로 개명** — 폴더·파일 접두·문서 내 표기 일괄 교체(과거 커밋 메시지의 옛 이름은 이 항목으로 해독). 이후 프로젝트는 `qa-lab-{대상}` 패턴 |
+| 2026-08-01 | **골격 트리 v1.0 확정** — 조사·채택·구현 범위 기획안·사용자 SUT 구상을 통합, 구현 62잎(10영역)·보류 7·제외 8영역·미확인 13. md 형식 v2로 확장(`[출처:][범위:]` 태그 추가·`[지원:]` 선택화, parse_feature_tree.py 독스트링·파서 동기). 골격 상세는 `spec/archive/…-tree-change-log.md` v1.0 항목 |
 | 2026-08-01 | TC 설계가 시트 서식 부재로 막히지 않도록 `tc-sheet-master.xlsx`를 사용자 구글 시트 기반으로 제작(Test Case·Summary·명세서 3시트, Issue는 포맷 대기). 확정 결정 — 상태값 4종 Pass/Fail/NI/Blocked(N/A·Skip 흡수), Total Result 우선순위 Fail>Blocked>NI>Pass, Summary 전면 케이스 단위 통일(스텝 열 폐지), Pass율=Pass/(Pass+Fail)에 NI·Blocked 분모 제외 + Blocked 개수 별도 노출, 기준 골격 버전 칸 Summary C4, TC ID `TC-{영역코드}-{번호}` 유지, JIRA 미사용(내장 Issue 시트) 재확정, JIRA No.→Issue No. 개명, 플랫폼 열은 TC 설계 시작 시 재확인. 원본 구글 시트의 Total Result 수식 결함(And 열 누락·iOS 열이 And를 집계)을 수정 반영. `tc-sheet-format.md` 동기화, 용어집에 NI 추가 |
 | 2026-08-01 | 뜻이 읽히지 않는 코드네임을 없애기 위해 용어 교체 — **"A층" → "SUT 구현 범위"**, 단계명은 기획안 확정 → 타당성 검증 → 구현 범위 확정, 트리 범위 컬럼 값은 A/보류 → **구현/보류**. 과거 커밋 메시지의 "A층" 표기는 이 항목으로 해독. 커밋 메시지 규격도 대괄호 섹션 구조([작업 목록]/[스펙 변경]/[변경 파일]/[상세]/[주의])로 개정(qa-git-rules §3) |
 | 2026-08-01 | 조사 결과를 반영해 SUT 구현 범위 시작 세트를 여정 축 10영역으로 기획안 확정(§SUT 구현 범위) — 세이브는 슬롯형+타임머신 분기 병행, 입력은 자유+선택지 하이브리드, 재화는 이원화+소모 우선순위, 결제 mock 편입, 용어 "AI 응답 재생성" 확정, 관계 단계 수·임계값은 design/에서 REF 기반 ADD로. 구현 범위의 정본은 별도 파일 없이 트리의 범위 컬럼(작성 전까지는 이 문서)으로 관리 |

@@ -1,4 +1,4 @@
-# visualnovel-qa-lab — 채택분 (adopted-features)
+# qa-lab-miyonchat — 채택분 (adopted-features)
 
 `analysis/` 조사 전량에서 **쓰기로 고른 것**만 추린 자료집입니다. 골격 트리 v1.0과
 `spec/design/` 명세 작성의 직접 입력이 됩니다.

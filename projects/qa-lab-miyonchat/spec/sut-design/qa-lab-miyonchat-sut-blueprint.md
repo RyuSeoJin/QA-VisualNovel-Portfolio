@@ -1,4 +1,4 @@
-# visualnovel-qa-lab — SUT 청사진 (sut-blueprint)
+# qa-lab-miyonchat — SUT 청사진 (sut-blueprint)
 
 ## 0. 문서 지위
 

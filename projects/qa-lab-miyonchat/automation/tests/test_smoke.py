@@ -18,7 +18,7 @@ SUT나 TC를 의심하기 전에 여기부터 본다.
   지우고 page.goto(SUT 경로)로 대상만 갈아탄다.
 
 실행:
-    .venv/Scripts/python.exe -m pytest projects/visualnovel-qa-lab/automation/tests -q
+    .venv/Scripts/python.exe -m pytest projects/qa-lab-miyonchat/automation/tests -q
 """
 
 import pytest

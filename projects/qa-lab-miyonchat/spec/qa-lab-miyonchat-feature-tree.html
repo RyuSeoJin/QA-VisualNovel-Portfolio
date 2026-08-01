@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qa-lab-miyonchat 기능 골격 v1.0</title>
+<!-- ============================================================
+  파생 문서 — 직접 수정 금지.
+  정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
+  재생성: python project-process/scripts/gen_feature_tree_html.py
+  기준: 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷
+  ============================================================ -->
+<style>
+/* ============================================================
+   design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
+   ------------------------------------------------------------
+   CHANGELOG
+   v1.0 (2026-07-31) 최초 수립 — rules/html-report-guide.md의
+     다크 테마·인디고 포인트 체계를 마스터로 승격.
+     색 토큰 / 타이포 / 레이아웃 / 카드·표·칩·콜아웃·스탯 타일 /
+     상태·우선순위·검증유형 시맨틱 칩 / 트리·파이프라인 컴포넌트.
+   ------------------------------------------------------------
+   규칙: 원색 hex를 본문에 흩뿌리지 않는다 — 역할 변수로만 참조.
+   갱신은 Case B/C 승인 후에만, 기존 토큰 제거는 별도 승인.
+   ============================================================ */
+
+/* ---------- 1. 색 토큰 ---------- */
+:root{
+  --page:#0d0d0d;        /* 페이지 바탕 */
+  --surface:#16161a;     /* 카드·표 표면 */
+  --surface-2:#1c1c21;   /* 표면 위 한 단 (표 헤더·코드) */
+  --ink:#f4f4f5;         /* 본문 */
+  --ink-2:#c3c2b7;       /* 보조 텍스트 */
+  --muted:#898781;       /* 축·라벨·각주 */
+  --grid:#2c2c2a;        /* 표 구분선 */
+  --axis:#383835;        /* 축·경계 */
+  --hair:rgba(255,255,255,.10); /* 헤어라인 테두리 */
+  --accent:#818cf8;      /* 인디고 포인트 (제목 마커·링크·강조) */
+  --accent-dim:#4f46e5;  /* 눌린 상태·채움 */
+
+  /* 차트 카테고리 (고정 순서 — 필터로 빠져도 재배정 금지) */
+  --cat-1:#3987e5;  /* 파랑 */
+  --cat-2:#d95926;  /* 주황 */
+  --cat-3:#199e70;  /* 청록 */
+  --cat-4:#c98500;  /* 노랑 */
+
+  /* 상태 (지원 표기 O/X/△/? · 실행 결과) — 카테고리 색과 분리 */
+  --ok:#34d399;      /* O · Pass */
+  --no:#f87171;      /* X · Fail */
+  --part:#fbbf24;    /* △ · Blocked */
+  --unk:#9ca3af;     /* ? · N/A · Skip */
+  --ok-bg:rgba(52,211,153,.14);
+  --no-bg:rgba(248,113,113,.14);
+  --part-bg:rgba(251,191,36,.14);
+  --unk-bg:rgba(156,163,175,.14);
+
+  /* 우선순위 */
+  --pri-high:#f87171;
+  --pri-mid:#fbbf24;
+  --pri-low:#9ca3af;
+
+  /* 검증유형 */
+  --vt-det:#3987e5;   /* 결정적 */
+  --vt-prob:#c98500;  /* 확률적 */
+  --vt-rub:#199e70;   /* 루브릭 */
+  --vt-ban:#e24b4a;   /* 금칙 */
+}
+
+/* ---------- 2. 베이스·타이포 ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--page);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:26px;line-height:1.35;margin:0 0 8px}
+h2{font-size:19px;margin:48px 0 12px;padding-left:12px;border-left:3px solid var(--accent)}
+h3{font-size:16px;margin:28px 0 8px;color:var(--ink)}
+p{margin:8px 0;color:var(--ink-2)}
+strong{color:var(--ink)}
+small,.foot{color:var(--muted);font-size:12.5px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:var(--surface-2);border:1px solid var(--grid);border-radius:4px;
+  padding:1px 6px;font-size:13px;font-family:ui-monospace,Consolas,monospace;color:var(--ink)}
+pre{background:var(--surface-2);border:1px solid var(--grid);border-radius:8px;
+  padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.6}
+pre code{background:none;border:none;padding:0}
+hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
+
+/* ---------- 3. 헤더·메타 ---------- */
+.doc-header{padding:8px 0 20px;border-bottom:1px solid var(--grid);margin-bottom:8px}
+.doc-lead{color:var(--ink-2);max-width:72ch}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{display:inline-block;background:var(--surface);border:1px solid var(--hair);
+  border-radius:999px;padding:3px 12px;font-size:12.5px;color:var(--ink-2)}
+.badge b{color:var(--ink);font-weight:600}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px}
+
+/* ---------- 4. 스탯 타일 ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+.stat{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:16px 18px}
+.stat .num{font-size:26px;font-weight:700;color:var(--ink);line-height:1.2}
+.stat .num em{font-style:normal;color:var(--accent)}
+.stat .lbl{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* ---------- 5. 카드 ---------- */
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:20px;margin:14px 0}
+.card h3{margin-top:0}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card-grid .card{margin:0}
+
+/* ---------- 6. 표 ---------- */
+.tbl-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:10px;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+thead th{background:var(--surface-2);color:var(--ink-2);text-align:left;
+  padding:9px 12px;position:sticky;top:0;white-space:nowrap;font-weight:600}
+tbody td{padding:8px 12px;border-top:1px solid var(--grid);color:var(--ink-2);vertical-align:top}
+tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- 7. 칩 (상태·우선순위·검증유형) ---------- */
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-size:12px;
+  font-weight:600;color:var(--ink);border:1px solid transparent;white-space:nowrap}
+.chip-ok{background:var(--ok-bg);border-color:var(--ok)}
+.chip-no{background:var(--no-bg);border-color:var(--no)}
+.chip-part{background:var(--part-bg);border-color:var(--part)}
+.chip-unk{background:var(--unk-bg);border-color:var(--unk)}
+.chip-high{background:var(--no-bg);border-color:var(--pri-high)}
+.chip-mid{background:var(--part-bg);border-color:var(--pri-mid)}
+.chip-low{background:var(--unk-bg);border-color:var(--pri-low)}
+.chip-det{background:rgba(57,135,229,.14);border-color:var(--vt-det)}
+.chip-prob{background:rgba(201,133,0,.14);border-color:var(--vt-prob)}
+.chip-rub{background:rgba(25,158,112,.14);border-color:var(--vt-rub)}
+.chip-ban{background:rgba(226,75,74,.14);border-color:var(--vt-ban)}
+
+/* ---------- 8. 필터 버튼 ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.fbtn{background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  color:var(--ink-2);padding:5px 14px;font-size:13px;cursor:pointer}
+.fbtn:hover{border-color:var(--accent)}
+.fbtn.on{background:var(--accent-dim);border-color:var(--accent-dim);color:var(--ink)}
+
+/* ---------- 9. 콜아웃 ---------- */
+.callout{border-left:3px solid var(--accent);background:var(--surface);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--ink-2)}
+.callout.warn{border-left-color:var(--part);background:rgba(251,191,36,.06)}
+.callout.danger{border-left-color:var(--no);background:rgba(248,113,113,.06)}
+
+/* ---------- 10. 기능 트리 ---------- */
+.tree{list-style:none;padding-left:0;margin:12px 0;font-size:13.5px}
+.tree ul{list-style:none;padding-left:22px;border-left:1px solid var(--grid);margin:2px 0 2px 7px}
+.tree li{padding:3px 0;color:var(--ink-2)}
+.tree .node{color:var(--ink)}
+.tree .depth-tag{color:var(--muted);font-size:11.5px;margin-right:6px;
+  font-family:ui-monospace,Consolas,monospace}
+.tree .note{color:var(--muted);font-size:12px;margin-left:8px}
+
+/* ---------- 11. 파이프라인·단계 ---------- */
+.steps{display:flex;flex-direction:column;gap:10px;margin:16px 0;counter-reset:step}
+.step{display:flex;gap:14px;background:var(--surface);border:1px solid var(--hair);
+  border-radius:10px;padding:14px 16px}
+.step::before{counter-increment:step;content:counter(step);flex:0 0 26px;height:26px;
+  border-radius:50%;background:var(--accent-dim);color:var(--ink);font-size:13px;
+  font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .body{color:var(--ink-2)}
+.step .body b{color:var(--ink)}
+
+/* ---------- 12. footer ---------- */
+.doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
+  color:var(--muted);font-size:12.5px}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-header">
+  <h1>qa-lab-miyonchat 기능 골격 v1.0</h1>
+  <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
+  레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
+  <div class="meta-row">
+    <span class="badge">골격 버전 <b>v1.0</b></span>
+    <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
+    <span class="badge">기준일 <b>2026-08-01</b></span>
+  </div>
+  <nav class="toc">
+    <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#relations">TC 관계도</a><a href="#unknown">미확인 목록</a>
+  </nav>
+</header>
+
+<h2 id="stats">개요</h2>
+<div class="stats">
+  <div class="stat"><div class="num">62</div><div class="lbl">구현 노드 (검증 대상)</div></div>
+  <div class="stat"><div class="num">7 / 8</div><div class="lbl">보류 / 제외</div></div>
+  <div class="stat"><div class="num"><em>13</em></div><div class="lbl">미확인(?) 항목</div></div>
+  <div class="stat"><div class="num">77%</div><div class="lbl">결정적 비율</div></div>
+</div>
+
+<h2 id="tree">기능 트리</h2>
+<p>명칭이 아니라 역할로 묶었고, 상태(로그인·인증)는 Depth가 아니라 Pre-Condition으로 흡수했습니다.
+칩은 순서대로 검증유형 · 우선순위 · 출처(REF=레퍼런스 채택 / ADD=직접 보강) · 범위입니다.
+값이 미정인 항목은 트리에 박지 않고 미확인 목록에 모았습니다 — 확정처는 전부 spec/design/입니다.</p>
+<ul class="tree">
+<ul>
+<li><span class="depth-tag">D1</span><span class="node">앱 진입/세션</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">진입 분기</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">미로그인 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로그인 화면 노출, 인증 후 화면 한 프레임도 선노출되지 않음</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">세션 유지 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로그인 화면 없이 홈 직행</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">세션 만료 처리</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">PRE: 로그인 후 세션 만료 상태 (상태 스위처로 설정)</span> <span class="note">만료 안내 후 재로그인, 복귀 동작 규칙은 design</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">로그아웃</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">로그아웃 수행</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로그인 화면 복귀</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">로그아웃 후 데이터 잔존 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">앞 계정의 대화·세이브·재화가 화면·저장소에 남지 않음</span>
+</li></ul></li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">계정/게이팅</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">계정 전환 격리</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">계정 A(성인 인증)/B(미성년) 전환 시 대화·세이브·재화 완전 분리</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">보호 화면 직접 접근 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">미로그인 상태의 URL 직접 진입을 차단·리다이렉트</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">성인 게이팅</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">언세이프 콘텐츠 게이트</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">미인증: 목록 블러+상세 내용 숨김, 미성년: 해제 수단 없음</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">세이프티 필터 토글</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">성인 인증 계정에만 노출, ON이면 언세이프를 홈에서 숨김</span>
+</li></ul></li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">탐색/발견</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">상단 바</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">로고 홈 이동</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">어느 화면에서든 홈 복귀, 홈에서는 최상단 스크롤</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">키워드 검색</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">제목 부분일치, 결과 0건 안내</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">알림 목록 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">데이터 시트의 알림 항목이 목록에 반영(발생 로직 없음, 표시 반영만 검증)</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">홈 탭</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">추천 탭</span>
+<ul>
+<li><span class="depth-tag">D4</span><span class="node">추천 캐러셀</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">최대 7개 경계, 초과 데이터 시 7개까지만</span>
+</li>
+<li><span class="depth-tag">D4</span><span class="node">최근 대화한 캐릭터</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">대화 이력 없으면 섹션 미노출(조건부 노출)</span>
+</li>
+<li><span class="depth-tag">D4</span><span class="node">떠오르는 신작 섹션</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">신작 중 인기 상승 기준, 선정식은 design</span>
+</li>
+<li><span class="depth-tag">D4</span><span class="node">지금 뜨거운 섹션</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">인기 정렬 기준, 선정식은 design</span>
+</li></ul></li>
+<li><span class="depth-tag">D3</span><span class="node">랭킹 탭</span>
+<ul>
+<li><span class="depth-tag">D4</span><span class="node">기간 필터</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">일간/주간/월간 전환 시 집계 구간 변경</span>
+</li>
+<li><span class="depth-tag">D4</span><span class="node">이용수 집계</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">이벤트 테이블(유저×캐릭터×날짜)에서 집계, 같은 유저·같은 날짜 중복 이벤트는 +1만</span>
+</li>
+<li><span class="depth-tag">D4</span><span class="node">정렬 기준 전환</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">좋아요 많은 순·리뷰 점수 순</span>
+</li></ul></li>
+<li><span class="depth-tag">D3</span><span class="node">신작 탭</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">캐릭터방 생성일 최신순</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">카테고리 탭</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">카테고리 칩 최대 3개, 태그 일치 캐릭터만 노출</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">캐릭터 카드/상세</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">카드 상세 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">첫 메시지 전문 미리보기·태그 표시</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">시나리오 선택 시작</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">시나리오 드롭다운 선택 → 해당 시작점으로 대화 개시</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">좋아요 토글</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">토글 상태 유지, MY 활동 목록·랭킹 좋아요 정렬에 반영</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">스크랩 토글</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">토글 상태 유지, MY 활동 목록에 반영</span>
+</li></ul></li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">유저 페르소나</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">프로필 폼</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">글자수 경계</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이름·자유 설명의 상한 경계(값은 design, 후보 12/1,000)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">빈 값 검증</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">필수값 없으면 저장 비활성</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">응답 내 페르소나 준수</span> <span class="chip chip-prob">확률적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이름·호칭 반영률 계측, 유저 대사 무단 대필(침범) 검출 포함</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">설명란 프롬프트 주입 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">자유 텍스트에 지시문 삽입 시 게이팅 계층이 차단</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">온보딩 장르 선택</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">선호 장르 → 추천 반영</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">복수 프로필 운용</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">전환·대표 지정·방별 적용</span>
+</li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">재화</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">잔액</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">무료/유료 분리 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">잔액 2종과 내역 분리</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">잔액 정합</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">화면 표시 = 내부 상태</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">소모</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">행위별 차감</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">전송 시 요율 차감(요율은 design)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">소모 우선순위</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">겸용 소모 시 무료분 우선(규칙은 design)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">잔액 0 차단</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">부족 시 전송 차단+충전 안내</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">연타 이중 차감 방지</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">전송 연타 시 1회만 차감</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">생성 실패 시 미차감</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">AI 응답 생성 실패하면 차감 취소</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">획득</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">데일리 미션 수령</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">수령 시 무료 재화 증가, 1일 1회 중복 수령 차단</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">웰컴 미션 수령</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">항목별 1회 수령</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">획득 히스토리</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">획득/소모 내역 기록·필터</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">결제 mock</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">충전 성공 반영</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">성공 콜백 시 유료 잔액 증가</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">충전 실패 롤백</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">실패 콜백 시 잔액 무변화·안내</span>
+</li></ul></li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">서사 시스템</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">호감도 증감</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">선택지별 가중치 반영(값은 design, 후보 +1/+2/−1)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">관계 단계 임계 전이</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">임계 경계(−1/정확/+1)에서 단계 전이(단계 수·값은 design에서 ADD)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">단계 도달 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">도달 시 현재 상태 패널에 반영(해금 콘텐츠는 최소)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">엔딩 판정</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">호감도 임계+조건 충족으로 굿/노멀/배드(판정식은 design)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">엔딩 목록</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">도달 엔딩 수집 표시</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">CG 갤러리·회수율</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">수집 표시·회수율</span>
+</li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">대화 세션</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">송수신</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">전송→스트리밍 표시 완료, 입력 길이 상한(값은 design)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">고정 선택지 진행</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">선택지 클릭 진행(자유 입력과 병행)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">메시지 편집</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">수정 후 후속 맥락 갱신(규칙은 design)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">메시지 삭제</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">삭제 후 맥락에서 제거(재등장은 메모리 영역에서 검증)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">AI 응답 재생성</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이전 응답의 상태 변화 취소·재계산, 버려진 버전은 맥락에서 격리</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">분기 생성</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">타임머신형: 원본 방 보존+상태 복사한 새 방, 이후 상호 독립</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">백로그/다시 보기</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">지난 대화 재열람</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">오토·스킵·재생 속도</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">시한부 응답</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">시간 조건으로 응답 기회 소멸</span>
+</li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">세이브/로드</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">슬롯 저장·복원</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로드 시 호감도·단계·대화 위치가 저장 시점 그대로(슬롯 수는 design)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">슬롯 간 격리</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">다른 슬롯의 값 혼입 없음</span>
+</li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">메모리/컨텍스트</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">현재 상태 대시보드</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">관계 단계·호감도·감정 온도·호칭 표시</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">핀 고정 우선</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">유저가 고정한 값이 AI 자동 갱신보다 우선</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">기억 삭제</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">항목 삭제 시 목록·맥락에서 제거</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">삭제 기억 재등장 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">삭제된 정보가 이후 응답에 나오면 실패</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">단기 맥락 유지</span> <span class="chip chip-prob">확률적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">직전 N턴 반영률 계측(N은 design)</span>
+</li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">입력/출력 세이프티</span> <span class="chip chip-ok">구현</span>
+<ul>
+<li><span class="depth-tag">D2</span><span class="node">입력 필터</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">금칙 입력 차단 메시지(코퍼스는 추상 토큰)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">출력 필터</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">응답 내 금칙 토큰 마스킹/차단(계층 검증임을 명시)</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">우회 시도 방어</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">탈옥 프롬프트 차단</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">프롬프트 누출 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">시스템 프롬프트·내부 지시 출력 금지</span>
+</li></ul></li>
+<li><span class="depth-tag">D1</span><span class="node">캐릭터 저작</span> <span class="chip chip-no">제외</span> <span class="note">검증이 페르소나 폼과 중복. 내 작품 탭은 스텁(사유+트리 링크 표시)</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">커뮤니티</span> <span class="chip chip-no">제외</span> <span class="note">소셜은 별도 앱 규모. 탭은 전시용 정적(창작 게시글 2~4개 읽기 전용, 작성·댓글 없음)</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">소셜 프로필</span> <span class="chip chip-no">제외</span> <span class="note">팔로워/팔로잉은 데이터 시트 값의 표시만(로직 없음), 내 서재는 스텁</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">미디어 생성</span> <span class="chip chip-no">제외</span> <span class="note">검증이 재화 영역과 중복</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">실계정/본인인증</span> <span class="chip chip-no">제외</span> <span class="note">외부 인증사 재현 불가, 플래그 로직은 계정/게이팅 영역에 있음</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">계정 설정</span> <span class="chip chip-no">제외</span> <span class="note">언어·푸시·다크 모드는 스텁. 로그아웃만 앱 진입/세션 영역에서 구현</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">크로스디바이스</span> <span class="chip chip-no">제외</span> <span class="note">단일 HTML에서 부차적</span>
+</li>
+<li><span class="depth-tag">D1</span><span class="node">운세·커플로그류</span> <span class="chip chip-no">제외</span> <span class="note">콘텐츠성, 검증 가치 낮음</span>
+</li></ul>
+
+<h2 id="relations">TC 관계도</h2>
+<div class="callout">TC 설계 전입니다 — 케이스 사이의 선행 관계는 test-case/ 산출 후 이 섹션에서 재생성됩니다.</div>
+
+<h2 id="unknown">미확인 목록</h2>
+<div class="callout warn">아래 항목은 design/에서 확정되기 전까지 기대값이 성립하지 않습니다. 그래서 이 목록이 곧 명세 작성의 작업 목록입니다.</div>
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>노드 경로</th><th>미확인 값</th><th>확정처</th></tr></thead>
+  <tbody>
+    <tr><td>서사 시스템 &gt; 관계 단계 임계 전이</td><td>단계 수·임계값</td><td>design에서 ADD 확정 (후보: 러비더비 20/50/400/4000, LADS 구간)</td></tr>
+    <tr><td>서사 시스템 &gt; 호감도 증감</td><td>선택지 가중치</td><td>design (후보: 미스메 +1/+2/−1)</td></tr>
+    <tr><td>서사 시스템 &gt; 엔딩 판정</td><td>판정식(임계·조건·검사 시점)</td><td>design (후보: 크랙 10턴 후 5턴마다, 미스메 참여율 30%)</td></tr>
+    <tr><td>유저 페르소나 &gt; 글자수 경계</td><td>이름·설명 상한</td><td>design (후보: 플레이툰 실측 12/1,000)</td></tr>
+    <tr><td>재화 &gt; 행위별 차감</td><td>전송 1회 요율(무료/유료)</td><td>design</td></tr>
+    <tr><td>재화 &gt; 소모 우선순위</td><td>겸용 시 순서 규칙</td><td>design (후보: 무료분 우선)</td></tr>
+    <tr><td>재화 &gt; 미션 수령</td><td>데일리·웰컴 보상량</td><td>design (후보: 플레이툰 출석 300)</td></tr>
+    <tr><td>대화 세션 &gt; 송수신</td><td>입력 길이 상한</td><td>design (후보: 러비더비 400~500)</td></tr>
+    <tr><td>세이브/로드 &gt; 슬롯 저장·복원</td><td>슬롯 수</td><td>design (후보: 미스메 4)</td></tr>
+    <tr><td>메모리 &gt; 단기 맥락 유지</td><td>N턴·반영률 임계</td><td>design (후보: 러비더비 10~20)</td></tr>
+    <tr><td>탐색 &gt; 떠오르는 신작·지금 뜨거운</td><td>선정식(기간·가중치)</td><td>design</td></tr>
+    <tr><td>탐색 &gt; 이용수 집계</td><td>일/주/월 구간 정의</td><td>design</td></tr>
+    <tr><td>탐색 &gt; 카테고리 탭</td><td>카테고리 3종 선정</td><td>design</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer class="doc-footer">
+  qa-lab-miyonchat 기능 골격 v1.0 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+</footer>
+
+</div>
+</body>
+</html>
