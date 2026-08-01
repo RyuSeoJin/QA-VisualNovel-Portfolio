@@ -1,0 +1,68 @@
+{
+  "_설명": "qa-lab-miyonchat TC 설계 원본(정본). 프로젝트 설정과 목록 값은 채워져 있고, tcs는 TC 설계 단계에서 채웁니다. 스키마 정본은 scripts/build_tc_template_xlsx.py 독스트링입니다.",
+
+  "title": "qa-lab-miyonchat Test Case v1.0",
+  "project": "miyonchat",
+  "tree_version": "qa-lab-miyonchat-tree-v1.1",
+  "platforms": ["Web"],
+
+  "d1_order": [
+    "앱 진입/세션",
+    "계정/게이팅",
+    "탐색/발견",
+    "유저 페르소나",
+    "재화",
+    "서사 시스템",
+    "대화 세션",
+    "세이브/로드",
+    "메모리/컨텍스트",
+    "입력/출력 세이프티"
+  ],
+
+  "env": {
+    "OS": [""],
+    "단말": ["Chrome"],
+    "버전": [""],
+    "작업자 이름": [""],
+    "작업 시작일": [""]
+  },
+
+  "lists": {
+    "프로젝트": ["miyonchat"],
+    "이슈 상태": ["Open", "In Progress", "Resolved", "Reopen", "Closed"],
+    "우선순위": ["High", "Medium", "Low"],
+    "빈도": ["Always", "Often", "Sometimes", "Once"],
+    "버전(영향/수정 공용)": [
+      "PC웹_Ver1.0_RC1",
+      "PC웹_Ver1.0_RC2",
+      "PC웹_Ver1.0_RC3"
+    ],
+    "해결책": [
+      "Fixed", "Won't Do", "Won't Fix", "Duplicate",
+      "Incomplete", "Cannot Reproduce", "Done", "Declined"
+    ],
+    "환경": ["PC웹"],
+    "레이블": [
+      "앱 진입/세션",
+      "계정/게이팅",
+      "탐색/발견",
+      "유저 페르소나",
+      "재화",
+      "서사 시스템",
+      "대화 세션",
+      "세이브/로드",
+      "메모리/컨텍스트",
+      "입력/출력 세이프티"
+    ],
+    "보고자": ["정준호"],
+    "담당자": ["개발자 A", "개발자 B", "기획자 A"],
+    "스프린트": ["PC웹 Ver1.0"]
+  },
+
+  "vt_note": {
+    "확률적": "확률적 · 함수 안에서 N회 반복, 합격선 80% 미달 시 FAIL — 계측(변주 분포를 직접 작성했으므로 품질 지표 아님)",
+    "루브릭": "루브릭 · 자동화하지 않음. 3축 0~2점(만점 6) 합격선 5점, 수동 채점 후 rubric-scores.csv로 통합"
+  },
+
+  "tcs": []
+}

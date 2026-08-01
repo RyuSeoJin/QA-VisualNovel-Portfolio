@@ -7,7 +7,9 @@ change-log가 담당합니다. 갱신일: 2026-08-02 (design 명세 확정 직�
 
 1. **TC 설계·산출** (playbook STEP 6)
    - 선행 완료(2026-08-02): 스크립트 3자 동기화 · `tc-input-master.json` 생성 · 이슈 관리 시트 편입
-   - 남은 선행: 대상 플랫폼 재확인(Web 단독 예상 → 시트 열 조정), 목록 시트의 프로젝트 값 채우기(레이블=트리 1-Depth 10영역·담당자·스프린트)
+   - **대상 플랫폼 확정: Web 단독** (2026-08-02 사용자 확정) → tc-input의 `platforms`를 `["Web"]`로. 마스터 기본값(Web/And/iOS)은 그대로 두고 프로젝트에서만 조정
+   - 선행 완료(2026-08-02): `test-case/…-tc-input-v1.0.json` 생성(플랫폼 Web·목록 값·vt_note 덮어쓰기 반영, `tcs`만 비어 있음) · 케이스 전개 축 판정(청사진 §4-1)
+   - 남은 것: `tcs` 배열 작성 → xlsx 생성 → Excel 오픈 검증
    - 산출: `…-tc-input-v1.0.json` → xlsx(기준 골격 v1.1은 `tree_version`으로 자동 기입)
 2. **SUT 구현** (`sut/`) — 청사진 준수, data-testid 전체 목록을 청사진에 확정 등재, 스모크의 STUB를 실제 SUT로 교체(test_smoke.py [주의] 참조)
 3. **자동화** — conftest(reset)·thresholds·영역별 테스트 파일 → 결정적·금칙 격리부터 → 결함 주입 매트릭스(대각선만 FAIL) → 리포트(+"SUT 한계와 검증 범위")
