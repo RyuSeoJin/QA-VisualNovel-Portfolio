@@ -233,7 +233,7 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
       `result/history/`(열람 자유), `test-case/archive/`(참조 금지)
 - [ ] **CLAUDE.md 파일 지위 표** — 위 "정본과 파일 지위" 표를 반영
 - [x] **`.gitignore`에 `nodes.json` 추가** — `.venv/`와 함께 반영 완료
-- [ ] **`rules/sut-automation.md` 신설** — 아래 구성으로
+- [x] **`rules/sut-automation.md` 신설 완료 (2026-08-01)** — 아래 구성 그대로 작성, 용어집에 SUT·SUT 테스트 인터페이스·결함 주입 매트릭스 등재
       1. SUT 제작 규칙 — `data-testid` 명명, 상태 조회 훅, 시드 고정, 결함 주입 스위치
       2. 자동화 케이스 규칙 — 케이스명=TC ID, 검증유형별 작성법, `parametrize` 금지 사유
       3. 임계·반복 관리 — `thresholds.py`에 모으는 이유, 리포트가 읽어가는 구조
@@ -327,6 +327,7 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
 | 2026-08-01 | 조사 결과를 반영해 SUT 구현 범위 시작 세트를 여정 축 10영역으로 기획안 확정(§SUT 구현 범위) — 세이브는 슬롯형+타임머신 분기 병행, 입력은 자유+선택지 하이브리드, 재화는 이원화+소모 우선순위, 결제 mock 편입, 용어 "AI 응답 재생성" 확정, 관계 단계 수·임계값은 design/에서 REF 기반 ADD로. 구현 범위의 정본은 별도 파일 없이 트리의 범위 컬럼(작성 전까지는 이 문서)으로 관리 |
 | 2026-08-01 | 파일이 늘면 확정안과 근거가 섞여 헷갈리므로 spec/ 구조를 재편 — 평면에는 골격 트리 정본만, 구현·검증 사양은 **design/ 신설**(sut-blueprint + 규칙 수치·세이브 구조·mock·결함 주입·루브릭), rationale/·archive/는 현행 유지. TC 기대값은 트리와 design/에서만(rationale은 판단 기록). **spec/…-sut-blueprint.md 신설 확정** — 화면 맵·상태 모델·SUT 테스트 인터페이스 사양·검증 가능성 맵·의도적 비구현 5섹션, 코드와 어긋나면 청사진 우선. CLAUDE.md·playbook 반영 |
 | 2026-08-01 | 기획이 자동화에 끌려가지 않도록 spec/을 2층으로 재편 — ①기획 레이어(트리+design/+test-case, SUT 없이 자기완결) / ②SUT 레이어(**sut-design/ 신설**: sut-blueprint·save-schema·mock-llm-spec·fault-injection + sut/·automation/, SUT 프로젝트만). 기획 TC 기대값은 트리+design/만, SUT 층은 sut-design/ 추가 참조. TC 이원화는 폴더가 아니라 상태값으로 해결(보류 노드 TC=NI). 이 스캐폴드는 이후 전 프로젝트 표준 |
+| 2026-08-01 | SUT 구현 전에 방법론이 서 있어야 코드와 규칙이 어긋나지 않으므로 `rules/sut-automation.md` 신설(트랙 P 마지막 항목) — SUT 테스트 인터페이스 3갈래·케이스명=TC ID·parametrize 금지·thresholds 집중·rubric-scores.csv·결함 주입 매트릭스·deploy-pages 금지 등 change-log 확정분을 6부 원칙으로 이관. 예약분 이행: 용어집에 SUT·SUT 테스트 인터페이스·결함 주입 매트릭스 등재 |
 | 2026-08-01 | SUT 청사진(sut-blueprint)에 설계 결정과 사유가 섞여 구현 시 걸러 읽어야 했으므로, 청사진은 결정 선언만 남기고 사유·타당성 검증 기록을 **rationale/…-sut-rationale.md(신설)**로 분리 — 도메인 판단(addition-rationale)과 SUT 판단(sut-rationale)은 파일을 나눔. 지칭 규칙 확정: 맨 "blueprint" 단독 표기 금지, 항상 "SUT 청사진(sut-blueprint)". 타당성 검증 결과: 기획안 10영역 전부 화면 5개에 배치, 기획 수정 없음, 보강은 `__VN__.expireSession()` 하나 |
 | 2026-08-01 | 비유가 문서에 굳지 않도록 용어 확정 — **"손잡이" → "SUT 테스트 인터페이스"**(요소 셀렉터 data-testid · 상태 조회/제어 API window.__VN__ · 실행 조건 파라미터 ?seed/?inject). SUT 청사진 §3·이 문서·스모크 주석에 일괄 반영, 용어집 등재는 rules/sut-automation.md 작성 시 함께 |
 | 2026-08-01 | 미연시 축 근거 없이 구현 범위를 확정하지 않기 위해 레퍼런스 조사를 먼저 완료 — 에이전트 3분담(미스틱 메신저·러브 앤 딥스페이스=공개 자료, 플레이툰=가이드 정독) + 로그인 세션 실측(읽기 전용)으로 행동 인벤토리 3종을 `analysis/`에 적재. 실측으로 가이드 미기재 4건(젬 가격표·멤버십·환불·리뷰 보상) 해소, 언세이프 프로필 게이트 2건 실증, 가이드≠실물 사례(홈 칩 3→6) 확보 |

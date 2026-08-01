@@ -28,7 +28,10 @@
 | 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `spec/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |
 | 정본 / 파생 | 손으로 고치는 유일한 파일(정본)과 거기서 재생성되는 출력물(파생). 파생은 직접 수정 금지 | `CLAUDE.md` §정본과 파생 |
 | archive | 지나간 상태를 격리 보관하는 폴더. 골격 이력과 major 개정 직전의 동결 스냅샷이 함께 들어가며, 기본 참조 금지 | `CLAUDE.md` §참조 규칙 |
-| rationale | 확정안의 근거를 모으는 폴더. 레퍼런스에 없어 직접 세운 노드와 직접 정한 수치의 판단 과정이 들어가며, 참조 자유 | `qa-doc-playbook.md` STEP 5 |
+| rationale | 판단 기록을 모으는 폴더. 도메인 판단(addition-rationale)과 SUT 판단(sut-rationale)을 파일로 나누며, 참조 자유 — 확정안이 아니므로 TC 기대값으로 쓰지 않음 | `qa-doc-playbook.md` STEP 5 |
+| SUT (System Under Test) | 테스트 대상 시스템. 테스트 코드가 아니라 테스트를 당하는 쪽이며, 역분석 대상과 테스트 대상이 다른 프로젝트에서는 직접 제작함 | `rules/sut-automation.md` |
+| SUT 테스트 인터페이스 | SUT가 테스트 코드에 공식적으로 열어주는 접점 — 요소 셀렉터(data-testid) · 상태 조회/제어 API · 실행 조건 파라미터(시드·결함 주입). 격리 계열 검증과 실패 재현을 가능하게 함 | `rules/sut-automation.md` §1 |
+| 결함 주입 매트릭스 | 행=주입한 결함, 열=담당 TC로 짠 표. 대각선만 FAIL이면 정상이고, 대각선이 PASS면 그 TC가 결함을 못 잡는다는 증거 | `rules/sut-automation.md` §5 |
 | change-log 이원화 | 문서 이력(항상 먼저 읽음)과 골격 이력(기본 참조 금지)을 분리하는 규칙 | `CLAUDE.md` §참조 규칙 |
 | 미확인 목록 | 정본 안의 `?` 항목 모음. 추측으로 채우지 않고 실측으로 확정하는 대기열 | `qa-doc-playbook.md` STEP 5 |
 | Case A/B/C | 문서 제작 시 템플릿 판별 3분류 — 기존 템플릿 / 마스터 갱신 필요 / 신규 템플릿 필요 | `design-template/template-catalog.md` |
