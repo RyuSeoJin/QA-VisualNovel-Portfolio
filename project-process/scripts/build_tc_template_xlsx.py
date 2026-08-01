@@ -48,6 +48,9 @@ openpyxl 함정 3종 (2026-08-02 디버깅으로 확인 — Excel '복구' 프�
   "d1_order": ["앱 진입", ...],               # 1-Depth 표시 순서 (생략 시 등장 순)
   "env": {"OS": ["", "", ""], ...},          # 상단 환경 블록 기본값
   "lists": {"레이블": [...], ...},            # 목록 시트 덮어쓰기 (선택)
+  "vt_note": {"루브릭": "…"},                 # 검증유형 문구 덮어쓰기 (선택)
+                                             #   기본값은 rules/verification-types.md,
+                                             #   프로젝트가 design/에서 다르게 정했을 때만 씁니다
   "issue_samples": [[...20개 값...]],         # 이슈 시트 예시 행 (선택)
   "tcs": [
     ["TC-XXX-001","1-Depth","2-Depth","3-Depth","케이스",
@@ -71,6 +74,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.views import Selection
 from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.formatting.rule import CellIsRule
 
 # ── 서식 토큰 (xlsx-design-guide.md) ─────────────────────────
 FONT = "맑은 고딕"
@@ -90,11 +94,45 @@ WHITE = PatternFill("solid", fgColor="FFFFFF")
 _side = Side(style="thin", color=BORDER_RGB)
 BOX = Border(left=_side, right=_side, top=_side, bottom=_side)
 
+# 상태 배색 (xlsx-design-guide.md §3) — 값 기반 조건부 서식.
+# 빈 칸은 노란 채움(채울 자리)으로 남고, 값이 들어가면 상태색이 덮습니다.
+GREEN = ("D1FAE5", "047857")
+RED = ("FEE2E2", "B91C1C")
+PURPLE = ("EDE9FE", "6D28D9")
+WHITE_C = ("FFFFFF", "000000")
+ORANGE = ("FEF3C7", "B45309")
+BLUE = ("DBEAFE", "1D4ED8")
+GRAY_C = ("E5E7EB", "4B5563")
+
+STATUS_COLORS = {
+    "Pass": GREEN, "Resolved": GREEN,
+    "Fail": RED, "High": RED,
+    "Blocked": PURPLE,
+    "Open": WHITE_C, "Reopen": WHITE_C,
+    "Medium": ORANGE,
+    "In Progress": BLUE,
+    "Closed": GRAY_C, "Low": GRAY_C, "NI": GRAY_C,
+}
+
+
+def paint_status(ws, ref, values, size=9):
+    """ref 범위의 셀을 값에 따라 상태색으로 칠한다."""
+    for v in values:
+        fill, fontc = STATUS_COLORS[v]
+        ws.conditional_formatting.add(
+            ref,
+            CellIsRule(operator="equal", formula=[f'"{v}"'],
+                       fill=PatternFill("solid", fgColor=fill),
+                       font=Font(name=FONT, size=size, bold=True, color=fontc)))
+
+
+# 검증유형별 판정 규칙 문구 — 워크스페이스 기본값(rules/verification-types.md).
+# 프로젝트가 design/에서 다른 값을 확정했다면 입력 json의 vt_note로 덮어씁니다.
 VT_NOTE = {
     "결정적": "결정적 · 1회 실행, 기대값 불일치 시 FAIL",
-    "확률적": "확률적 · 함수 안에서 N회 반복, 명시 임계 미달 시 FAIL (계측)",
-    "루브릭": "루브릭 · 자동화하지 않음. 수동 채점 후 rubric-scores.csv로 통합",
-    "금칙": "금칙 · 정의된 시도 목록 전부 실행, 하나라도 통과(차단 실패) 시 FAIL",
+    "확률적": "확률적 · 20회 반복(지표성 30~50회), 명시 임계 미달 시 FAIL",
+    "루브릭": "루브릭 · 5점 채점, 평가자 2인 또는 심판모델 3회, 합격선 4점",
+    "금칙": "금칙 · 우회 변형 포함 20~40회 시도, 1건이라도 발생 시 FAIL",
 }
 
 DEFAULT_LISTS = {
@@ -162,6 +200,10 @@ def main():
     LISTS["프로젝트"] = [PROJECT]
     for k, v in (CFG.get("lists") or {}).items():
         LISTS[k] = v
+
+    # 검증유형 문구 — 프로젝트가 design/에서 확정한 값이 있으면 덮어쓴다
+    vt_note = dict(VT_NOTE)
+    vt_note.update(CFG.get("vt_note") or {})
 
     # 선행 관계 -> 실행 단계
     PAR = {t[0]: t[10] for t in TCS}
@@ -258,7 +300,7 @@ def main():
 
     ws.merge_cells(f"{COMMENT}6:{EDIT}6")
     ws[f"{COMMENT}6"] = ("※ 노란색 셀은 실행 단계에서 채워집니다 — 환경 정보 / Result / "
-                         "Issue No.   ·   Comment = TC ID · 실행 단계 · 선행 TC · 대상")
+                         "Issue No. / Comment   ·   수행 전 참고사항은 전부 Note에 있습니다")
     ws[f"{COMMENT}6"].font = Font(name=FONT, size=8, color=NOTE_TEXT)
     ws.merge_cells(f"{COMMENT}8:{EDIT}10")
     ws[f"{COMMENT}8"] = ("※ 1-Depth는 기능 영역 기준. 실제 탐색으로 화면명이 확정되면 "
@@ -288,14 +330,15 @@ def main():
                 ws[f"K{row}"] = i
                 ws[f"L{row}"] = to_step(st)
                 ws[f"M{row}"] = expl[i - 1] if aligned else (expl[0] if (is_last and expl) else "")
-                ws[f"N{row}"] = prio if i == 1 else ""
+                ws[f"N{row}"] = prio   # 행 단위 집계에 맞춰 스텝 행마다 반복
                 if i == 1:
+                    # 수행 전 참고사항은 전부 Note에 모은다 — Comment는 실행 중 기록용으로 비워 둔다
                     p = PAR.get(tid, "-") or "-"
-                    ws[f"{COMMENT}{row}"] = f"{tid} · {depth(tid)}단계 · 선행 {p} · 대상 {target}"
-                    w = VT_NOTE.get(vt, vt)
+                    meta = f"{tid} · {depth(tid)}단계 · 선행 {p} · 대상 {target}"
+                    w = vt_note.get(vt, vt)
                     if note:
                         w += " / " + note
-                    ws[f"{NOTE}{row}"] = w
+                    ws[f"{NOTE}{row}"] = f"{meta}\n{w}"
                 row += 1
             for extra in ([] if aligned else expl[1:]):
                 ws[f"K{row}"] = len(stepl)
@@ -309,7 +352,7 @@ def main():
                     center = col in ("B", "K", "N") or col in TOTAL_COLS or col in RESULT_COLS
                     x.alignment = Alignment(horizontal="center" if center else "left",
                                             vertical="center", wrap_text=True)
-                    x.fill = INPUT if col in RESULT_COLS + [ISSUE_COL] else WHITE
+                    x.fill = INPUT if col in RESULT_COLS + [ISSUE_COL, COMMENT] else WHITE
                 ws[f"C{r}"].font = dfont(bold=True)
                 ws[f"K{r}"].font = dfont(bold=True)
                 ws.row_dimensions[r].height = 30
@@ -332,6 +375,11 @@ def main():
     dvp = DataValidation(type="list", formula1='"High,Medium,Low"', allow_blank=True)
     ws.add_data_validation(dvp)
     dvp.add(f"N11:N500")
+
+    # 상태 배색 — 실행 결과(Result)와 케이스 판정(Total Result), 우선순위
+    paint_status(ws, f"{RESULT_COLS[0]}11:{RESULT_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
+    paint_status(ws, f"{TOTAL_COLS[0]}11:{TOTAL_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
+    paint_status(ws, "N11:N500", ["High", "Medium", "Low"])
 
     for col, _l, w in base + tail:
         ws.column_dimensions[col].width = w
@@ -391,14 +439,15 @@ def main():
         a.border = BOX
         a.fill = WHITE
         tcr = "'Test Case'!"
-        f = {3: f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},{tcr}$K$11:$K$500,1)'}
+        # 행 수 기준 집계 — TC 수와 결과 집계의 단위를 스텝 행으로 맞춘다
+        f = {3: f'=COUNTIF({tcr}$C$11:$C$500,$B{r})'}
         for j, pr in enumerate(["High", "Medium", "Low"]):
             f[4 + j] = f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},{tcr}$N$11:$N$500,"{pr}")'
-        for pi, tcol in enumerate(TOTAL_COLS):
+        for pi, rcol in enumerate(RESULT_COLS):
             c0 = 7 + pi * 4
             for j, st in enumerate(["Pass", "Fail", "Blocked"]):
                 f[c0 + j] = (f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},'
-                             f'{tcr}${tcol}$11:${tcol}$500,"{st}")')
+                             f'{tcr}${rcol}$11:${rcol}$500,"{st}")')
             pcol, fcol = get_column_letter(c0), get_column_letter(c0 + 1)
             f[c0 + 3] = f'=IF({pcol}{r}+{fcol}{r}=0,"",{pcol}{r}/({pcol}{r}+{fcol}{r}))'
         for ci, formula in f.items():
@@ -431,8 +480,8 @@ def main():
             x.number_format = "0.0%"
 
     s2.cell(tot + 2, 2,
-            "TC 수 = 케이스 단위(TN 1행) · Pass율 = Pass ÷ (Pass + Fail) — "
-            "NI·Blocked는 분모에서 제외합니다"
+            "TC 수 = 스텝 행 수(1-Depth 기준) · Pass/Fail/Blocked도 같은 행 단위(Result 열) · "
+            "Pass율 = Pass ÷ (Pass + Fail) — NI·Blocked는 분모에서 제외합니다"
             ).font = Font(name=FONT, size=8, color=NOTE_TEXT)
     s2.column_dimensions["A"].width = 3
     s2.column_dimensions["B"].width = 22
@@ -500,6 +549,13 @@ def main():
         s3.add_data_validation(d)
         d.add(f"{col}3:{col}200")
 
+    # 상태 배색 — 이슈 상태(D)와 우선순위(G)
+    paint_status(s3, "D3:D200", ["Open", "In Progress", "Resolved", "Reopen", "Closed"], size=11)
+    paint_status(s3, "G3:G200", ["High", "Medium", "Low"], size=11)
+    # 목록 시트의 해당 열도 같은 색으로 — 값 체계를 색까지 함께 보여줍니다
+    for list_name, ref in (("이슈 상태", "C3:C20"), ("우선순위", "D3:D20")):
+        paint_status(s4, ref, LISTS[list_name], size=11)
+
     # ══ 명세서 ═══════════════════════════════════════════════
     build_spec_sheet(wb)
 
@@ -527,7 +583,7 @@ def build_spec_sheet(wb):
         ("section", "1. 시트 구성"),
         H("시트", "역할"),
         R("Test Case", "TC 작성과 실행 기록. 노란 셀은 실행 단계에서 채워집니다"),
-        R("Summary", "케이스 단위 자동 집계. 기준 골격 버전(C4)은 생성 시 자동 기입됩니다"),
+        R("Summary", "행 단위 자동 집계(1-Depth 기준). 기준 골격 버전(C4)은 생성 시 자동 기입됩니다"),
         R("이슈 관리 시트", "결함 기록(내장 운영, JIRA 미사용) — JIRA 이슈 등록·관리 방식을 "
                        "시트로 표현. Issue No.로 Test Case와 연결합니다"),
         R("목록", "드롭다운 참조 목록의 정본. 숨기지 않고 맨 뒤에 둡니다"),
@@ -537,17 +593,24 @@ def build_spec_sheet(wb):
         H("컬럼", "내용", "채우는 규칙"),
         R("No", "행 번호", "자동(ROW()-10). 직접 입력하지 않습니다"),
         R("1~7-Depth", "기능 계층", "스텝 행마다 반복. 의미 있는 깊이까지만 쓰고 나머지는 빈칸"),
-        R("Pre-Condition", "사전조건", "TN 1행에만"),
+        R("Pre-Condition", "사전조건",
+          "TN 1행에 케이스 진입 조건. 중간 스텝에 앞 스텝이 만들지 못하는 새 상태(시간 경과·"
+          "외부 변화 등)가 필요하면 그 행에도 적습니다 — 앞 스텝의 결과로 성립한 상태는 제외"),
         R("TN", "스텝 번호", "케이스마다 1부터. 새 케이스가 시작되면 1로 복귀"),
         R("Test-Step", "수행 동작", "「~한다」 체"),
         R("Expected-Result", "기대 결과",
           "「~된다」 체. 판정 가능한 문장 — 임계·합격선·시도 횟수는 문장 안에 숫자로"),
-        R("Priority", "우선순위", "TN 1행에만. High/Medium/Low — 케이스의 속성입니다"),
+        R("Priority", "우선순위",
+          "스텝 행마다 반복. High/Medium/Low — 케이스의 속성이지만 Summary가 행 단위로 "
+          "집계하므로 행마다 값을 둡니다"),
         R("Total Result", "케이스 판정", "수식 열. 케이스 행 범위를 세로 병합하며 직접 입력하지 않습니다"),
         R("Result", "스텝 실행 결과", "드롭다운 4종(아래 상태값 정의). 실행 단계에서 채움 — 노란 셀"),
         R("Issue No.", "이슈 연결", "이슈 관리 시트의 Issue No. 실행 단계에서 채움 — 노란 셀"),
-        R("Comment", "케이스 메타", "TC ID · 실행 단계 · 선행 TC · 대상 서비스"),
-        R("Note", "검증 정보", "검증유형과 판정 규칙, 주의사항"),
+        R("Comment", "수행 중 기록",
+          "TC를 수행하다 생긴 문제·관찰을 실행 단계에서 적습니다 — 노란 셀. 설계 시점에는 비어 있습니다"),
+        R("Note", "수행 전 참고사항",
+          "TC를 수행하기 전에 알아야 할 것을 전부 모읍니다 — 케이스 메타(TC ID · 실행 단계 · "
+          "선행 TC · 대상)와 검증유형·판정 규칙·주의사항"),
         R("Test Case Edit", "편집 이력", "자유 기재"),
         ("gap",),
         ("section", "3. 상태값 정의"),
