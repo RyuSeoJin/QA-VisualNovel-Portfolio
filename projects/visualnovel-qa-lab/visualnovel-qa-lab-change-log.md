@@ -69,9 +69,10 @@ projects/visualnovel-qa-lab/
 ├─ analysis/        조사 전량 — 버리지 않고 모음
 ├─ reference/       채택분 — 쓰기로 고른 것들의 구체 사양
 ├─ spec/            확정 결정 — 정본이 사는 곳
-│   ├─ (평면)       골격 트리 정본 + 파생 HTML만
-│   ├─ design/      구현·검증 사양 — TC 기대값은 트리와 여기서만
-│   ├─ rationale/   근거(판단 기록) — 참조 자유, 기대값 아님
+│   ├─ (평면)       기획 골격 트리 정본 + 파생 HTML만
+│   ├─ design/      ①기획 확정 사양 — 기획 TC 기대값은 트리와 여기서만
+│   ├─ sut-design/  ②SUT 전용 사양 — SUT 구현·자동화가 참조 (SUT 프로젝트만)
+│   ├─ rationale/   판단 기록(도메인=addition-rationale·SUT=sut-rationale) — 기대값 아님
 │   └─ archive/     골격 이력 + 동결 스냅샷 — 기본 참조 금지
 ├─ test-case/       설계 원본 json + 설계 시트 xlsx
 │   └─ archive/     기본 참조 금지
@@ -91,7 +92,8 @@ projects/visualnovel-qa-lab/
 | 파일 | 성격 | 커밋 |
 |---|---|---|
 | `spec/…-feature-tree.md` | **골격 정본** — 손으로 고치는 유일한 파일 | 필수 |
-| `spec/design/…` | **구현·검증 사양** — SUT 청사진(sut-blueprint) · 규칙 수치(system-spec) · 세이브 구조(save-schema) · mock 응답(mock-llm-spec) · 결함 주입(fault-injection) · 루브릭(rubric). 트리와 함께 TC 기대값의 원천 | 필수 |
+| `spec/design/…` | **①기획 확정 사양** — 규칙 수치(system-spec, 세이브의 기획 규칙 포함) · 루브릭(rubric). 트리와 함께 기획 TC 기대값의 원천 | 필수 |
+| `spec/sut-design/…` | **②SUT 전용 사양** — 청사진(sut-blueprint) · 세이브 스키마(save-schema) · mock 응답(mock-llm-spec) · 결함 주입(fault-injection). SUT 구현·자동화의 참조 원천 | 필수 |
 | `spec/rationale/…-addition-rationale.md` | **판단 기록** — 조사로 방어되지 않는 부분의 근거 | 필수 |
 | `spec/archive/…-tree-change-log.md` | 골격 변경 이력 | 필수 (기본 참조 금지) |
 | `nodes.json` | 순수 중간물 — 명령 한 줄로 재생성, 결과 항상 같음 | **불필요** (`.gitignore`) |
@@ -123,10 +125,11 @@ design-template/tc-input-master.json                            빈 포맷 골�
 
 ### SUT 설계
 
-SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규칙의 예외입니다. 처음부터 테스트가
-붙잡을 손잡이를 심어 만듭니다.
+SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규칙의 예외입니다. 처음부터 **SUT
+테스트 인터페이스**(SUT가 테스트 코드에 열어주는 접점 — 구 표현 "손잡이", 2026-08-01 용어
+확정)를 심어 만듭니다. 구조 정본은 `spec/sut-design/…-sut-blueprint.md` §3입니다.
 
-| 손잡이 | 내용 |
+| 인터페이스 | 내용 |
 |---|---|
 | `data-testid` | TC ID와 연결. 클래스·화면 문구로 요소를 찾지 않습니다 |
 | `window.__VN__` | `getState()` · `getSave(slot)` · `reset()`. 화면에 안 보이는 값을 읽는 통로 |
@@ -187,7 +190,7 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
 
 ### 미결 사항 (사용자 결정 필요)
 
-- [x] **SUT 구현 범위 — 기획안 확정 (2026-08-01)** — §SUT 구현 범위 참조. 남은 절차: blueprint 초안에서 기획안 타당성 검증 → 트리 v1.0 범위 컬럼(구현/보류)에 반영되며 구현 범위 확정
+- [x] **SUT 구현 범위 — 기획안 확정 (2026-08-01)** — §SUT 구현 범위 참조. 남은 절차: SUT 청사진(sut-blueprint) 초안에서 기획안 타당성 검증 → 트리 v1.0 범위 컬럼(구현/보류)에 반영되며 구현 범위 확정
 - [ ] 자동화 리포트 전용 템플릿(Case C) 승인 여부 — 기본 리포트로 시작하고 여유 되면 제작을 권장
 - [x] `tc-sheet-master.xlsx` — **생성 완료 (2026-08-01).** 명세서 시트·`tc-sheet-format.md` 동기화 완료, **스크립트(`build_tc_template_xlsx.py`) 동기화만 남음** (TC 산출 단계 전까지). Issue 시트는 사용자 포맷 제공 대기
 - [ ] `build_tc_xlsx.py` 존치 여부 — 6시트 분석용 워크북. 분석 문서를 HTML로 내기로 했으므로 역할이 겹칩니다
@@ -195,7 +198,7 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
 ### SUT 구현 범위 — 시작 세트 (2026-08-01 기획안 확정)
 
 **SUT 구현 범위** = 기능 트리 중 SUT로 구현하고 TC·자동화를 작성하는 범위 (구 명칭 "A층" —
-뜻이 안 읽혀 2026-08-01 교체). 단계는 셋입니다: ① 기획안 확정(이 섹션) → ② blueprint
+뜻이 안 읽혀 2026-08-01 교체). 단계는 셋입니다: ① 기획안 확정(이 섹션) → ② SUT 청사진
 초안에서 타당성 검증 → ③ 트리 v1.0의 범위 컬럼(**구현/보류**)에 반영되며 **구현 범위 확정**
 (그때부터 정본은 트리).
 
@@ -322,10 +325,13 @@ SUT는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규�
 | 2026-08-01 | TC 설계가 시트 서식 부재로 막히지 않도록 `tc-sheet-master.xlsx`를 사용자 구글 시트 기반으로 제작(Test Case·Summary·명세서 3시트, Issue는 포맷 대기). 확정 결정 — 상태값 4종 Pass/Fail/NI/Blocked(N/A·Skip 흡수), Total Result 우선순위 Fail>Blocked>NI>Pass, Summary 전면 케이스 단위 통일(스텝 열 폐지), Pass율=Pass/(Pass+Fail)에 NI·Blocked 분모 제외 + Blocked 개수 별도 노출, 기준 골격 버전 칸 Summary C4, TC ID `TC-{영역코드}-{번호}` 유지, JIRA 미사용(내장 Issue 시트) 재확정, JIRA No.→Issue No. 개명, 플랫폼 열은 TC 설계 시작 시 재확인. 원본 구글 시트의 Total Result 수식 결함(And 열 누락·iOS 열이 And를 집계)을 수정 반영. `tc-sheet-format.md` 동기화, 용어집에 NI 추가 |
 | 2026-08-01 | 뜻이 읽히지 않는 코드네임을 없애기 위해 용어 교체 — **"A층" → "SUT 구현 범위"**, 단계명은 기획안 확정 → 타당성 검증 → 구현 범위 확정, 트리 범위 컬럼 값은 A/보류 → **구현/보류**. 과거 커밋 메시지의 "A층" 표기는 이 항목으로 해독. 커밋 메시지 규격도 대괄호 섹션 구조([작업 목록]/[스펙 변경]/[변경 파일]/[상세]/[주의])로 개정(qa-git-rules §3) |
 | 2026-08-01 | 조사 결과를 반영해 SUT 구현 범위 시작 세트를 여정 축 10영역으로 기획안 확정(§SUT 구현 범위) — 세이브는 슬롯형+타임머신 분기 병행, 입력은 자유+선택지 하이브리드, 재화는 이원화+소모 우선순위, 결제 mock 편입, 용어 "AI 응답 재생성" 확정, 관계 단계 수·임계값은 design/에서 REF 기반 ADD로. 구현 범위의 정본은 별도 파일 없이 트리의 범위 컬럼(작성 전까지는 이 문서)으로 관리 |
-| 2026-08-01 | 파일이 늘면 확정안과 근거가 섞여 헷갈리므로 spec/ 구조를 재편 — 평면에는 골격 트리 정본만, 구현·검증 사양은 **design/ 신설**(sut-blueprint + 규칙 수치·세이브 구조·mock·결함 주입·루브릭), rationale/·archive/는 현행 유지. TC 기대값은 트리와 design/에서만(rationale은 판단 기록). **spec/…-sut-blueprint.md 신설 확정** — 화면 맵·상태 모델·손잡이 사양·검증 가능성 맵·의도적 비구현 5섹션, 코드와 어긋나면 blueprint 우선. CLAUDE.md·playbook 반영 |
+| 2026-08-01 | 파일이 늘면 확정안과 근거가 섞여 헷갈리므로 spec/ 구조를 재편 — 평면에는 골격 트리 정본만, 구현·검증 사양은 **design/ 신설**(sut-blueprint + 규칙 수치·세이브 구조·mock·결함 주입·루브릭), rationale/·archive/는 현행 유지. TC 기대값은 트리와 design/에서만(rationale은 판단 기록). **spec/…-sut-blueprint.md 신설 확정** — 화면 맵·상태 모델·SUT 테스트 인터페이스 사양·검증 가능성 맵·의도적 비구현 5섹션, 코드와 어긋나면 청사진 우선. CLAUDE.md·playbook 반영 |
+| 2026-08-01 | 기획이 자동화에 끌려가지 않도록 spec/을 2층으로 재편 — ①기획 레이어(트리+design/+test-case, SUT 없이 자기완결) / ②SUT 레이어(**sut-design/ 신설**: sut-blueprint·save-schema·mock-llm-spec·fault-injection + sut/·automation/, SUT 프로젝트만). 기획 TC 기대값은 트리+design/만, SUT 층은 sut-design/ 추가 참조. TC 이원화는 폴더가 아니라 상태값으로 해결(보류 노드 TC=NI). 이 스캐폴드는 이후 전 프로젝트 표준 |
+| 2026-08-01 | SUT 청사진(sut-blueprint)에 설계 결정과 사유가 섞여 구현 시 걸러 읽어야 했으므로, 청사진은 결정 선언만 남기고 사유·타당성 검증 기록을 **rationale/…-sut-rationale.md(신설)**로 분리 — 도메인 판단(addition-rationale)과 SUT 판단(sut-rationale)은 파일을 나눔. 지칭 규칙 확정: 맨 "blueprint" 단독 표기 금지, 항상 "SUT 청사진(sut-blueprint)". 타당성 검증 결과: 기획안 10영역 전부 화면 5개에 배치, 기획 수정 없음, 보강은 `__VN__.expireSession()` 하나 |
+| 2026-08-01 | 비유가 문서에 굳지 않도록 용어 확정 — **"손잡이" → "SUT 테스트 인터페이스"**(요소 셀렉터 data-testid · 상태 조회/제어 API window.__VN__ · 실행 조건 파라미터 ?seed/?inject). SUT 청사진 §3·이 문서·스모크 주석에 일괄 반영, 용어집 등재는 rules/sut-automation.md 작성 시 함께 |
 | 2026-08-01 | 미연시 축 근거 없이 구현 범위를 확정하지 않기 위해 레퍼런스 조사를 먼저 완료 — 에이전트 3분담(미스틱 메신저·러브 앤 딥스페이스=공개 자료, 플레이툰=가이드 정독) + 로그인 세션 실측(읽기 전용)으로 행동 인벤토리 3종을 `analysis/`에 적재. 실측으로 가이드 미기재 4건(젬 가격표·멤버십·환불·리뷰 보상) 해소, 언세이프 프로필 게이트 2건 실증, 가이드≠실물 사례(홈 칩 3→6) 확보 |
 | 2026-08-01 | 레퍼런스 6종 확정 — 플레이툰 추가(여성향+VN UI, SUT 형태에 최근접), 로판AI 검토 후 제외(로그인 게이트로 조사 불가). 조사 형식 확정 — 레퍼런스마다 첫 진입부터 유저 행동 인벤토리로 정리 |
-| 2026-07-31 | Day 3 아침에 환경 문제가 드러나면 자동화 시간이 사라지므로 Playwright 설치를 앞당겨 확인 — Python 3.14.2에 휠이 있어(`greenlet-3.5.4-cp314`, `playwright-1.61.0`) **Node LTS 전환 불필요**. chromium·headless shell·ffmpeg 확보(실행 GIF 별도 설치 없음). 손잡이 방식(`data-testid`·`window.__VN__`·매 테스트 `reset()`)을 스모크 3건으로 검증하고 `automation/`에 `requirements.txt`·`tests/test_smoke.py` 생성. 재생성 가능한 것과 환경에 묶인 것은 커밋하지 않는다는 기준으로 `.gitignore`에 `.venv/`·`nodes.json` 추가 |
+| 2026-07-31 | Day 3 아침에 환경 문제가 드러나면 자동화 시간이 사라지므로 Playwright 설치를 앞당겨 확인 — Python 3.14.2에 휠이 있어(`greenlet-3.5.4-cp314`, `playwright-1.61.0`) **Node LTS 전환 불필요**. chromium·headless shell·ffmpeg 확보(실행 GIF 별도 설치 없음). SUT 테스트 인터페이스 방식(`data-testid`·`window.__VN__`·매 테스트 `reset()`)을 스모크 3건으로 검증하고 `automation/`에 `requirements.txt`·`tests/test_smoke.py` 생성. 재생성 가능한 것과 환경에 묶인 것은 커밋하지 않는다는 기준으로 `.gitignore`에 `.venv/`·`nodes.json` 추가 |
 | 2026-07-31 | 문장 구조 규칙이 doc-write-style.md에만 있어 커밋 작성 시 놓쳤으므로, qa-git-rules.md에 사유 항목의 이유 → 작업 → 결과 순서(§3)와 원인이 다른 작업을 한 커밋에 담을 때 본문에서 단위를 나눠 적는 규칙(§2)을 추가 |
 | 2026-07-31 | 승인한 안과 산출물이 갈라지지 않도록 CLAUDE.md에 §수정 범위 규칙 신설 — 요청 범위를 벗어나는 수정은 적용하지 않고 근거를 담아 제안. 이번 작업에서 승인 없이 진행한 두 건(폴더 이름 변경, 폴더 체계 표현 수정)이 계기 |
 | 2026-07-31 | `spec/` 하위를 참조 규칙 기준으로 분리 — 근거는 `rationale/`, 골격 이력과 동결 스냅샷은 `archive/`. `addition-rationale.md`가 담을 내용을 §1 노드 보강·§2 수치 확정으로 확정. CLAUDE.md·qa-doc-playbook·qa-dictionary·qa-git-rules·README에 반영 |
