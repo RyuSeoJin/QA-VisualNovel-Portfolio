@@ -114,11 +114,22 @@ T1 디버그 콘솔 — 상단 바 [디버그] 버튼 (모달 + 딤). S1에서�
 `{화면}-{요소}[-{인덱스|수식어}]`, 전부 kebab-case. 화면 접두는 s1~s8 · p1~p4 ·
 g(전역 셸) · t1(테스트 콘솔).
 
+**표는 두 부분입니다.** ✅ 표시는 구현이 끝나 실제로 존재하는 것이고, 나머지는 앞으로 만들 때
+쓸 이름입니다. 새 화면을 구현하면 그 줄에 ✅를 붙여 목록을 최신으로 유지합니다.
+
 | 예 | 가리키는 것 |
 |---|---|
-| `g-nav-home` · `g-nav-my` 등 | 하단 내비 탭 |
-| `g-search` · `g-noti` · `g-wallet` · `g-profile` | 상단 바 검색·알림·재화·간편 프로필 |
-| `s1-account-a` / `s1-account-b` | 계정 선택 버튼 |
+| ✅ `g-topbar` · `g-bottomnav` · `g-footer` | 전역 셸의 세 영역 |
+| ✅ `g-logo` · `g-search` · `g-noti` | 상단 바 로고·검색·알림 |
+| ✅ `g-wallet` · `g-profile` | 상단 바 재화·간편 프로필 (로그인 시) |
+| ✅ `g-login` | 상단 바 로그인 버튼 (미로그인 시 위 둘 대신) |
+| ✅ `g-debug` | 디버그 콘솔 진입 (상단 바 · S1 우상단 공통) |
+| ✅ `g-nav-home` · `g-nav-works` · `g-nav-chat` · `g-nav-community` · `g-nav-my` | 하단 내비 5탭 |
+| ✅ `g-footer-tree` · `g-build` | 푸터의 트리 링크 · 빌드 버전 |
+| ✅ `g-expired-modal` · `g-expired-ok` | 세션 만료 안내 모달 |
+| ✅ `g-toast` | 안내 토스트 (3초) |
+| ✅ `s1-account-a` / `s1-account-b` | 계정 선택 버튼 |
+| ✅ `s1-notice` · `s1-back-home` | 로그인 필요 안내 · 둘러보기로 복귀 |
 | `s2-chip-{이름}` · `s2-rank-period-{구간}` · `s2-rank-sort-{기준}` | 홈 필터 칩 · 랭킹 필터·정렬 |
 | `s2-card-{id}` / `s2-card-{id}-blur` / `-like` / `-scrap` | 캐릭터 카드 / 블러 표식 / 토글 |
 | `s3-name` · `s3-desc` · `s3-save` | 페르소나 폼 |
@@ -130,12 +141,29 @@ g(전역 셸) · t1(테스트 콘솔).
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
 | `p2-stage` · `p2-pin-{항목}` · `p2-memory-{n}-delete` | 현재 상태·핀·기억 삭제 |
 | `p3-wallet-free` · `p3-wallet-paid` · `p3-charge-ok` · `p3-charge-fail` | 재화·충전 mock |
-| `p4-name` · `p4-adult` · `p4-daily-claim` · `p4-welcome-{id}-claim` | 계정 표시명 · 인증 상태 · 미션 수령 |
-| `g-debug` | 디버그 콘솔 진입 버튼 (상단 바 · S1 우상단 공통) |
-| `t1-state-{상태}` · `t1-adult-on` / `-off` · `t1-baseday` · `t1-table-{테이블}` · `t1-quick-{항목}` · `t1-refresh` · `t1-close` | 상태 스위처 · 성인 인증 토글 · 기준일 · 데이터 시트 · 빠른 조작 · 새로고침 · 닫기 |
+| ✅ `p4-panel` · `p4-close` | 간편 프로필 패널 · 닫기 |
+| ✅ `p4-name` · `p4-adult` | 계정 표시명 · 인증 상태 |
+| ✅ `p4-wallet-free` · `p4-wallet-paid` · `p4-go-my` | 보유 재화 2종 · MY 전체 보기 |
+| `p4-daily-claim` · `p4-welcome-{id}-claim` | 미션 수령 |
 
-전체 목록은 SUT 구현과 함께 이 문서에 확정 등재합니다. 클래스·화면 문구로 요소를 찾는 것은
-금지입니다(`rules/sut-automation.md`).
+**T1 디버그 콘솔** — 트리 밖 테스트 설비라 접두를 `t1`로 따로 둡니다.
+
+| 예 | 가리키는 것 |
+|---|---|
+| ✅ `t1-dim` · `t1-console` · `t1-body` | 딤 배경 · 콘솔 · 스크롤되는 본문 |
+| ✅ `t1-notice` | 안내 문구 (F5 초기화 경고) |
+| ✅ `t1-state-{상태}` | 상태 스위처 — `guest` `unverified` `adult` `minor` `expired` |
+| ✅ `t1-adult-on` / `t1-adult-off` · `t1-adult-state` | 성인 인증 토글 · 현재 상태 문구 |
+| ✅ `t1-baseday` · `t1-baseday-apply` | 기준일 입력 · 적용 |
+| ✅ `t1-char-table` · `t1-char-add` · `t1-char-clear` · `t1-char-apply` | 캐릭터 지표 표 · 생성 · 비우기 · 표 전체 적용 |
+| ✅ `t1-row-{id}-category` / `-tags` / `-adult` / `-likes` / `-reviews` / `-score` / `-daily` / `-weekly` / `-monthly` | 표의 행별 셀 |
+| ✅ `t1-tag-guide` | 쓸 수 있는 태그 안내 |
+| ✅ `t1-noti-send` · `t1-noti-clear` | 알림 발송 · 비우기 |
+| ✅ `t1-followers` · `t1-following` · `t1-account-apply` · `t1-account-state` | 계정 속성 입력 · 적용 · 로그인 상태 배지 |
+| ✅ `t1-raw-toggle` · `t1-table-{테이블}` · `t1-table-{테이블}-apply` | 원본 편집 접기 · JSON · 적용 |
+| ✅ `t1-reset` · `t1-refresh` · `t1-close` | 전체 초기화 · 현재 화면 새로고침 · 닫기 |
+
+클래스·화면 문구로 요소를 찾는 것은 금지입니다(`rules/sut-automation.md`).
 
 ### 3-2. 상태 조회·제어 API — window.__VN__
 
