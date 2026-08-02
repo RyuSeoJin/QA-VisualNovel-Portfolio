@@ -35,8 +35,15 @@ openpyxl 함정 3종 (2026-08-02 디버깅으로 확인 — Excel '복구' 프�
      명세서의 수식 원형은 '=' 없이 적고 본문에서 안내한다
 
 사용법:
-    python build_tc_template_xlsx.py input.json -o out.xlsx
+    python build_tc_template_xlsx.py input.json -o out.xlsx [--issues issues.json]
     (생성 후 Excel로 열어 경고 없이 열리는지 확인할 것 — 함정 재발 감시)
+
+이슈 기록은 별도 파일(--issues)이 정본입니다. TC 설계 원본은 확정되면 고정되지만 이슈는
+실행하면서 계속 늘고 상태가 바뀌므로, 한 파일에 두면 이슈 갱신 때마다 설계 원본이 변경되어
+확정 시점이 흐려집니다. 스키마는 {"issues": [{project, no, status, summary, description,
+priority, frequency, affectedVersion, fixedVersion, resolution, environment, label,
+reporter, assignee, watcher, attachment, sprint, createdDay, updatedDay,
+statusChangedDay}]} 이며 키 순서는 ISSUE_KEYS가 정본입니다.
 
 입력 JSON 스키마
 ----------------
@@ -159,6 +166,11 @@ ISSUE_HEADERS = ["프로젝트 ID", "Issue No.", "이슈 상태", "요약(Summar
                  "우선순위", "빈도", "영향 받는 버전", "수정 버전", "해결책", "환경",
                  "레이블", "보고자", "담당자", "관측자", "첨부파일", "스프린트",
                  "이슈 등록일", "이슈 최종 수정일자", "이슈 상태 최종 변경일자"]
+# 이슈 json의 키 → 컬럼 순서. 사람이 고치는 파일이라 배열이 아니라 객체로 씁니다
+ISSUE_KEYS = ["project", "no", "status", "summary", "description",
+              "priority", "frequency", "affectedVersion", "fixedVersion", "resolution",
+              "environment", "label", "reporter", "assignee", "watcher", "attachment",
+              "sprint", "createdDay", "updatedDay", "statusChangedDay"]
 ISSUE_WIDTHS = [12, 13, 12, 46, 50, 9, 10, 17, 17, 16, 8, 16, 9, 10, 12, 10, 13, 12, 14, 15]
 # 드롭다운을 붙일 컬럼 -> 목록 이름
 ISSUE_DV = {"B": "프로젝트", "D": "이슈 상태", "G": "우선순위", "H": "빈도",
@@ -184,6 +196,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("input")
     ap.add_argument("-o", "--output", default="tc.xlsx")
+    ap.add_argument("--issues", help="이슈 기록 json (없으면 입력의 issue_samples를 씁니다)")
     args = ap.parse_args()
 
     CFG = json.load(open(args.input, encoding="utf-8"))
@@ -498,13 +511,21 @@ def main():
         x.fill = HDR
         x.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
         x.border = BOX
-    samples = CFG.get("issue_samples") or [[
-        PROJECT, f"{PROJECT}-1", "Open",
-        "{화면} 진입 > {동작} 시, {결과} 안 됨",
-        "Pre-condition: {사전 조건}\nReproduce Step: {재현 스텝}\n"
-        "Actual Result: {실제 결과}\nExpected Result: {기대 결과}\nQA Comment: {참고}",
-        "High", "Always", "", "", "", "PC웹", "", "", "", "", "", "",
-        "YYYY-MM-DD", "YYYY-MM-DD", "YYYY-MM-DD"]]
+    # 이슈는 별도 파일이 정본입니다 — TC 설계 원본과 생명주기가 달라 파일을 나눕니다.
+    # 파일이 없으면 입력의 issue_samples(마스터 템플릿용 예시)로 폴백합니다.
+    if args.issues:
+        rows = json.load(open(args.issues, encoding="utf-8")).get("issues", [])
+        samples = [[str(r.get(k, "")) for k in ISSUE_KEYS] for r in rows]
+    else:
+        samples = CFG.get("issue_samples")
+    if not samples:
+        samples = [[
+            PROJECT, f"{PROJECT}-1", "Open",
+            "{화면} 진입 > {동작} 시, {결과} 안 됨",
+            "Pre-condition: {사전 조건}\nReproduce Step: {재현 스텝}\n"
+            "Actual Result: {실제 결과}\nExpected Result: {기대 결과}\nQA Comment: {참고}",
+            "High", "Always", "", "", "", "PC웹", "", "", "", "", "", "",
+            "YYYY-MM-DD", "YYYY-MM-DD", "YYYY-MM-DD"]]
     for r, rowv in enumerate(samples, start=3):
         for i, v in enumerate(rowv):
             x = s3.cell(r, 2 + i, v)
@@ -585,7 +606,8 @@ def build_spec_sheet(wb):
         R("Test Case", "TC 작성과 실행 기록. 노란 셀은 실행 단계에서 채워집니다"),
         R("Summary", "행 단위 자동 집계(1-Depth 기준). 기준 골격 버전(C4)은 생성 시 자동 기입됩니다"),
         R("이슈 관리 시트", "결함 기록(내장 운영, JIRA 미사용) — JIRA 이슈 등록·관리 방식을 "
-                       "시트로 표현. Issue No.로 Test Case와 연결합니다"),
+                       "시트로 표현. Issue No.로 Test Case와 연결합니다. 정본은 별도 파일 "
+                       "test-case/{프로젝트}-issues.json이며 이 시트는 그 파생입니다"),
         R("목록", "드롭다운 참조 목록의 정본. 숨기지 않고 맨 뒤에 둡니다"),
         R("명세서", "이 시트 — 구조 규칙의 정본"),
         ("gap",),
@@ -653,6 +675,10 @@ def build_spec_sheet(wb):
                       "TC 설계 입력(tc-input json)의 값을 그대로 쓰므로 사람이 옮겨 적지 않습니다"),
         ("gap",),
         ("section", "8. 컬럼 정의 (이슈 관리 시트)"),
+        ("note", "이슈 기록의 정본은 test-case/{프로젝트}-issues.json입니다. TC 설계 원본과 "
+                 "파일을 나눈 이유는 크기가 아니라 생명주기입니다 — TC 세트는 확정되면 "
+                 "고정되지만 이슈는 실행하면서 계속 늘고 상태가 바뀌므로, 한 파일에 두면 "
+                 "이슈 갱신 때마다 설계 원본이 변경되어 확정 시점이 흐려집니다."),
         H("컬럼", "내용", "채우는 규칙"),
         R("프로젝트 ID", "프로젝트 식별자", "SUT명 기준. 목록 시트 참조"),
         R("Issue No.", "이슈 ID — TC 연결 키",
@@ -672,7 +698,9 @@ def build_spec_sheet(wb):
           "Always: 항상 / Often: 종종(70% 이상) / Sometimes: 가끔(70% 미만) / Once: 1회만"),
         R("영향 받는 버전", "이슈 발생 버전",
           "{발생디바이스}_{QA프로젝트}_{실행버전후보} — RC=Release Candidate(정식 배포 직전 빌드).\n"
-          "ex) PC웹_Ver1.0_RC2. 목록 시트 참조(수정 버전과 공용)"),
+          "ex) PC웹_Ver1.0_RC2. 목록 시트 참조(수정 버전과 공용).\n"
+          "SUT를 직접 만드는 프로젝트는 화면 슬라이스마다 RC를 올리고 그 값을 SUT 푸터에 표시합니다. "
+          "RC 이전 개발 단계에서 발견한 것은 DEV로 적습니다"),
         R("수정 버전", "이슈가 수정된 버전", "영향 받는 버전과 같은 목록을 사용합니다"),
         R("해결책", "수정 방향",
           "Fixed: 코드 수정으로 대응 / Won't Do: 환경·기술 지원 불가로 미대응 / "
