@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>qa-lab-miyonchat 기능 골격 v1.7</title>
+<title>qa-lab-miyonchat 기능 골격 v1.8</title>
 <!-- ============================================================
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
@@ -178,11 +178,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="wrap">
 
 <header class="doc-header">
-  <h1>qa-lab-miyonchat 기능 골격 v1.7</h1>
+  <h1>qa-lab-miyonchat 기능 골격 v1.8</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
-    <span class="badge">골격 버전 <b>v1.7</b></span>
+    <span class="badge">골격 버전 <b>v1.8</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
     <span class="badge">기준일 <b>2026-08-03</b></span>
   </div>
@@ -393,7 +393,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </li>
 <li><span class="depth-tag">D2</span><span class="node">AI 응답 재생성</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이전 응답의 상태 변화 취소·재계산, 버려진 버전은 맥락에서 격리</span>
 </li>
-<li><span class="depth-tag">D2</span><span class="node">분기 생성</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">타임머신형: 원본 방 보존+상태 복사한 새 방, 이후 상호 독립. 진입은 세이브 로드의 「새 방으로」 갈래이며 대화방 한도를 함께 받음</span>
+<li><span class="depth-tag">D2</span><span class="node">분기 생성</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">타임머신형: 원본 방 보존+상태 복사한 새 방, 이후 상호 독립. 진입은 과거 턴의 분기와 세이브 로드의 「새 방으로」 갈래 둘이며 대화방 한도를 함께 받음</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">대화수 표시 정합</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">방 카드 대화수(유저+AI 턴 합산, 연출 턴 제외, 첫 메시지 포함)와 MY 합계 표시가 내부 상태와 일치, 갱신 즉시 반영</span>
 </li>
@@ -468,7 +468,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.7 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.8 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div>

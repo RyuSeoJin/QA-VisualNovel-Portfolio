@@ -3,7 +3,7 @@
 
   "title": "qa-lab-miyonchat Test Case v1.0",
   "project": "miyonchat",
-  "tree_version": "qa-lab-miyonchat-tree-v1.7",
+  "tree_version": "qa-lab-miyonchat-tree-v1.8",
   "platforms": ["Web"],
 
   "d1_order": [

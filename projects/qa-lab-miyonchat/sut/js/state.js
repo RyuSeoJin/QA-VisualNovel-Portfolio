@@ -61,6 +61,8 @@ const VN = {
   ledgerFilter: "all",  // 재화 내역 필터 — all / gain / spend
   showMetrics: false,   // 카드 지표 표시 — T1에서 켜는 검증용 표시 (청사진 §4-2)
   p2Help: false,        // P2 단계표 ⓘ 펼침
+  editTurn: null,       // 편집 중인 턴 — 되돌림 (system-spec §5-1)
+  confirm: null,        // 확인 모달 { kind, turn }
   seed: 1,
   inject: null
 };
@@ -123,6 +125,8 @@ function resetViewState() {
   VN.pageCharId = null;
   VN.startProfileId = null;
   VN.pendingStart = null;
+  VN.editTurn = null;
+  VN.confirm = null;
 }
 
 function logout() {
@@ -491,6 +495,11 @@ function newRoom(charId, scenarioId, firstMessage, profile) {
     messages: firstMessage
       ? [{ role: "ai", text: firstMessage, turn: 0, done: true }] : [],
     affection: 0,
+    // 재계산의 기준점 — T1으로 호감도를 세우면 여기가 옮겨집니다.
+    // 되돌림은 남은 기록으로 다시 세는데, 기록 없이 세운 값(T1)은 다시 셀 근거가 없으므로
+    // 기준점으로 남기고 그 뒤 턴만 더합니다 (청사진 §4-2)
+    affectionBase: 0,
+    affectionBaseTurn: 0,
     memories: [],
     ending: null,                            // 도달한 엔딩 — 있으면 입력이 막힙니다
     ended: false,
@@ -533,6 +542,80 @@ function deleteRoom(roomId) {
   const acc = currentAccount();
   if (!acc) return;
   acc.rooms = acc.rooms.filter((r) => r.id !== roomId);
+}
+
+/* ── 되돌림 (system-spec §5-1) ─────────────────────────────
+ * "화면에서 사라진 메시지는 점수와 기억에서도 사라진다"를 지키는 자리입니다.
+ *
+ * 되돌린 뒤의 상태는 **남은 기록만으로 처음부터 다시 셉니다.** 지운 만큼 빼는 방식으로
+ * 만들면 하한 0에 걸렸던 턴에서 어긋납니다 — 예를 들어 호감도 0에서 −1을 받은 턴은 실제로
+ * 0에 머물렀으므로, 그 턴을 지우면서 +1을 되돌려 주면 없던 점수가 생깁니다.
+ */
+
+function messagesOfTurn(room, turn) {
+  return room.messages.filter((m) => m.turn === turn);
+}
+
+function lastTurnOf(room) {
+  return room.messages.reduce((max, m) => Math.max(max, m.turn), 0);
+}
+
+/* 최신 교환에만 편집·삭제·재생성이 붙습니다 — 과거 턴은 분기가 담당합니다 (system-spec §5) */
+function isLatestExchange(room, turn) {
+  return turn > 0 && turn === room.turn;
+}
+
+/* 남은 기록으로 호감도·엔딩·턴수를 다시 셉니다.
+ * 한 턴의 기여분은 유저 선택지 가중치 + 응답 델타이고 턴마다 하한 0을 받습니다(§4-1). */
+function recomputeRoom(room) {
+  const set = mockSetFor(room.charId, room.scenarioId);
+  const byTurn = {};
+  room.messages.forEach((m) => {
+    if (m.turn > 0) byTurn[m.turn] = (byTurn[m.turn] || 0) + (m.delta || 0);
+  });
+  const baseTurn = room.affectionBaseTurn || 0;
+  const turns = Object.keys(byTurn).map(Number).sort((a, b) => a - b)
+    .filter((t) => t > baseTurn);          // 기준점 이전은 기록이 아니라 세팅값입니다
+
+  let aff = room.affectionBase || 0, ending = null, ended = false;
+  for (const t of turns) {
+    aff = Math.max(0, aff + byTurn[t]);
+    const probe = { turn: t, affection: aff };
+    // 검사 시점에 굿이 뜨면 그 방은 거기서 멈춥니다 — 이후 턴이 있을 수 없습니다
+    const hit = endingAtCheckpoint(probe);
+    if (hit) { ending = hit; break; }
+    if (t >= set.endTurn) { ended = true; ending = endingAtPathEnd(probe); break; }
+  }
+  room.affection = aff;
+  room.ending = ending;
+  room.ended = ended;
+  room.turn = lastTurnOf(room);
+  // 기억은 메모리 슬라이스에서 쌓입니다. 지운 턴의 기억이 남으면 안 되므로 여기서 함께 걷습니다
+  room.memories = (room.memories || []).filter((m) => !m.turn || m.turn <= room.turn);
+}
+
+/* 교환 통째로 삭제 — 유저 메시지와 그에 딸린 응답을 한 쌍으로 지웁니다 */
+function removeExchange(room, turn) {
+  room.messages = room.messages.filter((m) => m.turn !== turn);
+  recomputeRoom(room);
+}
+
+/* 분기 — 그 지점까지를 복사한 새 방을 만들고 원본은 그대로 둡니다.
+ * 한도까지 찼으면 아무것도 만들지 않고 null을 돌려줍니다(호출한 쪽이 삭제를 묻습니다). */
+function branchRoom(room, turn) {
+  const acc = currentAccount();
+  if (!acc) return null;
+  if (roomLimitReached(room.charId)) return null;
+  const copy = newRoom(room.charId, room.scenarioId, "", room.profile);
+  copy.messages = deepCopy(room.messages.filter((m) => m.turn <= turn));
+  copy.affectionBase = room.affectionBase || 0;
+  copy.affectionBaseTurn = Math.min(room.affectionBaseTurn || 0, turn);
+  copy.memories = deepCopy((room.memories || []).filter((m) => !m.turn || m.turn <= turn));
+  recomputeRoom(copy);
+  acc.rooms.forEach((r) => { r.active = false; });
+  acc.rooms.push(copy);
+  copy.active = true;
+  return copy;
 }
 
 /* ── 대화 프로필 (system-spec §2) ───────────────────────── */
@@ -622,6 +705,8 @@ window.__VN__ = {
       failNext: VN.failNext,
       noFund: VN.noFund,
       showMetrics: VN.showMetrics,
+      editTurn: VN.editTurn,
+      confirm: VN.confirm,
       // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
       pendingAction: pendingIntent ? pendingIntent.action : null,
       pageCharId: VN.pageCharId,

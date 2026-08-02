@@ -251,9 +251,10 @@ function sendMessage(text, choiceDelta) {
   // (사람은 T1 스위치, 자동화는 __VN__.failNext()). 스위치는 여기서 꺼집니다
   const forced = VN.failNext;
   if (forced) VN.failNext = false;
+  const variant = VN.seed % def.candidates.length;
   const cand = forced
     ? { fail: true }
-    : def.candidates[VN.seed % def.candidates.length];
+    : def.candidates[variant];
 
   if (cand.fail) {
     // 전송 실패 — 잔액·내역·대화 어디에도 흔적을 남기지 않고 토스트로만 알립니다
@@ -272,6 +273,8 @@ function sendMessage(text, choiceDelta) {
   });
   const msg = {
     role: "ai", turn: room.turn, done: false, fail: false,
+    // 몇 번째 후보를 쓰고 있는지 — 재생성이 여기서 한 칸을 밉니다 (mock-llm-spec §2)
+    variant: variant,
     text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0
   };
   room.messages.push(msg);
@@ -293,7 +296,7 @@ function streamMessage(room, msg) {
       clearInterval(timer);
       msg.done = true;
       chatStreaming = false;
-      applyTurnState(room, msg);
+      applyTurnState(room);
       render();
     }
   }, STREAM_TICK_MS);
@@ -334,21 +337,132 @@ function chargeMock(ok) {
 }
 
 /* 표시가 끝난 뒤에 상태를 반영합니다 — 연출 도중에 점수가 오르면 되돌림 검증이 흔들립니다.
- * 호감도는 유저 선택지 가중치 + 응답 델타이며 하한은 0입니다 (system-spec §4-1). */
-function applyTurnState(room, msg) {
-  const user = room.messages.find((m) => m.role === "user" && m.turn === msg.turn);
-  const delta = (user && user.delta ? user.delta : 0) + (msg.delta || 0);
+ * 호감도·엔딩은 남은 기록으로 다시 세며(recomputeRoom), 이 경로 하나로 전송과 되돌림이
+ * 같은 계산을 씁니다 — 두 벌로 나누면 되돌린 뒤의 값이 전송으로 만든 값과 달라집니다. */
+function applyTurnState(room) {
   const before = stageOf(room.affection).name;
-  room.affection = Math.max(0, room.affection + delta);
+  recomputeRoom(room);
   const after = stageOf(room.affection).name;
   if (after !== before) toast("관계 단계가 「" + after + "」이 되었습니다.");
+}
 
-  // 검사 시점 판정 → 경로 종점 최종 판정 (system-spec §4-2)
-  const hit = endingAtCheckpoint(room);
-  if (hit) { room.ending = hit; return; }
-  if (room.turn >= mockSetFor(room.charId, room.scenarioId).endTurn) {
-    room.ended = true;
-    room.ending = endingAtPathEnd(room);
+/* ── 되돌림 (system-spec §5-1) ─────────────────────────────
+ * 편집·삭제·재생성은 **최신 교환에만** 붙고, 과거 턴에는 분기만 붙습니다.
+ * 재화는 되돌아오지 않으며, 새 응답을 만드는 경로는 전송과 같은 요율로 다시 차감합니다.
+ */
+
+/* 되돌림 중인지 — 스트리밍·엔딩 도중에는 손대지 못하게 막습니다 */
+function canRevise(room, turn) {
+  return !!room && !chatStreaming && isLatestExchange(room, turn);
+}
+
+function startEdit(turn) {
+  const room = activeRoom();
+  if (!canRevise(room, turn)) return;
+  VN.editTurn = turn;
+  render();
+}
+
+function cancelEdit() {
+  VN.editTurn = null;
+  render();
+}
+
+/* 응답을 다시 만듭니다 — 편집(새 유저 텍스트 있음)과 재생성(없음)이 같은 길을 씁니다.
+ * 버려진 응답의 기여분은 새 응답을 표시하기 전에 걷힙니다. */
+function regenerateAt(turn, newUserText) {
+  const room = activeRoom();
+  if (!canRevise(room, turn)) return;
+  // 빈 값으로는 고칠 수 없습니다 — 전송과 같은 규칙입니다
+  if (newUserText !== null && !newUserText) { toast("내용을 입력해 주세요."); return; }
+  const acc = currentAccount();
+  const set = mockSetFor(room.charId, room.scenarioId);
+  const def = set.turns[turn - 1];
+  const ai = room.messages.find((m) => m.role === "ai" && m.turn === turn);
+  const user = room.messages.find((m) => m.role === "user" && m.turn === turn);
+  if (!def || !ai) return;
+
+  // 새 응답을 만드는 값이므로 전송과 같은 요율로 차감합니다 (system-spec §5-1)
+  const reason = newUserText === null ? "응답 재생성" : "메시지 편집 · 재생성";
+  const spent = spend(acc, SEND_COST, reason);
+  if (!spent) {
+    // 잔액 부족 — 원래 응답은 그대로 남습니다
+    VN.noFund = true;
+    render();
+    return;
+  }
+
+  const forced = VN.failNext;
+  if (forced) VN.failNext = false;
+  if (forced) {
+    // 서버 오류 — 차감도 되돌리고 원래 응답을 그대로 둡니다
+    refund(acc, spent);
+    toast("메시지 전송에 실패했습니다. 잠시 후 시도해 주세요.");
+    render();
+    return;
+  }
+
+  if (newUserText !== null && user) user.text = newUserText;
+  VN.editTurn = null;
+
+  // 후보를 한 칸 밉니다 — 난수를 쓰지 않으므로 몇 번째 재생성인지가 결과를 정합니다
+  const at = ((typeof ai.variant === "number" ? ai.variant : 0) + 1) % def.candidates.length;
+  const cand = def.candidates[at];
+  ai.variant = at;
+  ai.text = fillSlots(cand.text, room);
+  ai.delta = cand.deltaAffection || 0;
+  ai.done = false;
+
+  // 버려진 응답의 기여분을 먼저 걷습니다 — 새 응답은 표시가 끝나야 반영됩니다
+  const kept = ai.delta;
+  ai.delta = 0;
+  recomputeRoom(room);
+  ai.delta = kept;
+  streamMessage(room, ai);
+}
+
+/* 삭제는 되돌릴 수 없으므로 확인을 한 번 받습니다 */
+function askDelete(turn) {
+  const room = activeRoom();
+  if (!canRevise(room, turn)) return;
+  VN.confirm = { kind: "delete", turn: turn };
+  render();
+}
+
+function askBranch(turn) {
+  VN.confirm = { kind: "branch", turn: turn };
+  render();
+}
+
+function closeConfirm() {
+  VN.confirm = null;
+  render();
+}
+
+function runConfirm() {
+  const c = VN.confirm;
+  const room = activeRoom();
+  VN.confirm = null;
+  if (!c || !room) { render(); return; }
+
+  if (c.kind === "delete") {
+    removeExchange(room, c.turn);
+    VN.editTurn = null;
+    toast("교환을 삭제했습니다. 재화는 되돌아오지 않습니다.");
+    render();
+    return;
+  }
+  if (c.kind === "branch") {
+    // 분기도 대화방 한도를 받습니다 — 넘치면 아무 방도 만들어지지 않습니다 (system-spec §6)
+    const made = branchRoom(room, c.turn);
+    if (!made) {
+      toast("대화방이 가득 찼습니다. 기존 대화를 지워 주세요.");
+      render();
+      return;
+    }
+    VN.editTurn = null;
+    toast(c.turn + "턴 지점에서 새 방으로 분기했습니다.");
+    render();
   }
 }
 
@@ -406,6 +520,8 @@ function render() {
   if (VN.loginOpen && VN.screen !== "s1") root.appendChild(renderLoginModal());
 
   if (VN.noFund) root.appendChild(renderNoFundModal());
+
+  if (VN.confirm) root.appendChild(renderConfirmModal());
 
   if (VN.session === SESSION.EXPIRED) {
     root.appendChild(renderExpiredModal());

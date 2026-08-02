@@ -234,7 +234,13 @@ function commitDraft() {
     acc.wallet.paid = draft.wallet.paid;
   }
   const room = activeRoom();
-  if (room && draft.room) room.affection = draft.room.affection;
+  if (room && draft.room && room.affection !== draft.room.affection) {
+    // 기록 없이 세운 값이므로 재계산의 기준점이 됩니다 — 되돌림은 이 값 아래로 내려가지
+    // 않고, 이후 턴의 기여분만 여기에 얹힙니다 (system-spec §5-1)
+    room.affection = draft.room.affection;
+    room.affectionBase = draft.room.affection;
+    room.affectionBaseTurn = room.turn;
+  }
   VN.failNext = !!draft.failNext;
   VN.showMetrics = !!draft.showMetrics;
 

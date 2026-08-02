@@ -848,14 +848,97 @@ function renderP5() {
 /* ── S4 대화 ────────────────────────────────────────────────
  * 셸 밖 전체 화면입니다(청사진 §1). 셸이 없으므로 디버그 버튼을 헤더에 단독으로 둡니다.
  */
-function renderChatMessage(m) {
+/* 메시지 액션 (system-spec §5·§5-1)
+ * 최신 교환에만 편집·삭제·재생성이 붙고, 과거 턴에는 분기만 붙습니다. 과거 턴에 편집을
+ * 열어 두면 "어느 시점까지 되돌렸는가"가 흐려져 재계산의 기대값을 적을 수 없습니다.
+ */
+function msgActions(m, room) {
+  if (!room || m.turn < 1 || chatStreaming) return null;
+  const key = "s4-msg-" + m.turn + "-";
+  const acts = [];
+
+  if (isLatestExchange(room, m.turn)) {
+    if (m.role === "user" && VN.editTurn !== m.turn) {
+      acts.push(el("button", { class: "mini", "data-testid": key + "edit", text: "편집",
+        onclick: () => startEdit(m.turn) }));
+      acts.push(el("button", { class: "mini", "data-testid": key + "delete", text: "삭제",
+        onclick: () => askDelete(m.turn) }));
+    }
+    if (m.role === "ai" && m.done) {
+      acts.push(el("button", { class: "mini", "data-testid": key + "regen", text: "재생성",
+        onclick: () => regenerateAt(m.turn, null) }));
+    }
+  } else if (m.role === "user") {
+    acts.push(el("button", { class: "mini", "data-testid": key + "branch",
+      text: "이 지점에서 분기", onclick: () => askBranch(m.turn) }));
+  }
+
+  return acts.length ? el("div", { class: "msg-actions" }, acts) : null;
+}
+
+function renderChatMessage(m, room) {
   const who = m.role === "ai" ? "ai" : "user";
+  const editing = who === "user" && VN.editTurn === m.turn;
+  const body = [];
+
+  if (editing) {
+    // 편집칸도 자유 입력과 같은 상한을 받습니다 — 되돌림 경로로 상한이 새면 안 됩니다
+    const box = el("textarea", {
+      class: "chat-input", "data-testid": "s4-edit-input", rows: "2",
+      maxlength: String(CHAT_INPUT_MAX),
+      oninput: (e) => {
+        if (e.target.value.length > CHAT_INPUT_MAX) {
+          e.target.value = e.target.value.slice(0, CHAT_INPUT_MAX);
+        }
+      }
+    });
+    box.value = m.text;
+    body.push(el("div", { class: "msg-edit" }, [
+      box,
+      el("div", { class: "msg-actions" }, [
+        el("button", { class: "mini primary", "data-testid": "s4-edit-save", text: "저장",
+          onclick: () => regenerateAt(m.turn, box.value.trim().slice(0, CHAT_INPUT_MAX)) }),
+        el("button", { class: "mini", "data-testid": "s4-edit-cancel", text: "취소",
+          onclick: () => cancelEdit() })
+      ])
+    ]));
+  } else {
+    body.push(el("div", { class: "bubble" }, [
+      el("span", { class: "bubble-text", text: m.done ? m.text : "" })
+    ]));
+  }
+
+  const acts = msgActions(m, room);
+  if (acts) body.push(acts);
+
   return el("div", {
     class: "msg " + who + (m.fail ? " fail" : "") + (m.done ? "" : " typing"),
     "data-testid": "s4-msg-" + m.turn + "-" + who
-  }, [
-    el("div", { class: "bubble" }, [
-      el("span", { class: "bubble-text", text: m.done ? m.text : "" })
+  }, body);
+}
+
+/* 되돌림 확인 모달 — 삭제는 되돌릴 수 없고, 분기는 방을 하나 더 만듭니다 */
+const CONFIRM_TEXT = {
+  delete: "이 교환(유저 메시지와 응답)을 삭제합니다. 호감도와 기억에서 이 턴의 기여분이 함께 "
+    + "사라지며, 이미 쓴 재화는 되돌아오지 않습니다.",
+  branch: "이 지점까지의 대화를 복사한 새 대화방을 만듭니다. 지금 방은 그대로 남고, 두 방은 "
+    + "이후 서로에게 영향을 주지 않습니다."
+};
+
+function renderConfirmModal() {
+  const c = VN.confirm;
+  return el("div", { class: "modal", "data-testid": "s4-confirm" }, [
+    el("div", { class: "modal-box" }, [
+      el("h3", { class: "nf-title", "data-testid": "s4-confirm-title",
+        text: c.kind === "delete" ? "삭제하시겠습니까?" : "분기하시겠습니까?" }),
+      el("p", { "data-testid": "s4-confirm-body", text: CONFIRM_TEXT[c.kind] }),
+      el("p", { class: "lede-sm", "data-testid": "s4-confirm-turn", text: c.turn + "턴 지점" }),
+      el("div", { class: "nf-btns" }, [
+        el("button", { class: "primary", "data-testid": "s4-confirm-ok", text: "확인",
+          onclick: () => runConfirm() }),
+        el("button", { "data-testid": "s4-confirm-cancel", text: "취소",
+          onclick: () => closeConfirm() })
+      ])
     ])
   ]);
 }
@@ -956,7 +1039,8 @@ function renderS4() {
       }),
       renderDebugButton()      // 셸이 없는 화면이라 여기 단독으로 둡니다
     ]),
-    el("div", { class: "chat-log", "data-testid": "s4-log" }, room.messages.map(renderChatMessage)),
+    el("div", { class: "chat-log", "data-testid": "s4-log" },
+      room.messages.map((m) => renderChatMessage(m, room))),
     el("div", { class: "chat-foot" }, foot)
   ]);
 }
