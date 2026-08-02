@@ -1,0 +1,177 @@
+/* SUT 스타일 — 최소한만 둡니다.
+ * 일정이 무너지는 최대 지점이 "SUT 꾸미기"라서, 기능 트리 노드 구현에 필요한
+ * 레이아웃과 상태 구분만 만들고 장식은 넣지 않습니다.
+ */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #14141a;
+  color: #f2f2f4;
+  font-family: "맑은 고딕", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 14px;
+}
+
+#app { padding-bottom: 72px; }
+
+button { font-family: inherit; cursor: pointer; }
+
+/* ── 전역 셸 ───────────────────────────────── */
+.topbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: #1c1c24;
+  border-bottom: 1px solid #2c2c34;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar .logo {
+  background: none; border: 0; color: #a5b4fc;
+  font-size: 16px; font-weight: 700;
+}
+.topbar .search {
+  flex: 1; min-width: 80px; padding: 6px 10px;
+  background: #14141a; border: 1px solid #33333d;
+  border-radius: 6px; color: inherit;
+}
+.topbar .icon {
+  background: #24242e; border: 1px solid #33333d;
+  border-radius: 6px; color: inherit; padding: 6px 10px; font-size: 12px;
+}
+
+.topbar .profile {
+  display: flex; align-items: center; gap: 6px;
+  background: #24242e; border: 1px solid #3b3b47;
+  border-radius: 999px; padding: 4px 10px 4px 4px; color: inherit;
+}
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #4f46e5; color: #fff; font-size: 11px; font-weight: 700;
+}
+.avatar.lg { width: 40px; height: 40px; font-size: 16px; }
+.topbar .pname { font-size: 12px; }
+
+/* ── 전역 패널 (P3·P4) ─────────────────────── */
+.panel-wrap {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .55);
+  display: flex; justify-content: flex-end; z-index: 40;
+}
+.panel {
+  width: min(360px, 92vw); height: 100%; overflow-y: auto;
+  background: #1c1c24; border-left: 1px solid #3b3b47; padding: 16px;
+}
+.panel-head { display: flex; align-items: center; justify-content: space-between; }
+.panel-head h2 { margin: 0; font-size: 16px; }
+.panel-close { background: none; border: 0; color: #8b8b96; font-size: 16px; }
+.p4-id { display: flex; align-items: center; gap: 12px; margin: 18px 0; }
+.p4-name { margin: 0; font-size: 15px; font-weight: 700; }
+.p4-adult { margin: 2px 0 0; font-size: 12px; color: #8b8b96; }
+.p4-wallet {
+  border: 1px solid #33333d; border-radius: 8px; padding: 12px; margin-bottom: 14px;
+}
+.p4-wallet div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+.p4-my {
+  width: 100%; padding: 10px; background: #24242e;
+  border: 1px solid #3b3b47; border-radius: 8px; color: inherit;
+}
+.todo-note { color: #8b8b96; font-size: 12px; }
+
+.bottomnav {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; background: #1c1c24; border-top: 1px solid #2c2c34;
+}
+.bottomnav .nav-item {
+  flex: 1; padding: 12px 4px; background: none; border: 0;
+  color: #8b8b96; font-size: 12px;
+}
+.bottomnav .nav-item.active { color: #a5b4fc; font-weight: 700; }
+
+.footer {
+  padding: 18px 14px; border-top: 1px solid #2c2c34;
+  color: #8b8b96; font-size: 12px;
+}
+.footer a { color: #a5b4fc; }
+
+/* ── 화면 ─────────────────────────────────── */
+.screen { padding: 20px 14px; }
+.screen.s1 { text-align: center; padding-top: 80px; }
+.s1 .brand { color: #a5b4fc; font-size: 28px; margin: 0 0 6px; }
+.s1 .lede { color: #8b8b96; margin: 0 0 24px; }
+.s1 .account {
+  display: block; width: 100%; max-width: 320px; margin: 0 auto 10px;
+  padding: 14px; background: #24242e; border: 1px solid #3b3b47;
+  border-radius: 8px; color: inherit; font-size: 14px;
+}
+
+.s1 .link {
+  display: block; margin: 14px auto 0; background: none; border: 0;
+  color: #8b8b96; font-size: 13px; text-decoration: underline;
+}
+
+.stub .stub-tag {
+  display: inline-block; padding: 3px 8px; border-radius: 4px;
+  background: #3b2b2b; color: #f0a3a3; font-size: 12px;
+}
+
+/* ── 만료 모달 ─────────────────────────────── */
+.modal {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .6);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.modal-box {
+  background: #1c1c24; border: 1px solid #3b3b47; border-radius: 8px;
+  padding: 20px; max-width: 320px; text-align: center;
+}
+.modal-box button {
+  margin-top: 12px; padding: 8px 20px; background: #4f46e5;
+  border: 0; border-radius: 6px; color: #fff;
+}
+
+/* ── T1 디버그 콘솔 ────────────────────────── */
+.debug-btn {
+  background: #3b2f6e; border: 1px solid #6d5fd0; border-radius: 6px;
+  color: #d6cffb; padding: 6px 10px; font-size: 12px; font-weight: 700;
+}
+.s1-debug { position: absolute; top: 14px; right: 14px; }
+.screen.s1 { position: relative; }
+
+/* 딤 — 배경 상호작용을 막습니다 */
+.t1-dim {
+  position: fixed; inset: 0; z-index: 70;
+  background: rgba(0, 0, 0, .6);
+  display: flex; align-items: center; justify-content: center;
+}
+.t1-console {
+  width: min(420px, 92vw); max-height: 86vh; overflow-y: auto;
+  background: #101016; border: 2px solid #4f46e5; border-radius: 10px; padding: 18px;
+}
+.t1-notice {
+  background: #1a1a24; border-left: 3px solid #6d5fd0;
+  padding: 10px; margin: 0 0 16px; font-size: 12px; line-height: 1.6; color: #c9c9d2;
+}
+.t1-foot {
+  display: flex; gap: 8px; margin-top: 6px;
+  border-top: 1px solid #2c2c34; padding-top: 14px;
+}
+.t1-foot button {
+  flex: 1; padding: 10px; border-radius: 6px;
+  background: #24242e; border: 1px solid #3b3b47; color: inherit; font-size: 13px;
+}
+.t1-foot button.primary { background: #4f46e5; border-color: #4f46e5; color: #fff; font-weight: 700; }
+.t1-console h2 { margin: 0 0 12px; font-size: 16px; color: #a5b4fc; }
+.t1-block { margin-bottom: 18px; }
+.t1-block h3 { font-size: 13px; margin: 0 0 8px; color: #c9c9d2; }
+.t1-block button {
+  display: inline-block; margin: 0 6px 6px 0; padding: 6px 10px;
+  background: #24242e; border: 1px solid #3b3b47; border-radius: 6px;
+  color: inherit; font-size: 12px;
+}
+.t1-block input[type="text"], .t1-block textarea {
+  width: 100%; margin-bottom: 6px; padding: 6px;
+  background: #14141a; border: 1px solid #33333d; border-radius: 6px;
+  color: inherit; font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+}
+.t1-table { margin-bottom: 12px; }
+.t1-table label { display: block; font-size: 12px; color: #8b8b96; margin-bottom: 4px; }
+.t1-block .hint { color: #8b8b96; font-size: 11px; margin: 0 0 8px; }
