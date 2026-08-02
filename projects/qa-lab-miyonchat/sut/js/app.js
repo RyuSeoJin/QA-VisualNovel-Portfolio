@@ -93,7 +93,7 @@ function goHome() {
 function selectChip(name) {
   if (VN.homeChip !== name) {
     VN.homeChip = name;
-    VN.catTag = null;
+    VN.catFilter = null;
   }
   VN.search = "";            // 칩을 고르면 검색 결과에서 목록으로 돌아옵니다
   render();

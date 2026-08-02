@@ -457,16 +457,16 @@ function renderS2New() {
 /* 카테고리 칩 화면 — 인기 신작 → 취향 태그 → 전체 목록 공통 템플릿 (청사진 §1 S2) */
 function renderS2Category(name) {
   const group = VN.sheet.categories.find((g) => g.name === name);
-  const tags = group ? group.tags : [];
+  const related = group ? group.related : [];
   return el("div", {}, [
     s2Section("s2-cat-new", name + " 인기 신작", risingList(name)),
-    el("h3", { class: "sec-title", text: "취향 태그" }),
-    el("div", { class: "filters" }, tags.map((t) =>
+    el("h3", { class: "sec-title", text: "함께 보는 카테고리" }),
+    el("div", { class: "filters" }, related.map((t) =>
       el("button", {
-        class: "f" + (VN.catTag === t ? " on" : ""),
+        class: "f" + (VN.catFilter === t ? " on" : ""),
         "data-testid": "s2-cat-tag-" + t, text: "#" + t,
-        // 누른 태그를 다시 누르면 해제됩니다 — 필터를 풀 다른 수단이 없으면 갇힙니다
-        onclick: () => { VN.catTag = VN.catTag === t ? null : t; render(); }
+        // 누른 카테고리를 다시 누르면 해제됩니다 — 풀 수단이 없으면 필터에 갇힙니다
+        onclick: () => { VN.catFilter = VN.catFilter === t ? null : t; render(); }
       }))),
     filterRow("s2-cat-sort-", [["대화순", "chat"], ["최신순", "new"]], VN.catSort,
       (k) => { VN.catSort = k; render(); }),
@@ -592,12 +592,17 @@ function renderS3() {
     ]);
   }
   const locked = c.safe === false && !canViewUnsafe();
+
+  // ① 상단 바 — 뒤로가기 + 페이지 제목
   const kids = [
     el("div", { class: "s3-head" }, [
       el("button", { class: "chat-back", "data-testid": "s3-back", text: "‹ 뒤로", onclick: () => goHome() }),
-      el("h2", { class: "screen-title", "data-testid": "s3-page-title", text: c.pageTitle || c.name })
+      el("h2", { class: "s3-head-title", "data-testid": "s3-page-title", text: c.pageTitle || c.name })
     ])
   ];
+
+  // ② 캐릭터 이미지 — 그림을 넣지 않는 SUT라 이름 텍스트로 대신합니다
+  kids.push(el("div", { class: "s3-hero", "data-testid": "s3-thumb", text: c.name }));
 
   if (locked) {
     kids.push(el("p", {
@@ -613,32 +618,22 @@ function renderS3() {
     return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
   }
 
-  // 페이지(작품) 층 — 제목·보조 설명·스토리
-  kids.push(el("p", { class: "lede-sm", "data-testid": "s3-page-subtitle", text: c.pageSubtitle || "" }));
-  kids.push(el("p", { class: "s3-creator", "data-testid": "s3-creator",
-    text: "제작 " + (c.creator ? c.creator.name : "-") + " · 팔로워 "
-      + (c.creator ? c.creator.followers : 0) }));
-  kids.push(el("p", { class: "s3-story", "data-testid": "s3-story", text: c.pageStory || "" }));
+  // ③④⑤ 페이지 제목 · 보조 설명 · 작업자
+  kids.push(el("div", { class: "s3-titleblock" }, [
+    el("h1", { class: "s3-title", "data-testid": "s3-title", text: c.pageTitle || c.name }),
+    el("p", { class: "s3-sub", "data-testid": "s3-page-subtitle", text: c.pageSubtitle || "" }),
+    el("p", { class: "s3-creator", "data-testid": "s3-creator",
+      text: "제작 " + (c.creator ? c.creator.name : "-") + " · 팔로워 "
+        + (c.creator ? c.creator.followers : 0) })
+  ]));
 
-  // 캐릭터 층 — 이름·한 줄 설명·상세 설명
-  kids.push(el("h3", { class: "sec-title", text: "캐릭터" }));
-  kids.push(el("p", { class: "s3-charname", "data-testid": "s3-name", text: c.name }));
-  kids.push(el("p", { class: "lede-sm", "data-testid": "s3-tagline", text: c.tagline }));
-  kids.push(el("p", { class: "s3-chardesc", "data-testid": "s3-char-desc", text: c.charDesc || "" }));
-  kids.push(el("p", { class: "d-tags", "data-testid": "s3-tags",
-    text: (c.tags || []).map((t) => "#" + t).join(" ") }));
+  // ⑥ 지표 — 카드에서는 숨기지만 페이지에서는 늘 보입니다 (system-spec §8-4-1)
   kids.push(el("div", { class: "stat-row", "data-testid": "s3-stats" }, [
     statLine("이용수", usageCount(c.id, null), "s3-stat-usage"),
     statLine("좋아요", likeCount(c), "s3-stat-likes"),
     statLine("리뷰", c.reviews, "s3-stat-reviews"),
     statLine("팔로우", c.creator ? c.creator.followers : 0, "s3-stat-follow")
   ]));
-  kids.push(el("p", { class: "s3-updated", "data-testid": "s3-updated",
-    text: "출시 " + c.createdDay + " · 최종 업데이트 " + (c.updatedDay || "-")
-      + " (" + (c.version || "-") + ")" }));
-  kids.push(el("p", { class: "d-first", "data-testid": "s3-first", text: c.firstMessage }));
-  kids.push(el("p", { class: "s3-situation", "data-testid": "s3-situation",
-    text: "시작 상황 — " + (c.startSituation ? c.startSituation.label : "-") }));
   kids.push(el("div", { class: "d-toggles" }, [
     el("button", {
       class: "tog" + (isLiked(c.id) ? " on" : ""), "data-testid": "s3-like",
@@ -652,12 +647,48 @@ function renderS3() {
     })
   ]));
 
-  // 그 외 작품 — 선정식이 미확인이라 같은 카테고리에서 체인 순으로 채웁니다(TC 기대값 아님)
+  // ⑦ 페이지 카테고리 — 대표와 나머지를 가르지 않고 전부 # 칩으로 보여 줍니다
+  kids.push(el("div", { class: "s3-cats", "data-testid": "s3-categories" },
+    (c.pageCategories || []).map((t) => el("span", {
+      class: "cat-chip", "data-testid": "s3-cat-" + t, text: "#" + t
+    }))));
+
+  // ⑧⑨ 스토리 — 길어지면 문단을 여러 개 붙입니다
+  const stories = c.pageStories || [];
+  kids.push(el("div", { class: "s3-stories", "data-testid": "s3-stories" },
+    stories.map((t, i) => el("p", {
+      class: "s3-story", "data-testid": "s3-story-" + (i + 1), text: t
+    }))));
+
+  // 캐릭터 층 — 트리에 확정된 노드라 스토리 뒤에 둡니다
+  // 캐릭터 소개 — 항목마다 구분선을 둬 한눈에 갈려 읽히게 합니다
+  kids.push(el("h3", { class: "sec-title", text: "캐릭터" }));
+  kids.push(el("dl", { class: "s3-charblock", "data-testid": "s3-char-block" }, [
+    el("dt", { text: "이름" }),
+    el("dd", { "data-testid": "s3-name", text: c.name }),
+    el("dt", { text: "한 줄 설명" }),
+    el("dd", { "data-testid": "s3-tagline", text: c.tagline }),
+    el("dt", { text: "상세 설명" }),
+    el("dd", { "data-testid": "s3-char-desc", text: c.charDesc || "" }),
+    el("dt", { text: "시작 상황" }),
+    el("dd", { "data-testid": "s3-situation", text: c.startSituation ? c.startSituation.label : "-" }),
+    el("dt", { text: "첫 메시지" }),
+    el("dd", { "data-testid": "s3-first", text: c.firstMessage })
+  ]));
+
+  // ⑩ 출시일 · 최종 업데이트(버전)
+  kids.push(el("p", { class: "s3-updated", "data-testid": "s3-updated",
+    text: "출시 " + c.createdDay + " · 최종 업데이트 " + (c.updatedDay || "-")
+      + " (" + (c.version || "-") + ")" }));
+
+  // ⑪ 작품 추천 — 선정식은 미확인이라 같은 카테고리에서 체인 순으로 채웁니다(TC 기대값 아님)
   const related = sortChars(visibleCharacters()
-    .filter((x) => x.id !== c.id && x.category === c.category), monthUsage).slice(0, 4);
+    .filter((x) => x.id !== c.id && hasCategory(x, (c.pageCategories || [])[0])), monthUsage).slice(0, 4);
   if (related.length) {
     kids.push(s2Section("s3-related", "그 외 작품", related, { carousel: true }));
   }
+
+  // ⑫ 하단 — 대화방 목록·한도 + [프로필 선택] [대화 시작]
   kids.push(renderS3Footer(c));
   return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
 }

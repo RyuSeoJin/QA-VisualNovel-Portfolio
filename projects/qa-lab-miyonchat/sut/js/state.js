@@ -48,7 +48,7 @@ const VN = {
   rankPeriod: "daily",  // 랭킹 기간 — daily / weekly / monthly
   rankSort: "usage",    // 랭킹 기준 — usage(기본) / likes / score / reviews
   rankHelp: false,      // 랭킹 ⓘ 도움말 펼침
-  catTag: null,         // 카테고리 취향 태그 — null이면 태그 필터 없음
+  catFilter: null,      // 카테고리 화면에서 함께 건 페이지 카테고리 — null이면 필터 없음
   catSort: "chat",      // 카테고리 전체 목록 정렬 — chat(대화순) / new(최신순)
   pageCharId: null,     // 열려 있는 캐릭터 페이지의 캐릭터 id
   startProfileId: null, // 다음에 여는 방에 고정될 대화 프로필
@@ -117,7 +117,7 @@ function resetViewState() {
   VN.rankPeriod = "daily";
   VN.rankSort = "usage";
   VN.rankHelp = false;
-  VN.catTag = null;
+  VN.catFilter = null;
   VN.catSort = "chat";
   VN.pageCharId = null;
   VN.startProfileId = null;
@@ -278,7 +278,7 @@ function carouselList() {
  * 월간은 모수를 거르고(이용자가 아예 없는 캐릭터 제외), 주간은 순서를 만듭니다. */
 function risingList(category) {
   const base = visibleCharacters().filter((c) =>
-    isRising(c) && monthUsage(c) > 0 && (!category || c.category === category));
+    isRising(c) && monthUsage(c) > 0 && (!category || hasCategory(c, category)));
   return sortChars(base, weekUsage).slice(0, SECTION_TOP);
 }
 
@@ -301,10 +301,14 @@ function newestList() {
   return sortChars(visibleCharacters(), (c) => dayNum(c.createdDay));
 }
 
-/* 카테고리 전체 목록 — 카테고리와 태그의 AND 필터 (system-spec §8-6) */
+/* 카테고리 전체 목록 — 두 페이지 카테고리의 AND 필터 (system-spec §8-6) */
+function hasCategory(c, name) {
+  return (c.pageCategories || []).indexOf(name) >= 0;
+}
+
 function categoryList(category) {
-  let base = visibleCharacters().filter((c) => c.category === category);
-  if (VN.catTag) base = base.filter((c) => (c.tags || []).indexOf(VN.catTag) >= 0);
+  let base = visibleCharacters().filter((c) => hasCategory(c, category));
+  if (VN.catFilter) base = base.filter((c) => hasCategory(c, VN.catFilter));
   if (VN.catSort === "new") return sortChars(base, (c) => dayNum(c.createdDay));
   return sortChars(base, (c) => usageCount(c.id, null));   // 대화순 = 누적 이용수
 }
@@ -538,7 +542,7 @@ function fillSlots(text, room) {
     .replace(/\{charName\}/g, c ? c.name : "");
 }
 
-/* 키워드 검색 — **페이지 제목과 태그**의 부분일치 (system-spec §8-7).
+/* 키워드 검색 — **페이지 제목과 페이지 카테고리**의 부분일치 (system-spec §8-7).
  * 제작자 검색은 소셜 제외 영역이라 넣지 않습니다.
  * 선택 기준이 따로 없는 목록이라 순서는 체인의 첫 고리인 월간 이용수가 잡습니다(§8-4). */
 function searchList() {
@@ -547,7 +551,7 @@ function searchList() {
   const hit = (c) => {
     const title = (c.pageTitle || "").toLowerCase();
     if (title.indexOf(key) >= 0) return true;
-    return (c.tags || []).some((t) => t.toLowerCase().indexOf(key) >= 0);
+    return (c.pageCategories || []).some((t) => t.toLowerCase().indexOf(key) >= 0);
   };
   return sortChars(visibleCharacters().filter(hit), monthUsage);
 }
@@ -570,7 +574,7 @@ window.__VN__ = {
       homeChip: VN.homeChip,
       rankPeriod: VN.rankPeriod,
       rankSort: VN.rankSort,
-      catTag: VN.catTag,
+      catFilter: VN.catFilter,
       catSort: VN.catSort,
       search: VN.search,
       notiOpen: VN.notiOpen,

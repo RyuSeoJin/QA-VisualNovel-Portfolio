@@ -132,32 +132,35 @@ button { font-family: inherit; cursor: pointer; }
 .chips .chip.on { background: #4f46e5; border-color: #4f46e5; color: #fff; font-weight: 700; }
 
 .sec { margin-bottom: 22px; }
+.screen.s3 .sec { margin: 28px 16px 0; }
+.screen.s3 .sec-title { margin: 28px 16px 10px; }
 .sec-title { font-size: 14px; margin: 0 0 8px; color: #c9c9d2; }
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 12px; }
 /* 캐러셀은 가로로 흘러 최대 개수 경계가 눈에 들어옵니다 */
-.cards.carousel { display: flex; overflow-x: auto; padding-bottom: 6px; }
-.cards.carousel .card { flex: none; width: 150px; }
+.cards.carousel { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 8px; }
+.cards.carousel .card { flex: none; width: 132px; }
 
 .card {
   position: relative; overflow: hidden; text-align: left;
-  padding: 10px; background: #1c1c24; border: 1px solid #2c2c34;
-  border-radius: 8px; color: inherit;
+  padding: 9px; background: #1c1c24; border: 1px solid #2c2c34;
+  border-radius: 10px; color: inherit;
 }
 .card-rank {
   position: absolute; top: 6px; right: 8px;
   color: #a5b4fc; font-size: 13px; font-weight: 700;
 }
-/* 이미지 자리 — 그림을 넣지 않는 SUT라 이름 텍스트로 대신합니다 */
+/* 이미지 자리 — 세로형 카드(플레이툰 실측). 그림 대신 이름 텍스트를 넣습니다 */
 .card-thumb {
   display: flex; align-items: center; justify-content: center;
-  height: 78px; margin-bottom: 8px; border-radius: 6px;
-  background: #24242e; border: 1px solid #33333d; color: #8b8b96;
-  font-size: 13px; font-weight: 700;
+  aspect-ratio: 3 / 4; margin-bottom: 9px; border-radius: 8px;
+  background: linear-gradient(160deg, #2a2a38, #1f1f2a);
+  border: 1px solid #33333d; color: #8b8b96;
+  font-size: 14px; font-weight: 700;
 }
 .card-by { margin: 6px 0 0; font-size: 11px; color: #a5b4fc; }
-.card-name { margin: 0; font-size: 14px; font-weight: 700; }
-.card-line { margin: 3px 0 0; font-size: 12px; color: #8b8b96; }
+.card-name { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.4; }
+.card-line { margin: 4px 0 0; font-size: 11px; line-height: 1.5; color: #8b8b96; }
 .card-meta { margin: 8px 0 0; font-size: 11px; color: #6b6b76; }
 /* 언세이프는 가리되 자리는 남깁니다 — 존재까지 지우는 것은 세이프티 필터입니다 */
 .card.locked .card-in { filter: blur(5px); }
@@ -196,7 +199,7 @@ button { font-family: inherit; cursor: pointer; }
   margin: 14px 0; padding: 12px; border-radius: 8px;
   background: #14141a; border: 1px solid #2c2c34; font-size: 13px; line-height: 1.7;
 }
-.d-toggles { display: flex; gap: 8px; margin-bottom: 14px; }
+.d-toggles { display: flex; gap: 8px; margin: 0 16px 20px; }
 .d-toggles .tog {
   flex: 1; padding: 8px; border-radius: 6px; font-size: 12px;
   background: #24242e; border: 1px solid #3b3b47; color: inherit;
@@ -279,27 +282,58 @@ button { font-family: inherit; cursor: pointer; }
 .p3-row .plus { color: #7fd7b4; }
 
 /* ── S3 캐릭터 페이지 ───────────────────────── */
-.screen.s3 { padding-bottom: 24px; }
-.s3-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.s3-head .screen-title { margin: 0; }
+.screen.s3 { padding: 0 0 32px; max-width: 720px; margin: 0 auto; }
+.s3-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: #1c1c24; border-bottom: 1px solid #2c2c34;
+  position: sticky; top: 0; z-index: 5;
+}
+.s3-head-title { margin: 0; font-size: 14px; font-weight: 700; }
+/* 캐릭터 이미지 — 세로형 히어로 */
+.s3-hero {
+  display: flex; align-items: center; justify-content: center;
+  width: min(260px, 62vw); aspect-ratio: 3 / 4; margin: 24px auto 4px;
+  border-radius: 12px; background: linear-gradient(160deg, #2a2a38, #1f1f2a);
+  border: 1px solid #33333d; color: #8b8b96; font-size: 16px; font-weight: 700;
+}
+.s3-titleblock { padding: 20px 16px 0; text-align: center; }
+.s3-title { margin: 0; font-size: 20px; line-height: 1.4; }
+.s3-sub { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: #c9c9d2; }
+/* 페이지 카테고리 — 대표와 나머지를 가르지 않고 같은 칩으로 보여 줍니다 */
+.s3-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 24px 16px 0; }
+.cat-chip {
+  padding: 5px 12px; border-radius: 999px;
+  background: #24242e; border: 1px solid #33333d; font-size: 12px; color: #c9c9d2;
+}
+/* 캐릭터 소개 — 항목마다 구분선을 둬 한눈에 갈립니다 */
+.s3-charblock { margin: 0; padding: 0 16px; }
+.s3-charblock dt {
+  padding-top: 14px; border-top: 1px solid #2c2c34;
+  font-size: 11px; color: #6b6b76;
+}
+.s3-charblock dd {
+  margin: 6px 0 14px; font-size: 13px; line-height: 1.8; color: #f2f2f4;
+}
+.s3-stories { padding: 8px 16px 0; }
+
 .s3-creator { margin: 12px 0 0; font-size: 12px; color: #a5b4fc; }
 .s3-story {
-  margin: 12px 0 20px; padding: 12px; border-radius: 8px;
-  background: #1c1c24; border: 1px solid #2c2c34; font-size: 13px; line-height: 1.8;
+  margin: 0 0 14px; padding: 14px 16px; border-radius: 10px;
+  background: #1c1c24; border: 1px solid #2c2c34; font-size: 13px; line-height: 1.9;
 }
-.s3-charname { margin: 0; font-size: 15px; font-weight: 700; }
-.s3-chardesc { margin: 8px 0 0; font-size: 13px; line-height: 1.7; color: #c9c9d2; }
-.stat-row { display: flex; gap: 18px; margin: 14px 0; }
+
+
+.stat-row { display: flex; gap: 24px; justify-content: center; margin: 24px 16px; }
 .stat-item { display: flex; flex-direction: column; }
 .stat-num { font-size: 16px; font-weight: 700; }
 .stat-lbl { font-size: 11px; color: #6b6b76; }
-.s3-updated { margin: 0 0 12px; font-size: 11px; color: #6b6b76; }
+.s3-updated { margin: 24px 16px 0; font-size: 11px; color: #6b6b76; }
 .s3-situation {
-  margin: 0 0 16px; padding: 9px 12px; border-radius: 8px;
+  margin: 0 16px; padding: 11px 14px; border-radius: 8px;
   background: #1a1a24; border-left: 3px solid #6d5fd0; font-size: 12px; color: #c9c9d2;
 }
 .s3-foot {
-  margin-top: 20px; padding-top: 16px; border-top: 1px solid #2c2c34;
+  margin: 32px 16px 0; padding-top: 20px; border-top: 1px solid #2c2c34;
 }
 .room-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .room-item {

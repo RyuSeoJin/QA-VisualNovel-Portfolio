@@ -124,8 +124,9 @@ function describeChanges() {
         out.push(c.name + " " + label + " — " + b[k] + " → " + c[k]);
       }
     });
-    if ((b.tags || []).join(",") !== (c.tags || []).join(",")) {
-      out.push(c.name + " 태그 — " + (b.tags || []).join("·") + " → " + (c.tags || []).join("·"));
+    if ((b.pageCategories || []).join(",") !== (c.pageCategories || []).join(",")) {
+      out.push(c.name + " 카테고리 — " + (b.pageCategories || []).join("·")
+        + " → " + (c.pageCategories || []).join("·"));
     }
     if (b.safe !== c.safe) {
       out.push(c.name + " 19세 이상 — " + (b.safe === false ? "예" : "아니오")
@@ -269,12 +270,11 @@ function addRandomCharacter() {
     id: id,
     name: pick(NAME_POOL),
     tagline: pick(LINE_POOL),
+    pageCategories: [cat.name, pick(cat.related)],
     pageTitle: "생성된 작품 " + id,
     pageSubtitle: "데이터 시트에서 만든 작품입니다.",
     pageStory: "테스트용으로 생성한 작품이라 줄거리는 고정 문구입니다.",
     charDesc: "테스트용으로 생성한 캐릭터입니다.",
-    category: cat.name,
-    tags: [pick(cat.tags), pick(cat.tags)].filter((v, i, a) => a.indexOf(v) === i),
     safe: true,
     likes: Math.floor(Math.random() * 300),
     reviews: Math.floor(Math.random() * 80),
@@ -365,7 +365,7 @@ function renderCharBlock() {
     return block("캐릭터", children);
   }
 
-  const head = el("tr", {}, ["캐릭터", "페이지 제목", "보조 설명", "mock", "카테고리", "태그", "생성일", "19세 이상"]
+  const head = el("tr", {}, ["캐릭터", "페이지 제목", "보조 설명", "mock", "페이지 카테고리", "생성일", "19세 이상"]
     .concat(CHAR_COLS.map((c) => c[0])).concat(USAGE_COLS.map((c) => c[0]))
     .map((h) => el("th", { text: h })));
 
@@ -376,18 +376,15 @@ function renderCharBlock() {
       onchange: (e) => { c.safe = !e.target.checked; touchDraft(); }
     });
     adult.checked = c.safe === false;
-    const cat = el("select", {
-      class: "t1-cellsel", "data-testid": "t1-row-" + c.id + "-category",
-      onchange: (e) => { c.category = e.target.value; touchDraft(); }
-    }, VN.sheet.categories.map((g) => el("option", { value: g.name, text: g.name })));
-    cat.value = c.category;
-    // 태그는 쉼표로 나눠 적습니다. 카테고리에 없는 태그도 넣을 수 있어야
-    // "카테고리와 태그가 어긋난 캐릭터"라는 필터 검증 조건을 만들 수 있습니다
-    const tags = el("input", {
+    // 페이지 카테고리는 쉼표로 나눠 적습니다. 첫 항목이 홈 칩 대표이며, 홈 칩에 없는
+    // 카테고리도 넣을 수 있어야 "칩과 어긋난 페이지"라는 필터 검증 조건을 만들 수 있습니다
+    const cats = el("input", {
       type: "text", class: "t1-celltag",
-      "data-testid": "t1-row-" + c.id + "-tags", value: (c.tags || []).join(", "),
+      "data-testid": "t1-row-" + c.id + "-categories",
+      value: (c.pageCategories || []).join(", "),
       oninput: (e) => {
-        c.tags = e.target.value.split(",").map((s) => s.trim().replace(/^#/, "")).filter(Boolean);
+        c.pageCategories = e.target.value.split(",")
+          .map((s) => s.trim().replace(/^#/, "")).filter(Boolean);
         touchDraft();
       }
     });
@@ -426,8 +423,7 @@ function renderCharBlock() {
         "data-testid": "t1-row-" + c.id + "-mock",
         text: dedicated ? "전용" : "공통"
       })]),
-      el("td", {}, [cat]),
-      el("td", {}, [tags]),
+      el("td", {}, [cats]),
       el("td", {}, [created]),
       el("td", {}, [adult]),
       numCell("t1-row-" + c.id + "-likes", c.likes, (v) => { c.likes = v; }),
@@ -445,13 +441,13 @@ function renderCharBlock() {
     ])
   ]));
   children.push(el("p", { class: "hint",
-    text: "이용수는 이벤트를 합성해 맞춥니다 (일간 ≤ 주간 ≤ 월간) · 태그는 쉼표로 구분합니다"
+    text: "이용수는 이벤트를 합성해 맞춥니다 (일간 ≤ 주간 ≤ 월간) · 카테고리는 쉼표로 구분하며 첫 항목이 홈 칩 대표입니다"
       + " · 생성일을 기준일에서 " + NEW_WINDOW_DAYS + "일보다 앞으로 옮기면 신작 섹션에서 빠집니다" }));
   children.push(el("p", { class: "hint",
     text: "mock — 전용 세트는 하루(c1)뿐이고 나머지와 새로 만든 캐릭터는 공통 세트로 말합니다" }));
   children.push(el("p", { class: "hint", "data-testid": "t1-tag-guide",
-    text: "쓸 수 있는 태그 — " + VN.sheet.categories
-      .map((g) => g.name + "(" + g.tags.join("·") + ")").join(" / ") }));
+    text: "홈 칩과 함께 쓰는 카테고리 — " + VN.sheet.categories
+      .map((g) => g.name + "(" + g.related.join("·") + ")").join(" / ") }));
   return block("캐릭터", children);
 }
 
