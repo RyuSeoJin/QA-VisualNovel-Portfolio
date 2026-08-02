@@ -112,6 +112,22 @@ def main():
         f'<td>{esc(u["how"])}</td></tr>'
         for u in data["unknowns"])
 
+    # 목록이 비면 빈 표 대신 상태를 적는다 — 빈 표는 "아직 안 적었다"로도 읽힌다
+    if data["unknowns"]:
+        unknown_block = f"""<div class="callout warn">아래 항목은 design/에서 확정되기 전까지 기대값이 성립하지 않습니다. 그래서 이 목록이 곧 명세 작성의 작업 목록입니다.</div>
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>노드 경로</th><th>미확인 값</th><th>확정처</th></tr></thead>
+  <tbody>
+{unknown_rows}
+  </tbody>
+</table>
+</div>"""
+    else:
+        unknown_block = ('<div class="callout">현재 미확인 항목이 없습니다 — 전 항목이 '
+                         'design/에서 확정되었습니다. 값의 정본은 design/이며, 트리 노드는 '
+                         '값을 담지 않고 위임합니다.</div>')
+
     doc = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -163,15 +179,7 @@ def main():
 <div class="callout">TC 설계 전입니다 — 케이스 사이의 선행 관계는 test-case/ 산출 후 이 섹션에서 재생성됩니다.</div>
 
 <h2 id="unknown">미확인 목록</h2>
-<div class="callout warn">아래 항목은 design/에서 확정되기 전까지 기대값이 성립하지 않습니다. 그래서 이 목록이 곧 명세 작성의 작업 목록입니다.</div>
-<div class="tbl-scroll">
-<table>
-  <thead><tr><th>노드 경로</th><th>미확인 값</th><th>확정처</th></tr></thead>
-  <tbody>
-{unknown_rows}
-  </tbody>
-</table>
-</div>
+{unknown_block}
 
 <footer class="doc-footer">
   {proj} 기능 골격 v{ver} · 템플릿 01-feature-tree v1.0 · design-guide-master {css_ver} 스냅샷 · 파생 문서(직접 수정 금지)
