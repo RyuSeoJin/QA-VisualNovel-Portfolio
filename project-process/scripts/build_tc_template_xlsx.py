@@ -60,12 +60,25 @@ statusChangedDay}]} 이며 키 순서는 ISSUE_KEYS가 정본입니다.
                                              #   프로젝트가 design/에서 다르게 정했을 때만 씁니다
   "issue_samples": [[...20개 값...]],         # 이슈 시트 예시 행 (선택)
   "tcs": [
-    ["TC-XXX-001","1-Depth","2-Depth","3-Depth","케이스",
+    ["TC-XXX-001",["1-Depth","2-Depth","3-Depth"],"케이스",
      "사전조건","1. 절차\\n2. 절차","기대결과 문장. 여러 문장 가능.",
      "결정적|확률적|루브릭|금칙","High|Medium|Low",
      "선행 TC ID 또는 -","대상 서비스","비고"]
   ]
 }
+
+뎁스 열은 쓰는 만큼만 만듭니다 (2026-08-03 개정)
+------------------------------------------------
+  시트는 최대 7뎁스를 지원하지만, 트리 깊이는 프로젝트마다 다르고 같은 프로젝트 안에서도
+  가지마다 다릅니다. 그래서 **경로를 배열로 받아** 실제로 쓰인 최대 깊이를 세고, 그만큼만
+  열을 만듭니다. 케이스명은 경로 다음 칸에 놓입니다.
+
+  다 만든 뒤 남는 열을 지우는 방식은 쓰지 않습니다 — Summary가 Test Case의 열 문자를
+  직접 가리키므로(COUNTIFS), 열을 지우면 Priority·Result 열이 앞으로 밀려 집계가 엉뚱한
+  열을 셉니다. openpyxl은 다른 시트의 수식을 따라 고쳐 주지 않습니다.
+
+  **옛 형식(d1·d2·d3 세 칸 고정, 13필드)도 그대로 읽습니다** — 두 번째 값이 배열이면
+  새 형식, 문자열이면 옛 형식으로 봅니다.
 """
 import argparse
 import json
@@ -192,6 +205,33 @@ def unfreeze(ws):
     ws.sheet_view.selection = [Selection(activeCell="A1", sqref="A1")]
 
 
+MAX_DEPTH = 7          # 시트가 지원하는 뎁스 열의 최대 수
+
+
+def normalize_tc(row):
+    """TC 한 줄을 dict로 정규화한다 — 새 형식(경로 배열)과 옛 형식(d1·d2·d3)을 함께 받는다.
+
+    두 번째 값이 배열이면 새 형식이다. 옛 형식은 빈 뎁스를 떨어내 같은 모양으로 만든다.
+    """
+    if isinstance(row[1], list):
+        tid, path, case, pre, steps, exp, vt, prio, par, target, note = row
+    else:
+        tid, d1, d2, d3, case, pre, steps, exp, vt, prio, par, target, note = row
+        path = [d for d in (d1, d2, d3) if d]
+    return {"id": tid, "path": list(path), "case": case, "pre": pre, "steps": steps,
+            "exp": exp, "vt": vt, "prio": prio, "par": par, "target": target, "note": note}
+
+
+def depth_layout(tcs):
+    """실제로 쓰인 뎁스 열의 수 — 경로 최대 길이 + 케이스명 한 칸.
+
+    다 만들고 지우는 대신 처음부터 필요한 만큼만 만든다. Summary가 Test Case의 열 문자를
+    가리키므로, 나중에 지우면 Priority·Result 열이 밀려 집계가 어긋난다.
+    """
+    longest = max((len(t["path"]) for t in tcs), default=1)
+    return min(longest + 1, MAX_DEPTH)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("input")
@@ -200,14 +240,14 @@ def main():
     args = ap.parse_args()
 
     CFG = json.load(open(args.input, encoding="utf-8"))
-    TCS = [tuple(t) for t in CFG["tcs"]]
+    TCS = [normalize_tc(t) for t in CFG["tcs"]]
     PLATFORMS = CFG.get("platforms", ["Web", "And", "iOS"])
     TITLE = CFG.get("title", "Test Case Template")
     PROJECT = CFG.get("project", "{프로젝트}")
     TREE_VERSION = CFG.get("tree_version", "{프로젝트}-tree-vX.Y")
     ENV = CFG.get("env", {k: [""] * len(PLATFORMS) for k in
                           ["OS", "단말", "버전", "작업자 이름", "작업 시작일"]})
-    ORDER = CFG.get("d1_order") or list(dict.fromkeys(t[1] for t in TCS))
+    ORDER = CFG.get("d1_order") or list(dict.fromkeys(t["path"][0] for t in TCS))
 
     LISTS = dict(DEFAULT_LISTS)
     LISTS["프로젝트"] = [PROJECT]
@@ -219,7 +259,7 @@ def main():
     vt_note.update(CFG.get("vt_note") or {})
 
     # 선행 관계 -> 실행 단계
-    PAR = {t[0]: t[10] for t in TCS}
+    PAR = {t["id"]: t["par"] for t in TCS}
     layer = {}
 
     def depth(tid):
@@ -230,14 +270,20 @@ def main():
         return layer[tid]
 
     # ── 컬럼 레이아웃 ────────────────────────────────────────
-    DEPTH_COLS = ["C", "D", "E", "F", "G", "H", "I"]
+    # 뎁스 수를 먼저 정하고 그 뒤 열 위치를 계산한다 — 지도를 그리고 채우는 순서다.
+    ND = depth_layout(TCS)
+    DEPTH_COLS = [chr(ord("C") + i) for i in range(ND)]
+    DEPTH_W = [15, 14, 15, 20, 11, 11, 11]
     NP = len(PLATFORMS)
-    base = [("A", "", 3), ("B", "No", 6),
-            ("C", "1-Depth", 15), ("D", "2-Depth", 14), ("E", "3-Depth", 15),
-            ("F", "4-Depth", 20), ("G", "5-Depth", 11), ("H", "6-Depth", 11),
-            ("I", "7-Depth", 11), ("J", "Pre-Condition", 26), ("K", "TN", 5),
-            ("L", "Test-Step", 34), ("M", "Expected-Result", 46), ("N", "Priority", 9)]
-    c = ord("O")
+    c = ord("C") + ND
+    PRE, TN_COL, STEP, EXPECT, PRIO_COL = (chr(c), chr(c + 1), chr(c + 2),
+                                           chr(c + 3), chr(c + 4))
+    base = [("A", "", 3), ("B", "No", 6)]
+    base += [(DEPTH_COLS[i], "%d-Depth" % (i + 1), DEPTH_W[i]) for i in range(ND)]
+    base += [(PRE, "Pre-Condition", 26), (TN_COL, "TN", 5),
+             (STEP, "Test-Step", 34), (EXPECT, "Expected-Result", 46),
+             (PRIO_COL, "Priority", 9)]
+    c += 5
     TOTAL_COLS = [chr(c + i) for i in range(NP)]
     c += NP
     RESULT_COLS = [chr(c + i) for i in range(NP)]
@@ -290,10 +336,10 @@ def main():
     ws.row_dimensions[4].height = 18
     ws.row_dimensions[5].height = 16
 
-    # 환경 블록 6~10행 — 라벨(N) + 병합 여백(Total 열) + 실행 채움 셀(Result 열)
+    # 환경 블록 6~10행 — 라벨(Priority 열) + 병합 여백(Total 열) + 실행 채움 셀(Result 열)
     for i, (label, vals) in enumerate(ENV.items()):
         r = 6 + i
-        lc = ws[f"N{r}"]
+        lc = ws[f"{PRIO_COL}{r}"]
         lc.value = label
         lc.font = dfont(bold=True)
         lc.fill = LABEL
@@ -324,26 +370,31 @@ def main():
     # 데이터 행
     idx = {d: [] for d in ORDER}
     for t in TCS:
-        idx.setdefault(t[1], []).append(t)
+        idx.setdefault(t["path"][0], []).append(t)
 
     row = 11
     for d1 in ORDER:
-        for (tid, _d1, d2, d3, case, pre, steps, exp,
-             vt, prio, _par, target, note) in idx.get(d1, []):
-            stepl = split_steps(steps)
-            expl = split_expected(exp)
+        for tc in idx.get(d1, []):
+            tid, case, prio = tc["id"], tc["case"], tc["prio"]
+            target, note, vt = tc["target"], tc["note"], tc["vt"]
+            # 경로 + 케이스명을 뎁스 열에 깔고, 남는 칸은 비운다
+            cells = (tc["path"] + [case])[:ND]
+            cells += [""] * (ND - len(cells))
+            stepl = split_steps(tc["steps"])
+            expl = split_expected(tc["exp"])
             aligned = len(expl) == len(stepl)
             first = row
             for i, st in enumerate(stepl, start=1):
                 is_last = i == len(stepl)
                 ws[f"B{row}"] = "=ROW()-10"
-                for ci, v in enumerate([d1, d2, d3, case, "", "", ""]):
+                for ci, v in enumerate(cells):
                     ws[f"{DEPTH_COLS[ci]}{row}"] = v
-                ws[f"J{row}"] = pre if i == 1 else ""
-                ws[f"K{row}"] = i
-                ws[f"L{row}"] = to_step(st)
-                ws[f"M{row}"] = expl[i - 1] if aligned else (expl[0] if (is_last and expl) else "")
-                ws[f"N{row}"] = prio   # 행 단위 집계에 맞춰 스텝 행마다 반복
+                ws[f"{PRE}{row}"] = tc["pre"] if i == 1 else ""
+                ws[f"{TN_COL}{row}"] = i
+                ws[f"{STEP}{row}"] = to_step(st)
+                ws[f"{EXPECT}{row}"] = (expl[i - 1] if aligned
+                                        else (expl[0] if (is_last and expl) else ""))
+                ws[f"{PRIO_COL}{row}"] = prio   # 행 단위 집계에 맞춰 스텝 행마다 반복
                 if i == 1:
                     # 수행 전 참고사항은 전부 Note에 모은다 — Comment는 실행 중 기록용으로 비워 둔다
                     p = PAR.get(tid, "-") or "-"
@@ -354,20 +405,21 @@ def main():
                     ws[f"{NOTE}{row}"] = f"{meta}\n{w}"
                 row += 1
             for extra in ([] if aligned else expl[1:]):
-                ws[f"K{row}"] = len(stepl)
-                ws[f"M{row}"] = extra
+                ws[f"{TN_COL}{row}"] = len(stepl)
+                ws[f"{EXPECT}{row}"] = extra
                 row += 1
             for r in range(first, row):
                 for col in ALL_COLS:
                     x = ws[f"{col}{r}"]
                     x.border = BOX
                     x.font = dfont()
-                    center = col in ("B", "K", "N") or col in TOTAL_COLS or col in RESULT_COLS
+                    center = (col in ("B", TN_COL, PRIO_COL)
+                              or col in TOTAL_COLS or col in RESULT_COLS)
                     x.alignment = Alignment(horizontal="center" if center else "left",
                                             vertical="center", wrap_text=True)
                     x.fill = INPUT if col in RESULT_COLS + [ISSUE_COL, COMMENT] else WHITE
                 ws[f"C{r}"].font = dfont(bold=True)
-                ws[f"K{r}"].font = dfont(bold=True)
+                ws[f"{TN_COL}{r}"].font = dfont(bold=True)
                 ws.row_dimensions[r].height = 30
             for tcol, rcol in zip(TOTAL_COLS, RESULT_COLS):
                 cell = ws[f"{tcol}{first}"]
@@ -387,12 +439,12 @@ def main():
     dv.add(f"{RESULT_COLS[0]}11:{RESULT_COLS[-1]}500")
     dvp = DataValidation(type="list", formula1='"High,Medium,Low"', allow_blank=True)
     ws.add_data_validation(dvp)
-    dvp.add(f"N11:N500")
+    dvp.add(f"{PRIO_COL}11:{PRIO_COL}500")
 
     # 상태 배색 — 실행 결과(Result)와 케이스 판정(Total Result), 우선순위
     paint_status(ws, f"{RESULT_COLS[0]}11:{RESULT_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
     paint_status(ws, f"{TOTAL_COLS[0]}11:{TOTAL_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
-    paint_status(ws, "N11:N500", ["High", "Medium", "Low"])
+    paint_status(ws, f"{PRIO_COL}11:{PRIO_COL}500", ["High", "Medium", "Low"])
 
     for col, _l, w in base + tail:
         ws.column_dimensions[col].width = w
@@ -455,7 +507,8 @@ def main():
         # 행 수 기준 집계 — TC 수와 결과 집계의 단위를 스텝 행으로 맞춘다
         f = {3: f'=COUNTIF({tcr}$C$11:$C$500,$B{r})'}
         for j, pr in enumerate(["High", "Medium", "Low"]):
-            f[4 + j] = f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},{tcr}$N$11:$N$500,"{pr}")'
+            f[4 + j] = (f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},'
+                        f'{tcr}${PRIO_COL}$11:${PRIO_COL}$500,"{pr}")')
         for pi, rcol in enumerate(RESULT_COLS):
             c0 = 7 + pi * 4
             for j, st in enumerate(["Pass", "Fail", "Blocked"]):
