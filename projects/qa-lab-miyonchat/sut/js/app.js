@@ -439,12 +439,71 @@ function closeConfirm() {
   render();
 }
 
+/* ── 세이브/로드 (system-spec §6) ──────────────────────────
+ * 저장·로드 모두 무료입니다. 재화는 계정 스코프라 스냅샷에 담기지 않고 복원되지도 않습니다.
+ */
+
+/* 빈 칸이면 바로 저장하고, 찬 칸이면 덮어쓰기를 한 번 묻습니다 */
+function saveToSlot(n) {
+  const room = activeRoom();
+  if (!room) return;
+  if (slotOf(room, n)) { VN.confirm = { kind: "overwrite", slot: n }; render(); return; }
+  saveSlot(room, n);
+  toast(n + "번 슬롯에 저장했습니다.");
+  render();
+}
+
+/* 로드는 갈래를 고른 뒤에 진행합니다 — 어느 방에 놓을지가 결과를 크게 가릅니다 */
+function pickLoad(n) {
+  const room = activeRoom();
+  if (!room || !slotOf(room, n)) return;      // 빈 슬롯은 로드 불가
+  VN.loadPick = n;
+  render();
+}
+
+function cancelLoad() {
+  VN.loadPick = null;
+  render();
+}
+
+function loadHere(n) {
+  const room = activeRoom();
+  if (!room) return;
+  VN.loadPick = null;
+  VN.editTurn = null;
+  loadSlotHere(room, n);
+  toast(n + "번 슬롯을 이 방에 불러왔습니다. 저장 시점 이후의 대화는 남지 않습니다.");
+  render();
+}
+
+function loadToNewRoom(n) {
+  const room = activeRoom();
+  if (!room) return;
+  const made = loadSlotToNewRoom(room, n);
+  if (!made) {
+    // 한도까지 찼으면 아무 방도 만들어지지 않습니다 (system-spec §6)
+    toast("대화방이 가득 찼습니다. 기존 대화를 지워 주세요.");
+    render();
+    return;
+  }
+  VN.loadPick = null;
+  VN.editTurn = null;
+  toast(n + "번 슬롯을 새 방으로 불러왔습니다. 원래 방은 그대로 남습니다.");
+  render();
+}
+
 function runConfirm() {
   const c = VN.confirm;
   const room = activeRoom();
   VN.confirm = null;
   if (!c || !room) { render(); return; }
 
+  if (c.kind === "overwrite") {
+    saveSlot(room, c.slot);
+    toast(c.slot + "번 슬롯에 덮어썼습니다.");
+    render();
+    return;
+  }
   if (c.kind === "delete") {
     removeExchange(room, c.turn);
     VN.editTurn = null;

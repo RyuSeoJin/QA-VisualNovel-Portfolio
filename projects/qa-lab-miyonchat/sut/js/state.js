@@ -62,7 +62,8 @@ const VN = {
   showMetrics: false,   // 카드 지표 표시 — T1에서 켜는 검증용 표시 (청사진 §4-2)
   p2Help: false,        // P2 단계표 ⓘ 펼침
   editTurn: null,       // 편집 중인 턴 — 되돌림 (system-spec §5-1)
-  confirm: null,        // 확인 모달 { kind, turn }
+  confirm: null,        // 확인 모달 { kind, turn, slot }
+  loadPick: null,       // 로드 갈래를 고르는 중인 슬롯 번호 (system-spec §6)
   seed: 1,
   inject: null
 };
@@ -127,6 +128,7 @@ function resetViewState() {
   VN.pendingStart = null;
   VN.editTurn = null;
   VN.confirm = null;
+  VN.loadPick = null;
 }
 
 function logout() {
@@ -501,6 +503,8 @@ function newRoom(charId, scenarioId, firstMessage, profile) {
     affectionBase: 0,
     affectionBaseTurn: 0,
     memories: [],
+    // 시점 슬롯 — 방마다 독립입니다(분기 방도 자기 4칸을 새로 받습니다, system-spec §6)
+    slots: {},
     ending: null,                            // 도달한 엔딩 — 있으면 입력이 막힙니다
     ended: false,
     active: true
@@ -600,22 +604,112 @@ function removeExchange(room, turn) {
   recomputeRoom(room);
 }
 
-/* 분기 — 그 지점까지를 복사한 새 방을 만들고 원본은 그대로 둡니다.
+/* 대화 기록으로 새 방을 세웁니다 — 분기와 「새 방으로 로드」가 같은 길을 씁니다.
+ * 두 동작 모두 "이 기록에서 시작하는 방을 하나 더 만든다"라서, 새 방을 만드는 규칙(한도·
+ * 활성 전환·슬롯은 새로)이 한 곳에만 있어야 갈라지지 않습니다.
  * 한도까지 찼으면 아무것도 만들지 않고 null을 돌려줍니다(호출한 쪽이 삭제를 묻습니다). */
-function branchRoom(room, turn) {
+function cloneRoomFrom(src, data) {
   const acc = currentAccount();
   if (!acc) return null;
-  if (roomLimitReached(room.charId)) return null;
-  const copy = newRoom(room.charId, room.scenarioId, "", room.profile);
-  copy.messages = deepCopy(room.messages.filter((m) => m.turn <= turn));
-  copy.affectionBase = room.affectionBase || 0;
-  copy.affectionBaseTurn = Math.min(room.affectionBaseTurn || 0, turn);
-  copy.memories = deepCopy((room.memories || []).filter((m) => !m.turn || m.turn <= turn));
-  recomputeRoom(copy);
+  if (roomLimitReached(src.charId)) return null;
+  const copy = newRoom(src.charId, src.scenarioId, "", data.profile);
+  copy.messages = deepCopy(data.messages || []);
+  copy.memories = deepCopy(data.memories || []);
+  copy.affectionBase = data.affectionBase || 0;
+  copy.affectionBaseTurn = data.affectionBaseTurn || 0;
+  recomputeRoom(copy);                     // 상태는 여기서도 다시 셉니다 (system-spec §5-1)
   acc.rooms.forEach((r) => { r.active = false; });
   acc.rooms.push(copy);
   copy.active = true;
   return copy;
+}
+
+/* 분기 — 그 지점까지를 복사한 새 방을 만들고 원본은 그대로 둡니다 */
+function branchRoom(room, turn) {
+  return cloneRoomFrom(room, {
+    profile: room.profile,
+    messages: room.messages.filter((m) => m.turn <= turn),
+    memories: (room.memories || []).filter((m) => !m.turn || m.turn <= turn),
+    affectionBase: room.affectionBase || 0,
+    affectionBaseTurn: Math.min(room.affectionBaseTurn || 0, turn)
+  });
+}
+
+/* ── 세이브/로드 (system-spec §6 · save-schema) ─────────────
+ * 시점 슬롯은 방 스코프 상태의 **깊은 복사 스냅샷**입니다. 얕게 복사해 참조를 공유하면
+ * 저장 뒤 대화를 이어갈 때 스냅샷까지 함께 변합니다 — 결함 주입의 save-leak이 이것입니다.
+ */
+const SLOT_COUNT = 4;
+
+function slotOf(room, n) {
+  return (room && room.slots && room.slots[n]) || null;
+}
+
+function usedSlotCount(room) {
+  return room ? Object.keys(room.slots || {}).length : 0;
+}
+
+/* 슬롯 목록에 보이는 한 줄 — 무엇을 되돌리는지 열지 않고 읽혀야 합니다 */
+function slotSummary(room) {
+  const c = findCharacter(room.charId);
+  const where = (c && c.startSituation && c.startSituation.label) || room.scenarioId;
+  return stageOf(room.affection).name + " · " + room.turn + "턴 · " + where;
+}
+
+function saveSlot(room, n) {
+  if (!room) return null;
+  room.slots = room.slots || {};
+  room.slots[n] = {
+    slot: n,
+    savedAtDay: VN.sheet.baseDay,          // 가상 시계의 오늘 — 실시각을 쓰지 않습니다
+    summary: slotSummary(room),
+    room: {
+      messages: deepCopy(room.messages),
+      affection: room.affection,
+      // 재계산의 기준점도 함께 담습니다 — 로드는 이 값으로 복원됩니다(§5-1)
+      affectionBase: room.affectionBase || 0,
+      affectionBaseTurn: room.affectionBaseTurn || 0,
+      temperature: stageOf(room.affection).temp,
+      nickname: (room.profile && room.profile.nickname) || "",
+      profile: deepCopy(room.profile),
+      memories: deepCopy(room.memories || []),
+      seedPath: { seed: VN.seed, turn: room.turn }
+    }
+  };
+  return room.slots[n];
+}
+
+/* 슬롯 스냅샷을 방 스코프로 되돌립니다 — 호감도를 그대로 얹지 않고 기준점에 실어
+ * 재계산을 통과시킵니다. 얹어 두면 다음 되돌림 때 재계산이 기록만 보고 그 값을 지웁니다. */
+function applySnapshot(room, snap) {
+  room.messages = deepCopy(snap.room.messages);
+  room.memories = deepCopy(snap.room.memories || []);
+  room.profile = deepCopy(snap.room.profile);
+  room.affectionBase = snap.room.affectionBase || 0;
+  room.affectionBaseTurn = snap.room.affectionBaseTurn || 0;
+  recomputeRoom(room);
+}
+
+/* 로드 갈래 ① 이 방에 덮어쓰기 — 저장 시점 이후의 대화·상태 변화가 남지 않습니다.
+ * 슬롯 목록은 방의 것이므로 로드로 지워지지 않습니다. */
+function loadSlotHere(room, n) {
+  const snap = slotOf(room, n);
+  if (!snap) return null;
+  applySnapshot(room, snap);
+  return room;
+}
+
+/* 로드 갈래 ② 새 방으로 — 이 갈래가 곧 분기입니다. 대화방 한도를 받습니다 */
+function loadSlotToNewRoom(room, n) {
+  const snap = slotOf(room, n);
+  if (!snap) return null;
+  return cloneRoomFrom(room, {
+    profile: snap.room.profile,
+    messages: snap.room.messages,
+    memories: snap.room.memories,
+    affectionBase: snap.room.affectionBase || 0,
+    affectionBaseTurn: snap.room.affectionBaseTurn || 0
+  });
 }
 
 /* ── 대화 프로필 (system-spec §2) ───────────────────────── */
@@ -707,6 +801,7 @@ window.__VN__ = {
       showMetrics: VN.showMetrics,
       editTurn: VN.editTurn,
       confirm: VN.confirm,
+      loadPick: VN.loadPick,
       // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
       pendingAction: pendingIntent ? pendingIntent.action : null,
       pageCharId: VN.pageCharId,
@@ -723,7 +818,9 @@ window.__VN__ = {
           id: r.id, charId: r.charId, scenarioId: r.scenarioId, turn: r.turn,
           messageCount: roomMessageCount(r), affection: r.affection,
           stage: stageOf(r.affection).name, ending: r.ending,
-          ended: r.ended, streaming: !!chatStreaming
+          ended: r.ended, streaming: !!chatStreaming,
+          // 슬롯은 방의 것입니다 — 어느 칸이 찼는지가 격리 검증의 첫 대조점입니다
+          savedSlots: Object.keys(r.slots || {}).map(Number).sort()
         } : null;
       })(),
       baseDay: VN.sheet ? VN.sheet.baseDay : null

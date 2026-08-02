@@ -29,15 +29,17 @@
   "room": {
     "messages": [
       {
-        "id": "m1",
-        "speaker": "ai | user",
-        "kind": "message | direction",
+        "role": "ai | user",
         "text": "…",
-        "deltaAffection": 0,
-        "memoryAdd": null
+        "turn": 12,
+        "done": true,
+        "delta": 1,
+        "variant": 0
       }
     ],
     "affection": 34,
+    "affectionBase": 0,
+    "affectionBaseTurn": 0,
     "temperature": "따뜻함",
     "nickname": "선배",
     "profile": { "id": "p1", "name": "서진", "nickname": "너", "label": "연애 모드" },
@@ -54,11 +56,18 @@
 | `slot` | 1~4. 방마다 독립 |
 | `savedAtDay` | 저장 시점의 기준일(가상 시계 — 실시각 없음) |
 | `summary` | 슬롯 정보 표시용 — 단계명·턴수·현재 장소 |
-| `room.messages[].kind` | `message`(대화수 집계 대상) / `direction`(연출 — 집계 제외) |
-| `room.messages[].deltaAffection` | 그 턴이 만든 호감도 변화 — 되돌림(삭제·재생성)의 취소 단위 |
-| `room.affection` | 호감도 원값. 관계 단계는 저장하지 않고 임계로 파생합니다(이중 저장 시 어긋남 방지) |
+| `room.messages[].turn` | 이 메시지가 속한 턴. 유저 메시지와 그 응답이 같은 번호를 나눠 갖고, 첫 메시지는 0입니다 — 되돌림의 취소 단위가 **턴**인 근거 |
+| `room.messages[].delta` | 그 메시지가 만든 호감도 변화(유저 쪽은 선택지 가중치). 한 턴의 기여분은 둘의 합입니다 |
+| `room.messages[].variant` | 그 턴에 고른 응답 후보 번호 — 재생성이 한 칸 미는 자리(mock-llm-spec §2) |
+| `room.affection` | 저장 시점의 호감도 표시값. **복원의 근거는 아래 기준점**입니다 |
+| `room.affectionBase` · `affectionBaseTurn` | 재계산의 기준점. 로드는 이 둘을 되돌린 뒤 재계산을 통과시킵니다 — 호감도를 그대로 얹으면 다음 재계산이 기록만 보고 그 값을 지웁니다(system-spec §5-1) |
 | `room.profile` | 그 방에 고정된 대화 프로필의 사본 — 계정의 프로필 목록이 바뀌어도 방은 저장된 값으로 답합니다 |
 | `room.seedPath` | mock 경로 위치 — 로드 후 같은 시드 흐름이 이어지는 근거 |
+
+- 관계 단계는 담지 않습니다. 호감도에서 임계로 파생하므로 두 곳에 저장하면 어긋납니다.
+  `temperature`·`nickname`은 표시 확인용 사본이고 복원의 근거가 아닙니다
+- **연출 턴(`kind: direction`)은 만들지 않았습니다** — 대화수 집계에서 뺄 대상이 없어
+  메시지에 종류 구분을 두지 않습니다. 연출을 넣게 되면 이 필드가 함께 서야 합니다
 
 ## 3. 격리 규칙 (검증 경계)
 

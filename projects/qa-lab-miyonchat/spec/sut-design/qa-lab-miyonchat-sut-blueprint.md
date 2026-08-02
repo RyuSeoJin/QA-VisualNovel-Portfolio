@@ -135,6 +135,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `g-expired-modal` · `g-expired-ok` | 세션 만료 안내 모달 |
 | ✅ `g-toast` | 안내 토스트 (3초) — 전송 실패 안내도 이 자리입니다 |
 | ✅ `g-nofund-modal` · `g-nofund-title` · `g-nofund-body` · `g-nofund-charge` · `g-nofund-close` | 재화 부족 안내 모달 — 타이틀·본문·[충전]·[닫기] |
+| ✅ `g-confirm` · `-title` · `-body` · `-target` · `-ok` · `-cancel` | 되돌릴 수 없는 동작을 한 번 묻는 모달. 되돌림(삭제·분기)과 세이브(덮어쓰기)가 같은 모달을 쓰므로 화면이 아니라 전역 접두사를 붙였습니다. `-target`은 대상 표기(「3턴 지점」·「1번 슬롯」) |
 | ✅ `s1-account-a` / `s1-account-b` | 계정 선택 버튼 |
 | ✅ `s1-notice` · `s1-back-home` | 로그인 필요 안내 · 둘러보기로 복귀 |
 | ✅ `s2-screen` · `s2-chips` · `s2-chip-{이름}` | 홈 화면 · 칩 줄 · 필터 칩(`추천` `랭킹` `신작` + 카테고리 이름) |
@@ -168,7 +169,11 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s4-msg-{n}-edit` · `-delete` · `-regen` | 되돌림 액션 — **최신 교환에만 붙습니다.** 과거 턴에서 이 셀렉터가 잡히면 실패입니다 |
 | ✅ `s4-msg-{n}-branch` | 「이 지점에서 분기」 — **과거 턴의 유저 메시지에만** 붙습니다 |
 | ✅ `s4-edit-input` · `s4-edit-save` · `s4-edit-cancel` | 편집칸(자유 입력과 같은 상한)·저장(→재생성)·취소 |
-| ✅ `s4-confirm` · `-title` · `-body` · `-turn` · `-ok` · `-cancel` | 되돌림 확인 모달 — 삭제·분기가 같은 모달을 씁니다 |
+| ✅ `s4-save` | S4 헤더의 세이브(→P1) |
+| ✅ `p1-panel` · `p1-close` · `p1-help` · `p1-noroom` | 세이브/로드 패널 · 닫기 · 슬롯 수·무료 안내 · 방 없음 |
+| ✅ `p1-slots` · `p1-slot-{n}` · `-info` · `-save` · `-load` | 슬롯 목록 · 슬롯 행 · 정보(요약·저장 기준일 / 「비어 있음」) · 저장 · 로드(**빈 슬롯은 비활성**) |
+| ✅ `p1-load-pick` · `-body` · `p1-load-here` · `p1-load-new` · `p1-load-cancel` | 로드 갈래 — 이 방에 덮어쓰기 / 새 방으로(=분기) / 취소 |
+| ✅ `p1-rooms-head` · `p1-rooms` · `p1-room-{id}` | 이 캐릭터의 대화방 수·한도 · 방 목록 · 방 항목(지금 방은 비활성) |
 | `s5-room-{id}` / `-count` | 채팅 탭 방 목록 / 방별 대화수 |
 | `s6-logout` · `s6-activity-like` · `s6-activity-scrap` · `s6-safety-toggle` | MY 로그아웃·활동 목록·세이프티 필터 |
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |

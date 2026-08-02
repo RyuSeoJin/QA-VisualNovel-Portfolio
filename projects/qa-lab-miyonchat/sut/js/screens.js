@@ -315,6 +315,94 @@ function renderLedger(prefix) {
 /* ── P2 현재 상태 ─────────────────────────
  * 관계 단계·호감도·감정 온도·호칭을 보여 줍니다. 규칙성 화면이라 ⓘ에 단계표를 답니다.
  */
+/* P1 세이브/로드 — 대화방 안의 시점을 슬롯에 담습니다 (system-spec §6 · save-schema).
+ *
+ * 슬롯은 **방의 것**입니다. 방을 옮기면 슬롯 목록도 함께 바뀌어야 하며, 그 경계가 곧
+ * 슬롯 격리의 검증선입니다. 저장·로드는 무료이고 재화는 스냅샷에 담기지 않습니다.
+ */
+function renderP1() {
+  const room = activeRoom();
+  const head = el("div", { class: "panel-head" }, [
+    el("h2", { text: "세이브/로드" }),
+    el("button", { class: "panel-close", "data-testid": "p1-close", text: "✕",
+      onclick: () => closePanel() })
+  ]);
+
+  if (!room) {
+    return el("div", { class: "panel-wrap", "data-testid": "p1-panel" }, [
+      el("div", { class: "panel" }, [head,
+        el("p", { class: "empty", "data-testid": "p1-noroom", text: "열려 있는 대화방이 없습니다." })])
+    ]);
+  }
+
+  const rows = [];
+  for (let n = 1; n <= SLOT_COUNT; n++) {
+    const snap = slotOf(room, n);
+    const cells = [
+      el("span", { class: "slot-no", text: n + "번" }),
+      el("span", {
+        class: "slot-info" + (snap ? "" : " empty"), "data-testid": "p1-slot-" + n + "-info",
+        text: snap ? snap.summary + " · " + snap.savedAtDay : "비어 있음"
+      }),
+      el("button", { class: "mini", "data-testid": "p1-slot-" + n + "-save", text: "저장",
+        onclick: () => saveToSlot(n) })
+    ];
+    // 빈 슬롯은 로드할 것이 없으므로 버튼을 비활성으로 남깁니다 — 감추면 칸의 수가 흐려집니다
+    const load = el("button", { class: "mini", "data-testid": "p1-slot-" + n + "-load", text: "로드",
+      onclick: () => pickLoad(n) });
+    load.disabled = !snap;
+    cells.push(load);
+
+    const row = el("div", { class: "slot-row" + (VN.loadPick === n ? " picking" : ""),
+      "data-testid": "p1-slot-" + n }, cells);
+    rows.push(row);
+
+    // 로드 갈래 — 이 방에 덮어쓸지, 새 방으로 갈라질지 (새 방 갈래가 곧 분기입니다)
+    if (VN.loadPick === n) {
+      rows.push(el("div", { class: "slot-pick", "data-testid": "p1-load-pick" }, [
+        el("p", { class: "hint", "data-testid": "p1-load-pick-body",
+          text: "어디에 불러올까요? 이 방에 덮어쓰면 저장 시점 이후의 대화는 남지 않고, "
+            + "새 방으로 불러오면 지금 방은 그대로 남습니다(대화방 한도를 받습니다)." }),
+        el("div", { class: "slot-pick-btns" }, [
+          el("button", { class: "mini primary", "data-testid": "p1-load-here",
+            text: "이 방에 덮어쓰기", onclick: () => loadHere(n) }),
+          el("button", { class: "mini", "data-testid": "p1-load-new",
+            text: "새 방으로", onclick: () => loadToNewRoom(n) }),
+          el("button", { class: "mini", "data-testid": "p1-load-cancel",
+            text: "취소", onclick: () => cancelLoad() })
+        ])
+      ]));
+    }
+  }
+
+  const rooms = roomsOf(room.charId);
+  const roomList = el("div", { class: "p1-rooms", "data-testid": "p1-rooms" },
+    rooms.map((r) => {
+      const here = r.id === room.id;
+      const btn = el("button", {
+        class: "slot-room" + (here ? " here" : ""), "data-testid": "p1-room-" + r.id,
+        text: r.id + " · " + stageOf(r.affection).name + " " + r.affection + " · " + r.turn + "턴"
+          + (here ? " (지금 방)" : ""),
+        onclick: () => { if (!here) { resumeRoom(r.id); VN.loadPick = null; render(); } }
+      });
+      btn.disabled = here;
+      return btn;
+    }));
+
+  return el("div", { class: "panel-wrap", "data-testid": "p1-panel" }, [
+    el("div", { class: "panel" }, [
+      head,
+      el("p", { class: "hint", "data-testid": "p1-help",
+        text: "슬롯은 대화방마다 " + SLOT_COUNT + "칸이며 저장·로드는 무료입니다. "
+          + "재화는 계정의 것이라 로드해도 되돌아오지 않습니다." }),
+      el("div", { class: "slot-list", "data-testid": "p1-slots" }, rows),
+      el("p", { class: "hint", "data-testid": "p1-rooms-head",
+        text: "이 캐릭터의 대화방 " + rooms.length + "/" + ROOM_LIMIT_PER_CHAR }),
+      roomList
+    ])
+  ]);
+}
+
 function renderP2() {
   const room = activeRoom();
   if (!room) {
@@ -391,6 +479,7 @@ function renderP3() {
 }
 
 function renderPanel() {
+  if (VN.panel === "p1") return renderP1();
   if (VN.panel === "p2") return renderP2();
   if (VN.panel === "p3") return renderP3();
   if (VN.panel === "p4") return renderP4();
@@ -917,26 +1006,38 @@ function renderChatMessage(m, room) {
   }, body);
 }
 
-/* 되돌림 확인 모달 — 삭제는 되돌릴 수 없고, 분기는 방을 하나 더 만듭니다 */
+/* 되돌릴 수 없는 동작을 한 번 묻는 모달 — 되돌림(삭제·분기)과 세이브(덮어쓰기)가
+ * 같은 모달을 씁니다. 화면 위에 얹히는 전역 요소라 testid도 전역 접두사(`g-`)를 씁니다. */
 const CONFIRM_TEXT = {
-  delete: "이 교환(유저 메시지와 응답)을 삭제합니다. 호감도와 기억에서 이 턴의 기여분이 함께 "
-    + "사라지며, 이미 쓴 재화는 되돌아오지 않습니다.",
-  branch: "이 지점까지의 대화를 복사한 새 대화방을 만듭니다. 지금 방은 그대로 남고, 두 방은 "
-    + "이후 서로에게 영향을 주지 않습니다."
+  delete: {
+    title: "삭제하시겠습니까?",
+    body: "이 교환(유저 메시지와 응답)을 삭제합니다. 호감도와 기억에서 이 턴의 기여분이 함께 "
+      + "사라지며, 이미 쓴 재화는 되돌아오지 않습니다."
+  },
+  branch: {
+    title: "분기하시겠습니까?",
+    body: "이 지점까지의 대화를 복사한 새 대화방을 만듭니다. 지금 방은 그대로 남고, 두 방은 "
+      + "이후 서로에게 영향을 주지 않습니다."
+  },
+  overwrite: {
+    title: "덮어쓰시겠습니까?",
+    body: "이미 저장된 슬롯입니다. 지금 시점으로 덮어쓰면 앞서 저장한 시점은 사라집니다."
+  }
 };
 
 function renderConfirmModal() {
   const c = VN.confirm;
-  return el("div", { class: "modal", "data-testid": "s4-confirm" }, [
+  const t = CONFIRM_TEXT[c.kind];
+  const where = c.kind === "overwrite" ? c.slot + "번 슬롯" : c.turn + "턴 지점";
+  return el("div", { class: "modal", "data-testid": "g-confirm" }, [
     el("div", { class: "modal-box" }, [
-      el("h3", { class: "nf-title", "data-testid": "s4-confirm-title",
-        text: c.kind === "delete" ? "삭제하시겠습니까?" : "분기하시겠습니까?" }),
-      el("p", { "data-testid": "s4-confirm-body", text: CONFIRM_TEXT[c.kind] }),
-      el("p", { class: "lede-sm", "data-testid": "s4-confirm-turn", text: c.turn + "턴 지점" }),
+      el("h3", { class: "nf-title", "data-testid": "g-confirm-title", text: t.title }),
+      el("p", { "data-testid": "g-confirm-body", text: t.body }),
+      el("p", { class: "lede-sm", "data-testid": "g-confirm-target", text: where }),
       el("div", { class: "nf-btns" }, [
-        el("button", { class: "primary", "data-testid": "s4-confirm-ok", text: "확인",
+        el("button", { class: "primary", "data-testid": "g-confirm-ok", text: "확인",
           onclick: () => runConfirm() }),
-        el("button", { "data-testid": "s4-confirm-cancel", text: "취소",
+        el("button", { "data-testid": "g-confirm-cancel", text: "취소",
           onclick: () => closeConfirm() })
       ])
     ])
@@ -1027,6 +1128,10 @@ function renderS4() {
             + " · 시드 " + VN.seed
         })
       ]),
+      el("button", {
+        class: "icon", "data-testid": "s4-save", text: "세이브",
+        onclick: () => openPanel("p1")
+      }),
       el("button", {
         class: "icon", "data-testid": "s4-state", text: "현재 상태",
         onclick: () => openPanel("p2")
