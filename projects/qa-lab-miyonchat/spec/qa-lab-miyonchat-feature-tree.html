@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>qa-lab-miyonchat 기능 골격 v1.1</title>
+<title>qa-lab-miyonchat 기능 골격 v1.2</title>
 <!-- ============================================================
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
@@ -178,11 +178,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="wrap">
 
 <header class="doc-header">
-  <h1>qa-lab-miyonchat 기능 골격 v1.1</h1>
+  <h1>qa-lab-miyonchat 기능 골격 v1.2</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
-    <span class="badge">골격 버전 <b>v1.1</b></span>
+    <span class="badge">골격 버전 <b>v1.2</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
     <span class="badge">기준일 <b>2026-08-02</b></span>
   </div>
@@ -193,10 +193,10 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
 <h2 id="stats">개요</h2>
 <div class="stats">
-  <div class="stat"><div class="num">68</div><div class="lbl">구현 노드 (검증 대상)</div></div>
+  <div class="stat"><div class="num">69</div><div class="lbl">구현 노드 (검증 대상)</div></div>
   <div class="stat"><div class="num">7 / 8</div><div class="lbl">보류 / 제외</div></div>
   <div class="stat"><div class="num"><em>16</em></div><div class="lbl">미확인(?) 항목</div></div>
-  <div class="stat"><div class="num">79%</div><div class="lbl">결정적 비율</div></div>
+  <div class="stat"><div class="num">78%</div><div class="lbl">결정적 비율</div></div>
 </div>
 
 <h2 id="tree">기능 트리</h2>
@@ -209,9 +209,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <ul>
 <li><span class="depth-tag">D2</span><span class="node">진입 분기</span>
 <ul>
-<li><span class="depth-tag">D3</span><span class="node">미로그인 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로그인 화면 노출, 인증 후 화면 한 프레임도 선노출되지 않음</span>
+<li><span class="depth-tag">D3</span><span class="node">미로그인 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">홈 화면 직행, 공개 범위(탐색·검색·카드 상세·커뮤니티) 열람 가능. 로그인 화면은 보호 동작 시도 시에만 노출</span>
 </li>
-<li><span class="depth-tag">D3</span><span class="node">세션 유지 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로그인 화면 없이 홈 직행</span>
+<li><span class="depth-tag">D3</span><span class="node">미로그인 보호 동작 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">대화 시작·채팅/MY 탭·재화·좋아요/스크랩 시도 시 로그인 유도, 동작은 수행되지 않음</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">세션 유지 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로그인 화면 없이 홈 직행, 로그인 전용 요소(잔액·미션·MY) 노출</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">세션 만료 처리</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">PRE: 로그인 후 세션 만료 상태 (상태 스위처로 설정)</span> <span class="note">만료 안내 후 재로그인, 복귀 동작 규칙은 design</span>
 </li></ul></li>
@@ -225,11 +227,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <ul>
 <li><span class="depth-tag">D2</span><span class="node">계정 전환 격리</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">계정 A(성인 인증)/B(미성년) 전환 시 대화·세이브·재화 완전 분리</span>
 </li>
-<li><span class="depth-tag">D2</span><span class="node">보호 화면 직접 접근 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">미로그인 상태의 URL 직접 진입을 차단·리다이렉트</span>
+<li><span class="depth-tag">D2</span><span class="node">보호 화면 직접 접근 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">미로그인 상태로 보호 화면(대화·페르소나·채팅·MY) URL 직접 진입 시 차단·리다이렉트. 공개 화면(홈·커뮤니티)은 통과</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">성인 게이팅</span>
 <ul>
-<li><span class="depth-tag">D3</span><span class="node">언세이프 콘텐츠 게이트</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">미인증: 목록 블러+상세 내용 숨김, 미성년: 해제 수단 없음</span>
+<li><span class="depth-tag">D3</span><span class="node">언세이프 콘텐츠 게이트</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">미로그인·미인증: 목록 블러+상세 내용 숨김(미로그인은 로그인 시 해제 가능), 미성년: 해제 수단 없음</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">세이프티 필터 토글</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">성인 인증 계정에만 노출, ON이면 언세이프를 홈에서 숨김</span>
 </li></ul></li></ul></li>
@@ -452,7 +454,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.1 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.2 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div>
