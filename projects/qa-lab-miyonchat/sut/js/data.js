@@ -27,7 +27,7 @@
  *   RC12 = 세로형 카드 · 페이지 레이아웃 재배치 · 페이지 카테고리 통합
  *   RC13 = 서사 — 고정 선택지 · 호감도 · 관계 단계 전이 · 엔딩 판정 · P2 현재 상태
  */
-const SUT_BUILD = "PC웹_Ver1.0_Dev_RC17";
+const SUT_BUILD = "PC웹_Ver1.0_Dev_RC18";
 
 const VN_DATA = {
   /* 기준일 — 이 값이 SUT의 "오늘"입니다 */
@@ -185,7 +185,12 @@ const VN_DATA = {
   ],
 
   /* 금칙 코퍼스 — 실제 문자열을 저장소에 넣지 않습니다(추상 토큰) */
-  blockedTokens: ["[BLOCKED_TERM_A]", "[BLOCKED_TERM_B]", "[BLOCKED_TERM_C]"]
+  /* 금칙 코퍼스 — 실제 탈옥 문자열을 저장소에 넣지 않기 위해 추상 토큰만 씁니다.
+   * 종류마다 막는 자리와 안내가 달라 갈라 둡니다 (system-spec §9-1). */
+  blockedTokens: ["[BLOCKED_TERM_A]", "[BLOCKED_TERM_B]", "[BLOCKED_TERM_C]"],
+  jailbreakTokens: ["[JAILBREAK_A]", "[JAILBREAK_B]"],
+  injectTokens: ["[INJECT_A]", "[INJECT_B]"],
+  leakTokens: ["[LEAK_PROMPT]"]
 };
 
 /* 시트 데이터로 노출되는 테이블 — T1과 setData()가 이 키만 씁니다 */

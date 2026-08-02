@@ -135,6 +135,9 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `g-expired-modal` · `g-expired-ok` | 세션 만료 안내 모달 |
 | ✅ `g-toast` | 안내 토스트 (3초) — 전송 실패 안내도 이 자리입니다 |
 | ✅ `g-nofund-modal` · `g-nofund-title` · `g-nofund-body` · `g-nofund-charge` · `g-nofund-close` | 재화 부족 안내 모달 — 타이틀·본문·[충전]·[닫기] |
+| ✅ `g-blocked-modal` · `-title` · `-body` · `-kind` · `-note` · `-close` | 입력 차단 안내 — 사유별 타이틀 · 설명 · 종류(`blocked`·`jailbreak`·`inject`) · 미소비 안내 |
+| ✅ `g-outblock-modal` · `-title` · `-body` · `-close` | 출력 차단 안내 — 그 턴의 후보가 전부 금칙인 경우 |
+| ✅ `s4-msg-{n}-filtered` · `s4-msg-{n}-leak` | 필터가 후보를 걸러 냈다는 표기 · 내부 지시 요청에 거절문만 나갔다는 표기 |
 | ✅ `g-confirm` · `-title` · `-body` · `-target` · `-ok` · `-cancel` | 되돌릴 수 없는 동작을 한 번 묻는 모달. 되돌림(삭제·분기)과 세이브(덮어쓰기)가 같은 모달을 쓰므로 화면이 아니라 전역 접두사를 붙였습니다. `-target`은 대상 표기(「3턴 지점」·「1번 슬롯」) |
 | ✅ `s1-account-a` / `s1-account-b` | 계정 선택 버튼 |
 | ✅ `s1-notice` · `s1-back-home` | 로그인 필요 안내 · 둘러보기로 복귀 |

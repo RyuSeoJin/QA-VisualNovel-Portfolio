@@ -64,6 +64,8 @@ const VN = {
   editTurn: null,       // 편집 중인 턴 — 되돌림 (system-spec §5-1)
   confirm: null,        // 확인 모달 { kind, turn, slot }
   loadPick: null,       // 로드 갈래를 고르는 중인 슬롯 번호 (system-spec §6)
+  blockedInput: null,   // 입력 차단 안내 { kind, reason } (system-spec §9-1)
+  blockedOutput: false, // 출력 차단 안내 — 후보가 전부 금칙인 경우
   seed: 1,
   inject: null
 };
@@ -129,6 +131,8 @@ function resetViewState() {
   VN.editTurn = null;
   VN.confirm = null;
   VN.loadPick = null;
+  VN.blockedInput = null;
+  VN.blockedOutput = false;
 }
 
 function logout() {
@@ -527,6 +531,9 @@ function openRoom(charId, profile) {
   const acc = currentAccount();
   if (!acc) return null;
   if (roomLimitReached(charId)) return null;
+  // 2차 방어 — 저장을 우회해 들어온 값도 대화 경로에서 다시 막습니다 (system-spec §9-1).
+  // 폼으로 들어오든 값 주입으로 들어오든 같은 결과여야 합니다
+  if (profileHasInjection(profile)) return { blocked: "inject" };
   const c = findCharacter(charId);
   const sit = (c && c.startSituation) || { id: "sc1" };
   const room = newRoom(charId, sit.id, c ? c.firstMessage : "", profile);
@@ -642,6 +649,71 @@ function branchRoom(room, turn) {
     affectionBase: room.affectionBase || 0,
     affectionBaseTurn: Math.min(room.affectionBaseTurn || 0, turn)
   });
+}
+
+/* ── 세이프티 (system-spec §9-1) ───────────────────────────
+ *
+ * 판정은 **추상 토큰으로만** 합니다. 자연어 패턴은 어디까지가 위반인지 경계가 흔들려
+ * 기대값을 적을 수 없고, 실제 탈옥 문자열을 저장소에 넣지 않는다는 방침과도 맞습니다.
+ *
+ * 이 영역이 보는 것은 **게이팅 계층**이지 모델의 안전성이 아닙니다 — 실제 LLM이 없으므로
+ * 모델 내성은 검증 범위 밖이며, 이 문장은 산출물에 그대로 들어갑니다.
+ */
+
+/* 우회 방어 — 대조 전에 공백·특수문자를 지웁니다.
+ * 토큰을 쪼개 넣는 것(`[BLOCKED_ TERM_A]`·`[B-L-O-C-K-E-D_TERM_A]`)이 우회 시도의 형태이고,
+ * 그것을 같은 것으로 보는 것이 이 노드입니다. */
+function normalizeForFilter(text) {
+  return String(text || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function hitToken(text, tokens) {
+  const flat = normalizeForFilter(text);
+  return (tokens || []).find((t) => flat.indexOf(normalizeForFilter(t)) >= 0) || null;
+}
+
+/* 입력 판정 — 종류마다 막는 자리와 안내가 다릅니다 */
+function screenInput(text) {
+  const sheet = VN.sheet || {};
+  const blocked = hitToken(text, sheet.blockedTokens);
+  if (blocked) {
+    return { ok: false, kind: "blocked", token: blocked,
+      reason: "금칙어가 포함되어 전송할 수 없습니다." };
+  }
+  const jail = hitToken(text, sheet.jailbreakTokens);
+  if (jail) {
+    return { ok: false, kind: "jailbreak", token: jail,
+      reason: "설정을 바꾸려는 시도로 판정되어 전송할 수 없습니다." };
+  }
+  const inject = hitToken(text, sheet.injectTokens);
+  if (inject) {
+    return { ok: false, kind: "inject", token: inject,
+      reason: "지시문 삽입으로 판정되어 전송할 수 없습니다." };
+  }
+  return { ok: true };
+}
+
+/* 프롬프트 누출 — 응답을 만들지 않고 정해진 거절문만 돌려줍니다.
+ * 내부 지시·mock 세트의 내용이 응답에 섞이면 실패입니다. */
+const LEAK_REFUSAL = "그건 알려 드릴 수 없어요.";
+
+function asksForPrompt(text) {
+  return !!hitToken(text, (VN.sheet || {}).leakTokens);
+}
+
+/* 프로필 설명란 주입 — 저장에서 막고, 값 주입으로 들어온 경우를 위해 대화 경로에서
+ * 한 번 더 봅니다. 어느 경로로 들어와도 같은 결과여야 합니다(§2와 같은 원칙). */
+function profileHasInjection(p) {
+  if (!p) return null;
+  return hitToken([p.name, p.nickname, p.desc, p.label].join(" "),
+    ((VN.sheet || {}).injectTokens || []).concat((VN.sheet || {}).jailbreakTokens || []));
+}
+
+/* 출력 판정 — 금칙 토큰이 든 후보는 화면에 내보내지 않습니다 */
+function candidateBlocked(cand) {
+  if (!cand) return false;
+  if (cand.blockedToken) return true;
+  return !!hitToken(cand.text, (VN.sheet || {}).blockedTokens);
 }
 
 /* ── 메모리/컨텍스트 (system-spec §7) ──────────────────────
@@ -807,14 +879,20 @@ function candidateRefsAlive(room, cand) {
   return refs.every((id) => !!findMemory(room, id));
 }
 
-/* 시드가 고른 자리에서 시작해, 참조가 살아 있는 첫 후보를 씁니다 */
+/* 시드가 고른 자리에서 시작해 쓸 수 있는 첫 후보를 찾습니다.
+ * 못 쓰는 이유는 둘이고 같은 자리에서 함께 봅니다 — 지운 기억을 참조하거나(§7-1),
+ * 금칙 토큰이 들었거나(§9-1). 전부 못 쓰면 -1을 돌려주고 호출한 쪽이 응답을 차단합니다. */
 function pickCandidate(room, def, at) {
   const n = def.candidates.length;
+  let filtered = false;
   for (let i = 0; i < n; i++) {
     const idx = (at + i) % n;
-    if (candidateRefsAlive(room, def.candidates[idx])) return idx;
+    const cand = def.candidates[idx];
+    if (candidateBlocked(cand)) { filtered = true; continue; }
+    if (!candidateRefsAlive(room, cand)) { filtered = true; continue; }
+    return { at: idx, filtered: filtered };
   }
-  return at % n;              // 전부 막히면 시드 자리를 그대로 씁니다
+  return { at: -1, filtered: true };
 }
 
 /* ── 세이브/로드 (system-spec §6 · save-schema) ─────────────
@@ -922,6 +1000,12 @@ function addProfile(p) {
     return { ok: false, reason: "프로필은 " + PROFILE_LIMIT + "개까지 만들 수 있습니다." };
   }
   if (!p.name) return { ok: false, reason: "이름은 필수입니다." };
+  // 설명란 프롬프트 주입 차단 — 저장에서 막습니다 (system-spec §9-1)
+  const inject = profileHasInjection(p);
+  if (inject) {
+    return { ok: false, kind: "inject", token: inject,
+      reason: "설명에 지시문이 들어 있어 저장할 수 없습니다." };
+  }
   const id = "p" + (acc.profiles.length + 1);
   acc.profiles.push({
     id: id, name: p.name, nickname: p.nickname || "",
@@ -995,6 +1079,8 @@ window.__VN__ = {
       editTurn: VN.editTurn,
       confirm: VN.confirm,
       loadPick: VN.loadPick,
+      blockedInput: VN.blockedInput,
+      blockedOutput: VN.blockedOutput,
       // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
       pendingAction: pendingIntent ? pendingIntent.action : null,
       pageCharId: VN.pageCharId,

@@ -1073,6 +1073,15 @@ function renderChatMessage(m, room) {
     body.push(el("div", { class: "bubble" }, [
       el("span", { class: "bubble-text", text: m.done ? m.text : "" })
     ]));
+    // 필터가 후보를 걸러 냈으면 표기합니다 — 조용히 대체하면 필터가 돈 것이 안 보입니다
+    if (m.filtered) {
+      body.push(el("span", { class: "msg-note", "data-testid": "s4-msg-" + m.turn + "-filtered",
+        text: "안전 필터가 후보를 걸러 냈습니다" }));
+    }
+    if (m.leak) {
+      body.push(el("span", { class: "msg-note", "data-testid": "s4-msg-" + m.turn + "-leak",
+        text: "내부 지시 요청 — 정해진 거절문만 나갑니다" }));
+    }
   }
 
   const acts = msgActions(m, room);
@@ -1082,6 +1091,49 @@ function renderChatMessage(m, room) {
     class: "msg " + who + (m.fail ? " fail" : "") + (m.done ? "" : " typing"),
     "data-testid": "s4-msg-" + m.turn + "-" + who
   }, body);
+}
+
+/* 세이프티 안내 모달 (system-spec §9-1)
+ * 입력 차단은 사유가 갈리므로 종류별로 다른 문구를 냅니다 — 「왜 막혔는가」가 화면에서
+ * 읽히지 않으면 테스터가 금칙어와 우회 시도를 구분할 수 없습니다. */
+const BLOCK_TITLE = {
+  blocked: "금칙어가 포함되어 있습니다.",
+  jailbreak: "설정을 바꾸려는 시도로 판정되었습니다.",
+  inject: "지시문 삽입으로 판정되었습니다."
+};
+
+function renderBlockedInputModal() {
+  const b = VN.blockedInput;
+  return el("div", { class: "modal", "data-testid": "g-blocked-modal" }, [
+    el("div", { class: "modal-box" }, [
+      el("h3", { class: "nf-title", "data-testid": "g-blocked-title",
+        text: BLOCK_TITLE[b.kind] || "전송할 수 없습니다." }),
+      el("p", { "data-testid": "g-blocked-body", text: b.reason }),
+      el("p", { class: "lede-sm", "data-testid": "g-blocked-kind", text: b.kind }),
+      el("p", { class: "lede-sm", "data-testid": "g-blocked-note",
+        text: "재화·턴은 소비되지 않았습니다. 친 내용은 입력창에 그대로 있습니다." }),
+      el("div", { class: "nf-btns" }, [
+        el("button", { class: "primary", "data-testid": "g-blocked-close", text: "확인",
+          onclick: () => closeBlockedInput() })
+      ])
+    ])
+  ]);
+}
+
+/* 출력 차단 — 그 턴의 후보가 전부 금칙이라 응답을 내보내지 않은 경우 */
+function renderBlockedOutputModal() {
+  return el("div", { class: "modal", "data-testid": "g-outblock-modal" }, [
+    el("div", { class: "modal-box" }, [
+      el("h3", { class: "nf-title", "data-testid": "g-outblock-title",
+        text: "응답이 차단되었습니다." }),
+      el("p", { "data-testid": "g-outblock-body",
+        text: "안전 필터가 이 응답을 내보내지 않았습니다. 재화·턴은 소비되지 않았습니다." }),
+      el("div", { class: "nf-btns" }, [
+        el("button", { class: "primary", "data-testid": "g-outblock-close", text: "확인",
+          onclick: () => closeBlockedOutput() })
+      ])
+    ])
+  ]);
 }
 
 /* 되돌릴 수 없는 동작을 한 번 묻는 모달 — 되돌림(삭제·분기)과 세이브(덮어쓰기)가

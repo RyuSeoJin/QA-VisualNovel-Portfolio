@@ -182,7 +182,13 @@ function startChat(charId) {
     render();
     return;
   }
-  openRoom(charId, profile);
+  const room = openRoom(charId, profile);
+  if (room && room.blocked === "inject") {
+    // 저장을 우회해 들어온 프로필 — 대화도 열리지 않습니다 (system-spec §9-1)
+    toast("프로필 설명에 지시문이 들어 있어 대화를 시작할 수 없습니다.");
+    render();
+    return;
+  }
   go("s4");
 }
 
@@ -227,6 +233,16 @@ function sendMessage(text, choiceDelta) {
   const t = (text || "").trim().slice(0, CHAT_INPUT_MAX);
   if (!t) return;
 
+  // 입력 필터는 보낼 때 걸립니다 — 차감 전에 봅니다. 막힌 전송은 아무것도 소비하지
+  // 않고 친 내용은 입력창에 남습니다 (system-spec §9-1)
+  const screened = screenInput(t);
+  if (!screened.ok) {
+    VN.blockedInput = { kind: screened.kind, reason: screened.reason };
+    render();
+    keepInput(t);
+    return;
+  }
+
   // 잔액이 모자라면 전송 자체가 되지 않습니다 — 차감도 메시지도 없고 안내 화면만 뜹니다
   const acc = currentAccount();
   const spent = spend(acc, SEND_COST, "메시지 전송");
@@ -251,19 +267,45 @@ function sendMessage(text, choiceDelta) {
   // (사람은 T1 스위치, 자동화는 __VN__.failNext()). 스위치는 여기서 꺼집니다
   const forced = VN.failNext;
   if (forced) VN.failNext = false;
-  // 지운 기억을 참조하는 후보는 건너뜁니다 (system-spec §7-1)
-  const variant = pickCandidate(room, def, VN.seed % def.candidates.length);
+
+  // 내부 지시를 캐묻는 입력에는 **응답을 만들지 않습니다** — 정해진 거절문만 돌려주므로
+  // 후보를 고르는 단계로 가지 않습니다. 후보가 금칙인 턴에서도 결과가 같아야 합니다 (§9-1)
+  if (!forced && asksForPrompt(t)) {
+    room.turn += 1;
+    room.messages.push({
+      role: "user", text: t, turn: room.turn, done: true,
+      delta: typeof choiceDelta === "number" ? choiceDelta : 0
+    });
+    const refusal = {
+      role: "ai", turn: room.turn, done: false, fail: false, variant: 0,
+      text: LEAK_REFUSAL, delta: 0, leak: true, memoryAdd: null
+    };
+    room.messages.push(refusal);
+    streamMessage(room, refusal);
+    return;
+  }
+
+  // 못 쓰는 후보는 건너뜁니다 — 지운 기억 참조(§7-1)와 금칙 토큰(§9-1)을 함께 봅니다
+  const pick = pickCandidate(room, def, VN.seed % def.candidates.length);
   const cand = forced
     ? { fail: true }
-    : def.candidates[variant];
+    : (pick.at >= 0 ? def.candidates[pick.at] : null);
+
+  if (!cand) {
+    // 후보가 전부 금칙 — 응답을 내보내지 않고 안내만 띄웁니다. 아무것도 소비하지 않습니다
+    refund(acc, spent);
+    VN.blockedOutput = true;
+    render();
+    keepInput(t);
+    return;
+  }
 
   if (cand.fail) {
     // 전송 실패 — 잔액·내역·대화 어디에도 흔적을 남기지 않고 토스트로만 알립니다
     refund(acc, spent);
     toast("메시지 전송에 실패했습니다. 잠시 후 시도해 주세요.");
     render();
-    const box = document.querySelector('[data-testid="s4-input"]');
-    if (box) box.value = t;                  // 친 내용은 남겨 다시 보낼 수 있게 합니다
+    keepInput(t);
     return;
   }
 
@@ -275,13 +317,31 @@ function sendMessage(text, choiceDelta) {
   const msg = {
     role: "ai", turn: room.turn, done: false, fail: false,
     // 몇 번째 후보를 쓰고 있는지 — 재생성이 여기서 한 칸을 밉니다 (mock-llm-spec §2)
-    variant: variant,
+    variant: pick.at,
+    // 걸러진 후보가 있었으면 화면에 표기합니다 — 조용히 대체하면 필터가 돈 것이 안 보입니다
+    filtered: pick.filtered,
     text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0,
     // 기억은 응답에 실려 옵니다 — 목록은 이 값들로 다시 세웁니다 (system-spec §7)
     memoryAdd: cand.memoryAdd || null
   };
   room.messages.push(msg);
   streamMessage(room, msg);
+}
+
+function closeBlockedInput() {
+  VN.blockedInput = null;
+  render();
+}
+
+function closeBlockedOutput() {
+  VN.blockedOutput = false;
+  render();
+}
+
+/* 막힌 전송의 내용은 입력창에 남깁니다 — 다시 칠 필요가 없어야 합니다 */
+function keepInput(t) {
+  const box = document.querySelector('[data-testid="s4-input"]');
+  if (box) box.value = t;
 }
 
 /* 문자 단위 타이핑 연출 — 검증은 "표시 완료"만 봅니다(연출 시간은 대상 아님).
@@ -409,11 +469,20 @@ function regenerateAt(turn, newUserText) {
   VN.editTurn = null;
 
   // 후보를 한 칸 밉니다 — 난수를 쓰지 않으므로 몇 번째 재생성인지가 결과를 정합니다.
-  // 밀어 간 자리가 지운 기억을 참조하면 그 다음 후보로 넘어갑니다
-  const at = pickCandidate(room, def,
+  // 밀어 간 자리가 못 쓰는 후보면(지운 기억 참조·금칙) 그 다음으로 넘어갑니다
+  const pick = pickCandidate(room, def,
     ((typeof ai.variant === "number" ? ai.variant : 0) + 1) % def.candidates.length);
+  if (pick.at < 0) {
+    // 쓸 수 있는 후보가 없음 — 원래 응답을 그대로 두고 차감도 되돌립니다
+    refund(acc, spent);
+    VN.blockedOutput = true;
+    render();
+    return;
+  }
+  const at = pick.at;
   const cand = def.candidates[at];
   ai.variant = at;
+  ai.filtered = pick.filtered;
   ai.text = fillSlots(cand.text, room);
   ai.delta = cand.deltaAffection || 0;
   ai.memoryAdd = cand.memoryAdd || null;   // 버려진 응답이 남긴 기억도 함께 갈립니다
@@ -641,6 +710,9 @@ function render() {
   if (VN.noFund) root.appendChild(renderNoFundModal());
 
   if (VN.confirm) root.appendChild(renderConfirmModal());
+
+  if (VN.blockedInput) root.appendChild(renderBlockedInputModal());
+  if (VN.blockedOutput) root.appendChild(renderBlockedOutputModal());
 
   if (VN.session === SESSION.EXPIRED) {
     root.appendChild(renderExpiredModal());

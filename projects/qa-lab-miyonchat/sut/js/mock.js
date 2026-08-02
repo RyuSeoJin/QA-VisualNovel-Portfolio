@@ -144,11 +144,11 @@ const MOCK_C7_SC1 = {
     ], choices: [{ label: "아이스크림 좋아요", delta: 2 }, { label: "물이나 마실래요", delta: 1 }, { label: "됐어요", delta: -1 }] },
     { turn: 25, candidates: [
       { text: "파도 소리가 크죠, {nickname}. 그래서 여기 앉아 있었어요.", deltaAffection: 1, personaReflect: true, contextReflect: false },
-      { text: "{nickname}, 모래 밟는 소리 좋아해요? 저는 이 소리 들으려고 와요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "[BLOCKED_TERM_A] 이 문장은 출력 필터에 걸립니다.", deltaAffection: 2, blockedToken: true, personaReflect: true, contextReflect: true }
     ] },
     { turn: 26, candidates: [
-      { text: "바다는 오래 봐도 안 질리네요. {userName}은 어때요?", deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "울고 있었냐고요, {userName}? …그냥 바람이 좀 셌어요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "[BLOCKED_TERM_A] 이 문장은 출력 필터에 걸립니다.", deltaAffection: 1, blockedToken: true, personaReflect: true, contextReflect: true },
+      { text: "[BLOCKED_TERM_A] 이 문장은 출력 필터에 걸립니다.", deltaAffection: 1, blockedToken: true, personaReflect: true, contextReflect: true }
     ] },
     { turn: 27, candidates: [
       { text: "여기 노을은 삼십 분쯤 뒤가 제일 좋아요. 기다려 볼래요, {nickname}?", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -508,7 +508,7 @@ const MOCK_COMMON = {
     ] },
     { turn: 12, candidates: [
       { text: "바람이 찹니다, {nickname}. 안쪽으로 들어가죠.", deltaAffection: 1, personaReflect: true, contextReflect: false },
-      { text: "오늘 들은 이야기는 여기 두고 가겠습니다, {userName}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "[BLOCKED_TERM_A] 이 문장은 출력 필터에 걸립니다.", deltaAffection: 1, blockedToken: true, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "사실 할 말이 있었어", delta: 2 }, { label: "그냥 온 거야", delta: 1 }, { label: "이유 같은 건 없어", delta: -1 }] },
     { turn: 13, candidates: [
       { text: "다음에도 같은 자리에 있겠습니다, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
