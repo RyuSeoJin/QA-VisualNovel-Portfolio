@@ -1,0 +1,30 @@
+{
+  "_설명": "이슈 기록의 정본입니다. TC 설계 원본(tc-input)과 파일을 나눈 이유는 크기가 아니라 생명주기입니다 — TC 세트는 v1.0으로 확정되면 고정되지만 이슈는 실행하면서 계속 늘고 상태가 바뀌므로, 한 파일에 두면 이슈 갱신 때마다 설계 원본이 변경되어 확정 시점이 흐려집니다. 파일명에 버전을 두지 않는 것도 같은 이유이며, 어느 빌드에서 발견됐는지는 affectedVersion이 말합니다. 시트 생성: build_tc_template_xlsx.py … --issues 이 파일",
+
+  "_버전_규칙": "{디바이스}_{QA프로젝트}_{빌드}. 빌드는 화면 슬라이스가 끝날 때마다 RC를 올립니다(RC1=전역 셸·S1·라우팅·P4·디버그 콘솔). RC를 끊기 전 개발 단계에서 발견한 것은 DEV로 적고, 수정 버전에는 그 수정이 처음 담긴 RC를 적습니다. SUT 푸터에 현재 빌드가 표시됩니다.",
+
+  "issues": [
+    {
+      "project": "miyonchat",
+      "no": "miyonchat-1",
+      "status": "Resolved",
+      "summary": "디버그 콘솔 > 전체 초기화(reset) 수행 > 계정 A 로그인 시, 성인 인증이 해제된 상태로 시작됨",
+      "description": "Pre-condition: SUT 진입\nReproduce Step: 디버그 콘솔 열기 > [전체 초기화] 선택 > 계정 A로 로그인 > 간편 프로필 확인\nActual Result: \"성인 미인증\"으로 표시되고 언세이프 게이트가 열리지 않음\nExpected Result: 계정 A는 기본값이 성인 인증 완료이므로 \"성인 인증 완료\"로 표시되어야 함\nQA Comment: 계정 상태 생성 함수에 계정 식별자를 전달하지 않아 기본값 판정이 항상 거짓이 됨. 자동화가 매 테스트 전 reset()을 호출하는 구조라, 남아 있으면 게이팅 계열 TC 전체가 미인증 상태에서 실행되어 결과를 신뢰할 수 없음",
+      "priority": "High",
+      "frequency": "Always",
+      "affectedVersion": "PC웹_Ver1.0_DEV",
+      "fixedVersion": "PC웹_Ver1.0_RC1",
+      "resolution": "Fixed",
+      "environment": "PC웹",
+      "label": "계정/게이팅",
+      "reporter": "정준호",
+      "assignee": "Claude Opus 5",
+      "watcher": "",
+      "attachment": "",
+      "sprint": "PC웹 Ver1.0",
+      "createdDay": "2026-08-02",
+      "updatedDay": "2026-08-02",
+      "statusChangedDay": "2026-08-02"
+    }
+  ]
+}

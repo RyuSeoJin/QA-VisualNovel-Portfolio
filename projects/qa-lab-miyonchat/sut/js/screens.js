@@ -117,7 +117,9 @@ function renderFooter() {
       "data-testid": "g-footer-tree",
       href: "https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.md",
       target: "_blank", text: "기능 골격 트리 보기"
-    })
+    }),
+    // 빌드 버전 — 이슈의 「영향 받는 버전」에 그대로 적는 값입니다
+    el("p", { class: "build", "data-testid": "g-build", text: "빌드 " + SUT_BUILD })
   ]);
 }
 

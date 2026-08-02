@@ -92,6 +92,7 @@ button { font-family: inherit; cursor: pointer; }
   color: #8b8b96; font-size: 12px;
 }
 .footer a { color: #a5b4fc; }
+.footer .build { margin: 8px 0 0; font-family: ui-monospace, Consolas, monospace; color: #6b6b76; }
 
 /* ── 화면 ─────────────────────────────────── */
 .screen { padding: 20px 14px; }
