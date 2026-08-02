@@ -19,7 +19,9 @@
  *   memoryAdd       기억 목록에 쌓이는 항목 (메모리 슬라이스에서 반영)
  *   personaReflect  페르소나를 반영한 변주인지 — 준수율 계측이 읽는 표기
  *   contextReflect  단기 맥락을 반영한 변주인지
- *   fail            생성 실패 재현 후보 (재화 미차감 TC의 트리거)
+ *   fail            생성 실패 재현 후보. **기본 세트에는 두지 않습니다** — 서버 오류는
+ *                   정상 플레이에서 저절로 나는 사건이 아니라 테스트가 일으키는 조건입니다.
+ *                   사람은 T1 스위치로, 자동화는 __VN__.failNext()로 일으킵니다
  *   blockedToken    출력 필터 검증용 — 응답에 추상 금칙 토큰 포함
  *   choices         고정 선택지와 가중치 (+2/+1/−1) — 없는 턴은 자유 입력만
  *   endTurn         경로 종점. 도달하면 엔딩 최종 판정(system-spec §4-2)
@@ -66,7 +68,8 @@ const MOCK_C1_SC1 = {
     { turn: 5, candidates: [
       { text: "…미안, {userName}. 방금 건 내 말이 심했어.",
         deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "[생성 실패] 응답을 만들지 못했습니다.", deltaAffection: 0, fail: true }
+      { text: "{nickname}, 괜찮아? 갑자기 조용해져서.",
+        deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 6, candidates: [
       { text: "우산 접을게. 처마 밑이면 안 젖어, {userName}.",
@@ -127,7 +130,8 @@ const MOCK_COMMON = {
       { text: "…방금 그 말, 기억해 두겠습니다 {nickname}.",
         deltaAffection: 2, memoryAdd: "방금 한 말을 기억해 둠",
         personaReflect: true, contextReflect: true },
-      { text: "[생성 실패] 응답을 만들지 못했습니다.", deltaAffection: 0, fail: true }
+      { text: "{userName}의 말은 늘 조금 늦게 이해됩니다.",
+        deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 5, candidates: [
       { text: "여기까지 온 이유가 있을 텐데요, {nickname}.",

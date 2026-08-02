@@ -56,6 +56,8 @@ const VN = {
   notiOpen: false,      // 상단 바 알림 목록 펼침
   loginOpen: false,     // 로그인 모달 — 셸 안에서 막혔을 때만 (system-spec §1-1)
   pendingStart: null,   // 시나리오 선택 시작의 시작점 — S4 슬라이스가 읽습니다
+  failNext: false,      // T1의 1회성 스위치 — 다음 전송 한 번을 생성 실패로 (청사진 §4-2)
+  noFund: false,        // 재화 부족 안내 화면 (system-spec §3)
   seed: 1,
   inject: null
 };
@@ -313,6 +315,46 @@ function categoryList(category) {
 /* 자유 입력 상한 (system-spec §5) */
 const CHAT_INPUT_MAX = 500;
 
+/* ── 재화 (system-spec §3) ─────────────────────────────────
+ * 무료 재화 캔디 / 유료 재화 크리스탈. 캔디를 먼저 쓰고 부족분만 크리스탈에서 채웁니다.
+ */
+const SEND_COST = 10;          // 전송 1회 요율
+const CHARGE_AMOUNT = 100;     // mock 충전 1회 (크리스탈)
+
+function walletTotal(acc) {
+  return acc.wallet.free + acc.wallet.paid;
+}
+
+function ledgerAdd(acc, wallet, amount, reason) {
+  const row = { id: "L" + (acc.ledger.length + 1), wallet: wallet, amount: amount,
+    reason: reason, day: VN.sheet.baseDay };
+  acc.ledger.push(row);
+  return row;
+}
+
+/* 소모 — 합산이 모자라면 아무것도 깎지 않고 null을 돌려줍니다(전송 차단의 근거).
+ * 혼합 차감은 지갑별로 두 줄이 남습니다(system-spec §3). */
+function spend(acc, cost, reason) {
+  if (walletTotal(acc) < cost) return null;
+  const free = Math.min(acc.wallet.free, cost);
+  const paid = cost - free;
+  acc.wallet.free -= free;
+  acc.wallet.paid -= paid;
+  const rows = [];
+  if (free) rows.push(ledgerAdd(acc, "free", -free, reason));
+  if (paid) rows.push(ledgerAdd(acc, "paid", -paid, reason));
+  return { free: free, paid: paid, rows: rows };
+}
+
+/* 차감 취소 — 실패한 전송은 재화를 소모하지 않으므로 내역에도 남기지 않습니다.
+ * 잔액만 되돌리고 기록을 남기면 "소모했다"로 읽혀 명세와 어긋납니다. */
+function refund(acc, spent) {
+  if (!spent) return;
+  acc.wallet.free += spent.free;
+  acc.wallet.paid += spent.paid;
+  acc.ledger = acc.ledger.filter((r) => spent.rows.indexOf(r) < 0);
+}
+
 /* 캐릭터당 대화방 한도 (system-spec §6) — 넘기면 새 방·분기가 막힙니다 */
 const ROOM_LIMIT_PER_CHAR = 4;
 
@@ -468,6 +510,8 @@ window.__VN__ = {
       search: VN.search,
       notiOpen: VN.notiOpen,
       loginOpen: VN.loginOpen,
+      failNext: VN.failNext,
+      noFund: VN.noFund,
       // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
       pendingAction: pendingIntent ? pendingIntent.action : null,
       pageCharId: VN.pageCharId,
@@ -519,10 +563,18 @@ window.__VN__ = {
     VN.screen = "s2";
     VN.panel = null;
     resetViewState();
+    VN.failNext = false;
+    VN.noFund = false;
     VN.inject = null;
     consoleOpen = false;
     render();
     paintConsole();
+  },
+
+  /* 다음 전송 한 번을 생성 실패로 — 서버 오류는 테스트가 일으키는 조건입니다.
+   * 사람은 T1 스위치로 같은 값을 켭니다. 화면은 자동 갱신하지 않습니다 */
+  failNext(on) {
+    VN.failNext = on !== false;
   },
 
   /* 세션 만료 — 시간 조건을 명시적 트리거로 대체합니다. 화면은 자동 갱신하지 않습니다 */

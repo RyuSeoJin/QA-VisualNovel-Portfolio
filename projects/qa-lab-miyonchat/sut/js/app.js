@@ -227,20 +227,48 @@ function sendMessage(text) {
   const t = (text || "").trim().slice(0, CHAT_INPUT_MAX);
   if (!t) return;
 
-  room.turn += 1;
-  room.messages.push({ role: "user", text: t, turn: room.turn, done: true });
+  // 잔액이 모자라면 전송 자체가 되지 않습니다 — 차감도 메시지도 없고 안내 화면만 뜹니다
+  const acc = currentAccount();
+  const spent = spend(acc, SEND_COST, "메시지 전송");
+  if (!spent) {
+    VN.noFund = true;
+    render();
+    return;
+  }
 
   const set = mockSetFor(room.charId, room.scenarioId);
-  const def = set.turns[room.turn - 1];
+  const def = set.turns[room.turn];          // 이번에 진행할 턴
   if (!def) {
-    // 경로 종점 — 엔딩 판정은 서사 슬라이스에서 붙입니다 (system-spec §4-2)
+    // 경로 종점 — 엔딩 판정은 서사 슬라이스에서 붙입니다 (system-spec §4-2).
+    // 응답을 만들지 않았으므로 차감도 되돌립니다
+    refund(acc, spent);
     room.ended = true;
     render();
     return;
   }
-  const cand = def.candidates[VN.seed % def.candidates.length];
+
+  // 생성 실패는 테스트가 일으킬 때만 납니다 — 기본 세트에는 실패 후보가 없습니다
+  // (사람은 T1 스위치, 자동화는 __VN__.failNext()). 스위치는 여기서 꺼집니다
+  const forced = VN.failNext;
+  if (forced) VN.failNext = false;
+  const cand = forced
+    ? { fail: true }
+    : def.candidates[VN.seed % def.candidates.length];
+
+  if (cand.fail) {
+    // 전송 실패 — 잔액·내역·대화 어디에도 흔적을 남기지 않고 토스트로만 알립니다
+    refund(acc, spent);
+    toast("메시지 전송에 실패했습니다. 잠시 후 시도해 주세요.");
+    render();
+    const box = document.querySelector('[data-testid="s4-input"]');
+    if (box) box.value = t;                  // 친 내용은 남겨 다시 보낼 수 있게 합니다
+    return;
+  }
+
+  room.turn += 1;
+  room.messages.push({ role: "user", text: t, turn: room.turn, done: true });
   const msg = {
-    role: "ai", turn: room.turn, done: false, fail: !!cand.fail,
+    role: "ai", turn: room.turn, done: false, fail: false,
     text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0
   };
   room.messages.push(msg);
@@ -266,6 +294,32 @@ function streamMessage(room, msg) {
       render();
     }
   }, STREAM_TICK_MS);
+}
+
+/* mock 결제 — 성공 콜백은 잔액에 반영하고, 실패 콜백은 잔액을 건드리지 않습니다 (system-spec §3) */
+/* 재화 부족 안내 — 전송이 막힌 이유를 화면으로 알립니다 (system-spec §3) */
+function closeNoFund() {
+  VN.noFund = false;
+  render();
+}
+
+function goCharge() {
+  VN.noFund = false;
+  openPanel("p3");
+}
+
+function chargeMock(ok) {
+  const acc = currentAccount();
+  if (!acc) return;
+  if (!ok) {
+    toast("결제에 실패했습니다. 잔액은 변하지 않았습니다.");
+    render();
+    return;
+  }
+  acc.wallet.paid += CHARGE_AMOUNT;
+  ledgerAdd(acc, "paid", CHARGE_AMOUNT, "충전");
+  toast("크리스탈 " + CHARGE_AMOUNT + "개를 충전했습니다.");
+  render();
 }
 
 /* 대화 화면을 나가면 그 캐릭터 페이지로 돌아옵니다 */
@@ -315,6 +369,8 @@ function render() {
 
   // 로그인 모달은 화면 위에 얹힙니다 — 뒤 화면이 그대로 남아야 돌아올 자리가 보입니다
   if (VN.loginOpen && VN.screen !== "s1") root.appendChild(renderLoginModal());
+
+  if (VN.noFund) root.appendChild(renderNoFundModal());
 
   if (VN.session === SESSION.EXPIRED) {
     root.appendChild(renderExpiredModal());

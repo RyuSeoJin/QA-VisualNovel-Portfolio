@@ -80,6 +80,23 @@ function renderS1() {
   ]);
 }
 
+/* 재화 부족 안내 — 전송이 막힌 이유와 다음 행동을 함께 보여 줍니다 (system-spec §3) */
+function renderNoFundModal() {
+  return el("div", { class: "modal", "data-testid": "g-nofund-modal" }, [
+    el("div", { class: "modal-box" }, [
+      el("h3", { class: "nf-title", "data-testid": "g-nofund-title", text: "재화가 부족합니다." }),
+      el("p", { "data-testid": "g-nofund-body",
+        text: "재화가 부족하여 대화에 실패하였습니다. 재화를 충전하시겠습니까?" }),
+      el("div", { class: "nf-btns" }, [
+        el("button", { class: "primary", "data-testid": "g-nofund-charge", text: "충전",
+          onclick: () => goCharge() }),
+        el("button", { "data-testid": "g-nofund-close", text: "닫기",
+          onclick: () => closeNoFund() })
+      ])
+    ])
+  ]);
+}
+
 /* 만료 안내 모달 — 확인하면 미로그인 상태의 홈으로 복귀합니다 (system-spec §1-1) */
 function renderExpiredModal() {
   return el("div", { class: "modal", "data-testid": "g-expired-modal" }, [
@@ -153,7 +170,8 @@ function renderTopBar() {
   if (isLoggedIn()) {
     items.push(el("button", {
       class: "icon", "data-testid": "g-wallet",
-      text: "캔디 " + acc.wallet.free + " / 크리스탈 " + acc.wallet.paid
+      text: "캔디 " + acc.wallet.free + " / 크리스탈 " + acc.wallet.paid,
+      onclick: () => openPanel("p3")
     }));
     // 간편 프로필 — 누르면 P4가 열리고 계정 정보가 노출됩니다(청사진 §1 P4)
     items.push(el("button", {
@@ -247,7 +265,49 @@ function renderP4() {
   ]);
 }
 
+/* ── P3 재화/충전 ─────────────────────────
+ * 잔액 2종과 내역을 지갑별로 나눠 보여 줍니다. 충전은 mock이라 성공·실패 버튼이 따로 있습니다.
+ */
+function renderP3() {
+  const acc = currentAccount();
+  const rows = acc.ledger.slice().reverse();
+  return el("div", { class: "panel-wrap", "data-testid": "p3-panel" }, [
+    el("div", { class: "panel" }, [
+      el("div", { class: "panel-head" }, [
+        el("h2", { text: "재화" }),
+        el("button", { class: "panel-close", "data-testid": "p3-close", text: "✕",
+          onclick: () => closePanel() })
+      ]),
+      el("div", { class: "p4-wallet" }, [
+        el("div", {}, [el("span", { text: "캔디(무료)" }),
+          el("strong", { "data-testid": "p3-wallet-free", text: String(acc.wallet.free) })]),
+        el("div", {}, [el("span", { text: "크리스탈(유료)" }),
+          el("strong", { "data-testid": "p3-wallet-paid", text: String(acc.wallet.paid) })])
+      ]),
+      el("p", { class: "hint", "data-testid": "p3-help",
+        text: "전송 1회에 캔디 " + SEND_COST + "이 듭니다. 캔디를 먼저 쓰고 부족분만 크리스탈에서 채웁니다. "
+          + "합산이 모자라면 전송이 막힙니다." }),
+      el("div", { class: "p3-charge" }, [
+        el("button", { class: "primary-btn", "data-testid": "p3-charge-ok",
+          text: "충전 성공 (크리스탈 +" + CHARGE_AMOUNT + ")", onclick: () => chargeMock(true) }),
+        el("button", { class: "sub-btn", "data-testid": "p3-charge-fail",
+          text: "충전 실패", onclick: () => chargeMock(false) })
+      ]),
+      el("h3", { class: "sec-title", text: "획득·소모 내역" }),
+      rows.length
+        ? el("ul", { class: "p3-ledger", "data-testid": "p3-ledger" }, rows.map((r) =>
+            el("li", { class: "p3-row", "data-testid": "p3-row-" + r.id }, [
+              el("span", { text: (r.wallet === "free" ? "캔디" : "크리스탈") + " " + r.reason }),
+              el("strong", { class: r.amount < 0 ? "minus" : "plus",
+                text: (r.amount > 0 ? "+" : "") + r.amount })
+            ])))
+        : el("p", { class: "empty", "data-testid": "p3-ledger-empty", text: "내역이 없습니다." })
+    ])
+  ]);
+}
+
 function renderPanel() {
+  if (VN.panel === "p3") return renderP3();
   if (VN.panel === "p4") return renderP4();
   if (VN.panel === "p5") return renderP5();
   return null;
@@ -735,6 +795,12 @@ function renderS4() {
             + " · 시드 " + VN.seed
         })
       ]),
+      el("button", {
+        class: "icon", "data-testid": "s4-wallet",
+        text: "캔디 " + (currentAccount() ? currentAccount().wallet.free : 0)
+          + " / 크리스탈 " + (currentAccount() ? currentAccount().wallet.paid : 0),
+        onclick: () => openPanel("p3")
+      }),
       renderDebugButton()      // 셸이 없는 화면이라 여기 단독으로 둡니다
     ]),
     el("div", { class: "chat-log", "data-testid": "s4-log" }, room.messages.map(renderChatMessage)),
