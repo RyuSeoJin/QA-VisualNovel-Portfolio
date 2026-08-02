@@ -28,7 +28,8 @@ function newAccountState(id) {
     wallet: { free: 150, paid: 0 },          // 캔디 / 크리스탈 (system-spec §3)
     ledger: [],                               // 획득·소모 내역
     missions: { daily: {}, welcome: {} },     // 수령 기록 (기준일별 / 항목별)
-    persona: null,                            // { name, nickname, gender, desc }
+    // 대화 프로필 — 여러 개를 만들어 두고 방마다 하나를 골라 씁니다 (system-spec §2)
+    profiles: [],                             // [{ id, name, nickname, gender, desc, label }]
     likes: [], scraps: [],
     rooms: [],                                // 방 목록 (방 스코프는 각 방 안에)
     safetyFilter: false                       // MY 콜아웃 토글 (성인 계정만 노출)
@@ -49,7 +50,8 @@ const VN = {
   rankHelp: false,      // 랭킹 ⓘ 도움말 펼침
   catTag: null,         // 카테고리 취향 태그 — null이면 태그 필터 없음
   catSort: "chat",      // 카테고리 전체 목록 정렬 — chat(대화순) / new(최신순)
-  detailId: null,       // 열려 있는 카드 상세의 캐릭터 id
+  pageCharId: null,     // 열려 있는 캐릭터 페이지의 캐릭터 id
+  startProfileId: null, // 다음에 여는 방에 고정될 대화 프로필
   search: "",           // 확정된 검색어 — 결과는 홈에 표시합니다 (청사진 §1 전역 셸)
   notiOpen: false,      // 상단 바 알림 목록 펼침
   loginOpen: false,     // 로그인 모달 — 셸 안에서 막혔을 때만 (system-spec §1-1)
@@ -113,7 +115,8 @@ function resetViewState() {
   VN.rankHelp = false;
   VN.catTag = null;
   VN.catSort = "chat";
-  VN.detailId = null;
+  VN.pageCharId = null;
+  VN.startProfileId = null;
   VN.pendingStart = null;
 }
 
@@ -310,14 +313,33 @@ function categoryList(category) {
 /* 자유 입력 상한 (system-spec §5) */
 const CHAT_INPUT_MAX = 500;
 
-function newRoom(charId, scenarioId, firstMessage) {
+/* 캐릭터당 대화방 한도 (system-spec §6) — 넘기면 새 방·분기가 막힙니다 */
+const ROOM_LIMIT_PER_CHAR = 4;
+
+function roomsOf(charId) {
   const acc = currentAccount();
-  const same = acc.rooms.filter((r) => r.charId === charId && r.scenarioId === scenarioId);
+  return acc ? acc.rooms.filter((r) => r.charId === charId) : [];
+}
+
+function roomLimitReached(charId) {
+  return roomsOf(charId).length >= ROOM_LIMIT_PER_CHAR;
+}
+
+function newRoom(charId, scenarioId, firstMessage, profile) {
+  const acc = currentAccount();
+  const prefix = charId + "-" + scenarioId + "-";
+  // 실시계·난수를 쓰지 않으므로 방 id도 결정적으로 만듭니다.
+  // 개수로 번호를 매기면 중간 방을 지운 뒤 id가 겹치므로, 쓰인 적 있는 가장 큰 번호 다음을
+  // 씁니다 — 지운 방의 id를 재사용하지 않아야 잔존 검증에서 방이 헷갈리지 않습니다
+  const used = acc.rooms
+    .filter((r) => r.id.indexOf(prefix) === 0)
+    .map((r) => Number(r.id.slice(prefix.length)) || 0);
   return {
-    // 실시계·난수를 쓰지 않으므로 방 id도 결정적으로 만듭니다
-    id: charId + "-" + scenarioId + "-" + (same.length + 1),
+    id: prefix + (used.length ? Math.max.apply(null, used) + 1 : 1),
     charId: charId,
     scenarioId: scenarioId,
+    // 프로필은 방에 고정됩니다 — 목록에서 지워도 이 방은 저장된 값으로 답합니다(save-schema)
+    profile: profile ? deepCopy(profile) : null,
     turn: 0,                 // 진행한 유저 턴 수
     // 첫 메시지는 대화수에 포함됩니다 (system-spec §5)
     messages: firstMessage
@@ -334,19 +356,67 @@ function activeRoom() {
   return acc ? acc.rooms.find((r) => r.active) || null : null;
 }
 
-/* 시작점으로 방을 엽니다 — 같은 캐릭터·같은 시나리오 방이 있으면 그 방으로 돌아갑니다 */
-function openRoom(charId, scenarioId) {
+/* 새 대화방을 엽니다 — 고른 프로필이 그 방에 고정됩니다.
+ * 한도까지 찼으면 아무것도 만들지 않고 null을 돌려줍니다(호출한 쪽이 삭제를 묻습니다). */
+function openRoom(charId, profile) {
   const acc = currentAccount();
   if (!acc) return null;
+  if (roomLimitReached(charId)) return null;
   const c = findCharacter(charId);
+  const sit = (c && c.startSituation) || { id: "sc1" };
+  const room = newRoom(charId, sit.id, c ? c.firstMessage : "", profile);
   acc.rooms.forEach((r) => { r.active = false; });
-  let room = acc.rooms.find((r) => r.charId === charId && r.scenarioId === scenarioId);
-  if (!room) {
-    room = newRoom(charId, scenarioId, c ? c.firstMessage : "");
-    acc.rooms.push(room);
-  }
+  acc.rooms.push(room);
   room.active = true;
   return room;
+}
+
+/* 이전 대화방으로 돌아갑니다 */
+function resumeRoom(roomId) {
+  const acc = currentAccount();
+  if (!acc) return null;
+  const room = acc.rooms.find((r) => r.id === roomId);
+  if (!room) return null;
+  acc.rooms.forEach((r) => { r.active = false; });
+  room.active = true;
+  return room;
+}
+
+function deleteRoom(roomId) {
+  const acc = currentAccount();
+  if (!acc) return;
+  acc.rooms = acc.rooms.filter((r) => r.id !== roomId);
+}
+
+/* ── 대화 프로필 (system-spec §2) ───────────────────────── */
+const PROFILE_LIMIT = 5;
+
+function profilesOf() {
+  const acc = currentAccount();
+  return acc ? acc.profiles : [];
+}
+
+function profileLimitReached() {
+  return profilesOf().length >= PROFILE_LIMIT;
+}
+
+function addProfile(p) {
+  const acc = currentAccount();
+  if (!acc) return { ok: false, reason: "미로그인 상태입니다." };
+  if (profileLimitReached()) {
+    return { ok: false, reason: "프로필은 " + PROFILE_LIMIT + "개까지 만들 수 있습니다." };
+  }
+  if (!p.name) return { ok: false, reason: "이름은 필수입니다." };
+  const id = "p" + (acc.profiles.length + 1);
+  acc.profiles.push({
+    id: id, name: p.name, nickname: p.nickname || "",
+    gender: p.gender || "", desc: p.desc || "", label: p.label || ""
+  });
+  return { ok: true, id: id };
+}
+
+function findProfile(id) {
+  return profilesOf().find((p) => p.id === id) || null;
 }
 
 /* 대화수 — 유저+AI 메시지 합산, 첫 메시지 포함 (system-spec §5) */
@@ -356,8 +426,8 @@ function roomMessageCount(room) {
 
 /* 응답문의 페르소나 슬롯을 채웁니다 — 준수율 계측이 붙잡는 지점입니다 */
 function fillSlots(text, room) {
-  const acc = currentAccount();
-  const p = (acc && acc.persona) || {};
+  // 방에 고정된 프로필로 채웁니다 — 계정의 프로필 목록이 바뀌어도 이 방은 그대로입니다
+  const p = room.profile || {};
   const c = findCharacter(room.charId);
   return String(text)
     .replace(/\{userName\}/g, p.name || "당신")
@@ -400,7 +470,9 @@ window.__VN__ = {
       loginOpen: VN.loginOpen,
       // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
       pendingAction: pendingIntent ? pendingIntent.action : null,
-      detailId: VN.detailId,
+      pageCharId: VN.pageCharId,
+      startProfileId: VN.startProfileId,
+      profileCount: profilesOf().length,
       pendingStart: VN.pendingStart,
       seed: VN.seed,
       inject: VN.inject,

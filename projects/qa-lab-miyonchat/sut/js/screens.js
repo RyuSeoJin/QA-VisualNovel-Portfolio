@@ -249,6 +249,7 @@ function renderP4() {
 
 function renderPanel() {
   if (VN.panel === "p4") return renderP4();
+  if (VN.panel === "p5") return renderP5();
   return null;
 }
 
@@ -278,7 +279,7 @@ function renderCard(c, meta, rank) {
   return el("button", {
     class: "card" + (locked ? " locked" : ""),
     "data-testid": "s2-card-" + c.id,
-    onclick: () => openDetail(c.id)
+    onclick: () => openCharacterPage(c.id)
   }, kids);
 }
 
@@ -377,63 +378,6 @@ function renderS2Category(name) {
   ]);
 }
 
-/* 카드 상세 — 언세이프는 내용을 열지 않고 막힌 이유만 보여 줍니다 (system-spec §9) */
-function renderS2Detail(c) {
-  const locked = c.safe === false && !canViewUnsafe();
-  const kids = [el("div", { class: "panel-head" }, [
-    el("h2", { text: locked ? "열람 제한" : c.name }),
-    el("button", {
-      class: "panel-close", "data-testid": "s2-detail-close", text: "✕",
-      onclick: () => closeDetail()
-    })
-  ])];
-
-  if (locked) {
-    kids.push(el("p", {
-      class: "lock-notice", "data-testid": "s2-detail-locked",
-      text: "19세 이상 콘텐츠입니다. " + GATE_NOTICE[gateState()]
-    }));
-  } else {
-    // 시작 상황은 제작자가 정한 것이라 표시만 합니다 — 유저는 고르지 않습니다(system-spec §8-8)
-    const sit = c.startSituation || { id: "sc1", label: "기본 시작점" };
-
-    kids.push(el("p", { class: "d-line", text: c.tagline }));
-    kids.push(el("p", {
-      class: "d-tags", "data-testid": "s2-detail-tags",
-      text: (c.tags || []).map((t) => "#" + t).join(" ")
-    }));
-    kids.push(el("p", {
-      class: "d-first", "data-testid": "s2-detail-first",
-      text: c.firstMessage || "첫 메시지가 등록되지 않은 캐릭터입니다."
-    }));
-    kids.push(el("div", { class: "d-toggles" }, [
-      el("button", {
-        class: "tog" + (isLiked(c.id) ? " on" : ""),
-        "data-testid": "s2-card-" + c.id + "-like",
-        text: isLiked(c.id) ? "♥ 좋아요 취소" : "♡ 좋아요",
-        onclick: () => toggleCardFlag("like", c.id)
-      }),
-      el("button", {
-        class: "tog" + (isScrapped(c.id) ? " on" : ""),
-        "data-testid": "s2-card-" + c.id + "-scrap",
-        text: isScrapped(c.id) ? "★ 스크랩 취소" : "☆ 스크랩",
-        onclick: () => toggleCardFlag("scrap", c.id)
-      })
-    ]));
-    kids.push(el("div", { class: "d-start" }, [
-      el("p", { class: "d-situation", "data-testid": "s2-detail-situation",
-        text: "시작 상황 — " + sit.label }),
-      el("button", {
-        class: "start", "data-testid": "s2-detail-start", text: "대화 시작",
-        onclick: () => startConversation(c.id, sit.id)
-      })
-    ]));
-  }
-  return el("div", { class: "panel-wrap", "data-testid": "s2-detail" }, [
-    el("div", { class: "panel" }, kids)
-  ]);
-}
-
 /* 검색 결과 — 상단 바에서 친 키워드의 결과는 홈이 받아 그립니다 (청사진 §1 전역 셸) */
 function renderS2Search() {
   const list = searchList();
@@ -478,43 +422,167 @@ function renderS2() {
     body = renderS2Category(VN.homeChip);
   } else body = renderS2Recommend();
 
-  // 시트에서 사라진 캐릭터의 상세는 열어 둘 수 없으므로 목록만 남습니다
-  const target = VN.detailId ? findCharacter(VN.detailId) : null;
-  return el("section", { class: "screen s2", "data-testid": "s2-screen" },
-    [chips, body, target ? renderS2Detail(target) : null]);
+  return el("section", { class: "screen s2", "data-testid": "s2-screen" }, [chips, body]);
 }
 
-/* ── S3 페르소나 설정 ───────────────────────────────────────
- * 상한은 입력을 막아서 지킵니다(maxlength) — 명세가 "잘리거나 입력이 막힌다"로 둘 다
- * 허용하므로, 경계에서 무엇이 일어나는지가 하나로 정해지는 쪽을 골랐습니다(system-spec §2).
- *
- * 입력할 때마다 화면을 다시 그리면 커서가 튀므로, 카운터와 저장 버튼만 직접 손봅니다.
+/* ── S3 캐릭터 페이지 ──────────────────────
+ * 카드를 누르면 열리는 화면이며 대화는 여기서만 시작합니다(system-spec §8-8).
+ * 공개 범위라 미로그인도 둘러볼 수 있고, 대화 시작·좋아요만 보호 동작입니다.
  */
-const PERSONA_LIMITS = { name: 12, nickname: 12, desc: 1000 };
+function statLine(label, value, testid) {
+  return el("div", { class: "stat-item" }, [
+    el("span", { class: "stat-num", "data-testid": testid, text: String(value) }),
+    el("span", { class: "stat-lbl", text: label })
+  ]);
+}
 
-/* 성별은 명세에 값이 없어 표시용 선택지만 둡니다 — mock 응답이 읽지 않습니다 */
-const PERSONA_GENDERS = ["설정 안 함", "여성", "남성"];
+/* 하단 고정 버튼 — 그 캐릭터와의 대화방 유무로 구성이 갈립니다(트리: 하단 고정 버튼 분기) */
+function renderS3Footer(c) {
+  const rooms = roomsOf(c.id);
+  const profiles = profilesOf();
+  const picked = findProfile(VN.startProfileId) || profiles[0] || null;
 
-function personaField(key, label, value, opts) {
-  opts = opts || {};
-  const limit = PERSONA_LIMITS[key];
-  const count = el("span", {
-    class: "count", "data-testid": "s3-" + key + "-count",
-    text: value.length + "/" + limit
+  const startBtn = el("button", {
+    class: "primary-btn", "data-testid": "s3-start",
+    text: rooms.length ? "새 대화 시작" : "대화 시작",
+    onclick: () => startChat(c.id)
   });
+
+  const pickBtn = el("button", {
+    class: "sub-btn", "data-testid": "s3-pick-profile",
+    text: picked ? "프로필 · " + picked.name + (picked.label ? " (" + picked.label + ")" : "")
+      : "프로필 선택",
+    onclick: () => openPanel("p5")
+  });
+
+  const kids = [];
+  if (rooms.length) {
+    kids.push(el("div", { class: "room-list", "data-testid": "s3-rooms" },
+      rooms.map((r) => el("button", {
+        class: "room-item", "data-testid": "s3-room-" + r.id,
+        onclick: () => resumeChat(r.id)
+      }, [
+        el("span", { class: "room-name",
+          text: (r.profile ? r.profile.name : "프로필 없음") + " · " + r.turn + "턴" }),
+        el("span", { class: "room-sub", text: "대화수 " + roomMessageCount(r) })
+      ]))));
+  }
+  if (roomLimitReached(c.id)) {
+    kids.push(el("p", {
+      class: "room-limit", "data-testid": "s3-room-limit",
+      text: "대화방이 " + ROOM_LIMIT_PER_CHAR + "개까지 찼습니다. 새로 시작하려면 기존 대화를 지워 주세요."
+    }));
+    kids.push(el("div", { class: "room-del" }, rooms.map((r) => el("button", {
+      class: "sub-btn", "data-testid": "s3-room-" + r.id + "-delete",
+      text: (r.profile ? r.profile.name : r.id) + " 지우기",
+      onclick: () => removeChat(r.id)
+    }))));
+  }
+  kids.push(el("div", { class: "s3-actions" }, [pickBtn, startBtn]));
+  return el("div", { class: "s3-foot" }, kids);
+}
+
+function renderS3() {
+  const c = findCharacter(VN.pageCharId);
+  if (!c) {
+    return el("section", { class: "screen s3", "data-testid": "s3-screen" }, [
+      el("p", { class: "empty", "data-testid": "s3-missing", text: "캐릭터를 찾을 수 없습니다." }),
+      el("button", { class: "sub-btn", "data-testid": "s3-back", text: "홈으로", onclick: () => goHome() })
+    ]);
+  }
+  const locked = c.safe === false && !canViewUnsafe();
+  const kids = [
+    el("div", { class: "s3-head" }, [
+      el("button", { class: "chat-back", "data-testid": "s3-back", text: "‹ 뒤로", onclick: () => goHome() }),
+      el("h2", { class: "screen-title", "data-testid": "s3-name", text: c.name })
+    ])
+  ];
+
+  if (locked) {
+    kids.push(el("p", {
+      class: "lock-notice", "data-testid": "s3-locked",
+      text: "19세 이상 콘텐츠입니다. " + GATE_NOTICE[gateState()]
+    }));
+    // 게이팅 상태에서도 현황은 보입니다 — 실측의 언세이프 프로필과 같은 처리입니다
+    kids.push(el("div", { class: "stat-row", "data-testid": "s3-stats" }, [
+      statLine("이용수", usageCount(c.id, null), "s3-stat-usage"),
+      statLine("좋아요", likeCount(c), "s3-stat-likes"),
+      statLine("팔로우", c.creator ? c.creator.followers : 0, "s3-stat-follow")
+    ]));
+    return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
+  }
+
+  kids.push(el("p", { class: "lede-sm", "data-testid": "s3-tagline", text: c.tagline }));
+  kids.push(el("p", { class: "d-tags", "data-testid": "s3-tags",
+    text: (c.tags || []).map((t) => "#" + t).join(" ") }));
+  kids.push(el("p", { class: "s3-creator", "data-testid": "s3-creator",
+    text: "제작 " + (c.creator ? c.creator.name : "-") + " · 팔로워 "
+      + (c.creator ? c.creator.followers : 0) }));
+  kids.push(el("div", { class: "stat-row", "data-testid": "s3-stats" }, [
+    statLine("이용수", usageCount(c.id, null), "s3-stat-usage"),
+    statLine("좋아요", likeCount(c), "s3-stat-likes"),
+    statLine("리뷰", c.reviews, "s3-stat-reviews"),
+    statLine("팔로우", c.creator ? c.creator.followers : 0, "s3-stat-follow")
+  ]));
+  kids.push(el("p", { class: "s3-updated", "data-testid": "s3-updated",
+    text: "출시 " + c.createdDay + " · 최종 업데이트 " + (c.updatedDay || "-")
+      + " (" + (c.version || "-") + ")" }));
+  kids.push(el("p", { class: "d-first", "data-testid": "s3-first", text: c.firstMessage }));
+  kids.push(el("p", { class: "s3-situation", "data-testid": "s3-situation",
+    text: "시작 상황 — " + (c.startSituation ? c.startSituation.label : "-") }));
+  kids.push(el("div", { class: "d-toggles" }, [
+    el("button", {
+      class: "tog" + (isLiked(c.id) ? " on" : ""), "data-testid": "s3-like",
+      text: isLiked(c.id) ? "♥ 좋아요 취소" : "♡ 좋아요",
+      onclick: () => toggleCardFlag("like", c.id)
+    }),
+    el("button", {
+      class: "tog" + (isScrapped(c.id) ? " on" : ""), "data-testid": "s3-scrap",
+      text: isScrapped(c.id) ? "★ 스크랩 취소" : "☆ 스크랩",
+      onclick: () => toggleCardFlag("scrap", c.id)
+    })
+  ]));
+
+  // 그 외 작품 — 선정식이 미확인이라 같은 카테고리에서 체인 순으로 채웁니다(TC 기대값 아님)
+  const related = sortChars(visibleCharacters()
+    .filter((x) => x.id !== c.id && x.category === c.category), monthUsage).slice(0, 4);
+  if (related.length) {
+    kids.push(s2Section("s3-related", "그 외 작품", related, { carousel: true }));
+  }
+  kids.push(renderS3Footer(c));
+  return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
+}
+
+/* ── P5 대화 프로필 ───────────────────────
+ * 프로필을 여러 개 만들어 두고 대화방마다 하나를 고릅니다(system-spec §2).
+ */
+const PROFILE_LIMITS = { name: 12, nickname: 12, desc: 1000, label: 30 };
+const PROFILE_GENDERS = ["설정 안 함", "여성", "남성"];
+const RANDOM_NAMES = ["서진", "하람", "유원", "연오", "도하"];
+/* 호칭도 돌려 씁니다 — 프로필마다 달라야 방 사이 섞임(프로필 간 격리)이 눈에 보입니다 */
+const RANDOM_NICKS = ["너", "선배", "그쪽", "이봐", "자기"];
+const RANDOM_DESCS = [
+  "말수는 적지만 필요한 말은 합니다.",
+  "커피를 좋아하고 밤에 강합니다.",
+  "농담을 잘하지만 정색도 잘합니다."
+];
+
+function profileField(key, label, opts) {
+  opts = opts || {};
+  const limit = PROFILE_LIMITS[key];
+  const count = el("span", { class: "count", "data-testid": "p5-" + key + "-count",
+    text: "0/" + limit });
   const input = el(opts.multiline ? "textarea" : "input", {
-    class: "f-input", "data-testid": "s3-" + key, maxlength: String(limit),
-    rows: opts.multiline ? "6" : null, type: opts.multiline ? null : "text",
+    class: "f-input", "data-testid": "p5-" + key, maxlength: String(limit),
+    rows: opts.multiline ? "4" : null, type: opts.multiline ? null : "text",
     placeholder: opts.placeholder || "",
     oninput: (e) => {
-      // maxlength는 사람이 칠 때만 걸립니다. 붙여넣기나 자동화의 값 주입은 그대로 들어오므로
-      // 여기서 한 번 더 잘라야 경계가 두 경로에서 같게 지켜집니다(system-spec §2)
+      // 상한은 사람이 치는 입력과 값 주입 양쪽에서 같게 지켜야 합니다(system-spec §2)
       if (e.target.value.length > limit) e.target.value = e.target.value.slice(0, limit);
       count.textContent = e.target.value.length + "/" + limit;
-      syncPersonaSave();
+      syncProfileSave();
     }
   });
-  input.value = value;
   return el("div", { class: "field" }, [
     el("div", { class: "field-head" }, [
       el("label", { text: label + (opts.required ? " (필수)" : "") }), count
@@ -523,53 +591,68 @@ function personaField(key, label, value, opts) {
   ]);
 }
 
-/* 필수값이 비면 저장을 막습니다 — 빈 값 검증 (system-spec §2) */
-function syncPersonaSave() {
-  const name = document.querySelector('[data-testid="s3-name"]');
-  const save = document.querySelector('[data-testid="s3-save"]');
+function syncProfileSave() {
+  const name = document.querySelector('[data-testid="p5-name"]');
+  const save = document.querySelector('[data-testid="p5-save"]');
   if (!name || !save) return;
   save.disabled = !name.value.trim();
 }
 
-function renderS3() {
-  const acc = currentAccount();
-  const p = (acc && acc.persona) || { name: "", nickname: "", gender: "", desc: "" };
-  const gender = el("select", { class: "f-input", "data-testid": "s3-gender" },
-    PERSONA_GENDERS.map((g) => el("option", { value: g, text: g })));
-  gender.value = p.gender || PERSONA_GENDERS[0];
-
+function renderP5() {
+  const profiles = profilesOf();
   const kids = [
-    el("h2", { class: "screen-title", text: "페르소나 설정" }),
-    el("p", { class: "lede-sm", text: "대화에서 캐릭터가 나를 어떻게 부르고 대할지 정합니다." })
+    el("div", { class: "panel-head" }, [
+      el("h2", { text: "대화 프로필" }),
+      el("button", { class: "panel-close", "data-testid": "p5-close", text: "✕",
+        onclick: () => closePanel() })
+    ]),
+    el("p", { class: "lede-sm",
+      text: "대화를 시작할 때 쓸 내 프로필입니다. 방마다 하나가 고정됩니다." })
   ];
 
-  // 카드 상세에서 시작을 눌러 넘어왔다면 무엇을 시작하려는 중인지 화면에 남깁니다
-  if (VN.pendingStart) {
-    const c = findCharacter(VN.pendingStart.charId);
-    const sit = c && c.startSituation;
-    kids.push(el("p", {
-      class: "start-note", "data-testid": "s3-start-note",
-      text: "저장하면 " + (c ? c.name : VN.pendingStart.charId) + " · "
-        + (sit ? sit.label : VN.pendingStart.scenarioId) + " 상황으로 대화를 시작합니다."
-    }));
+  if (profiles.length) {
+    kids.push(el("div", { class: "p5-list" }, profiles.map((p) => el("button", {
+      class: "p5-item" + (VN.startProfileId === p.id ? " on" : ""),
+      "data-testid": "p5-profile-" + p.id,
+      onclick: () => pickProfile(p.id)
+    }, [
+      el("span", { class: "p5-pname", text: p.name + (p.nickname ? " · " + p.nickname : "") }),
+      el("span", { class: "p5-plabel", text: p.label || "" })
+    ]))));
+  } else {
+    kids.push(el("p", { class: "empty", "data-testid": "p5-empty",
+      text: "등록된 프로필이 없습니다. 아래에서 추가해 주세요." }));
   }
 
-  kids.push(personaField("name", "이름", p.name, { required: true, placeholder: "대화에서 쓸 내 이름" }));
-  kids.push(personaField("nickname", "호칭", p.nickname, { placeholder: "캐릭터가 나를 부르는 말" }));
-  kids.push(el("div", { class: "field" }, [
-    el("div", { class: "field-head" }, [el("label", { text: "성별" })]), gender
-  ]));
-  kids.push(personaField("desc", "자유 설명", p.desc,
-    { multiline: true, placeholder: "성격·취향·관계 설정 등" }));
+  kids.push(el("p", { class: "hint", "data-testid": "p5-count",
+    text: profiles.length + "/" + PROFILE_LIMIT + " 사용 중" }));
 
-  const save = el("button", {
-    class: "primary-btn", "data-testid": "s3-save", text: "저장",
-    onclick: () => savePersona()
-  });
-  save.disabled = !p.name.trim();
-  kids.push(save);
-
-  return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
+  if (profileLimitReached()) {
+    kids.push(el("p", { class: "room-limit", "data-testid": "p5-limit",
+      text: "프로필은 " + PROFILE_LIMIT + "개까지 만들 수 있습니다." }));
+  } else {
+    kids.push(el("h3", { class: "sec-title", text: "프로필 추가" }));
+    kids.push(profileField("name", "이름", { required: true, placeholder: "대화에서 쓸 내 이름" }));
+    kids.push(profileField("nickname", "호칭", { placeholder: "캐릭터가 나를 부르는 말" }));
+    const gender = el("select", { class: "f-input", "data-testid": "p5-gender" },
+      PROFILE_GENDERS.map((g) => el("option", { value: g, text: g })));
+    kids.push(el("div", { class: "field" }, [
+      el("div", { class: "field-head" }, [el("label", { text: "성별" })]), gender
+    ]));
+    kids.push(profileField("desc", "자유 설명", { multiline: true, placeholder: "성격·취향·관계 설정" }));
+    kids.push(profileField("label", "Label", { placeholder: "연애 모드 등" }));
+    const save = el("button", { class: "primary-btn", "data-testid": "p5-save", text: "추가",
+      onclick: () => saveProfile() });
+    save.disabled = true;
+    kids.push(el("div", { class: "p5-add-row" }, [
+      el("button", { class: "sub-btn", "data-testid": "p5-random", text: "랜덤 완성",
+        onclick: () => fillRandomProfile() }),
+      save
+    ]));
+  }
+  return el("div", { class: "panel-wrap", "data-testid": "p5-panel" }, [
+    el("div", { class: "panel" }, kids)
+  ]);
 }
 
 /* ── S4 대화 ────────────────────────────────────────────────

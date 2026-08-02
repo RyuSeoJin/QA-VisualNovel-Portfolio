@@ -19,14 +19,15 @@
  *         + 로그인 유도를 모달로 전환하고 막힌 동작을 로그인 후 이어서 수행
  *   RC5 = S3 페르소나 폼 — 글자수 경계 · 필수값 검증 · 저장 후 시작점 인계
  *   RC6 = S4 대화 뼈대 — mock 응답(시드 결정) · 스트리밍 표시 · 방 스코프
+ *   RC7 = 골격 v1.4 재작업 — S3 캐릭터 페이지 · P5 대화 프로필 · 대화방 한도
  */
-const SUT_BUILD = "PC웹_Ver1.0_Dev_RC6";
+const SUT_BUILD = "PC웹_Ver1.0_Dev_RC7";
 
 const VN_DATA = {
   /* 기준일 — 이 값이 SUT의 "오늘"입니다 */
   baseDay: "2026-08-02",
 
-  /* 캐릭터 속성 — 리뷰 수·좋아요 수·태그·세이프 플래그
+  /* 캐릭터 속성 — 리뷰 수·좋아요 수·태그·세이프 플래그·제작자·업데이트 정보
    *
    * firstMessage·startSituation은 캐릭터 페이지가 읽는 값입니다. 시작 상황은 제작자가 정한
    * 것이라 캐릭터당 하나이고 유저가 고르지 않으며(system-spec §8-8), 그 id가 mock 세트의
@@ -35,31 +36,43 @@ const VN_DATA = {
     { id: "c1", name: "하루", tagline: "옆자리 소꿉친구", category: "로맨스",
       tags: ["소꿉친구", "후회"], safe: true, likes: 320, reviews: 84, score: 4.6,
       createdDay: "2026-07-30",
+      creator: { name: "빗물서점", followers: 128 },
+      updatedDay: "2026-08-01", version: "v1.2",
       firstMessage: "너 오늘도 우산 안 가져왔지. 됐고 이리 와, 어차피 가는 길 같잖아. …그렇게 놀란 얼굴 할 것까진 없고.",
       startSituation: { id: "sc1", label: "비 오는 하굣길" } },
     { id: "c2", name: "레온", tagline: "회귀한 기사단장", category: "판타지",
       tags: ["회귀", "능력"], safe: true, likes: 512, reviews: 120, score: 4.4,
       createdDay: "2026-07-28",
+      creator: { name: "회귀공방", followers: 342 },
+      updatedDay: "2026-07-30", version: "v2.0",
       firstMessage: "세 번째다. 같은 날, 같은 자리에서 당신을 만나는 건. 이번에는 반드시 살려 보내겠다.",
       startSituation: { id: "sc1", label: "회귀 첫날" } },
     { id: "c3", name: "미나", tagline: "야근 동료", category: "일상",
       tags: ["직장", "힐링"], safe: true, likes: 180, reviews: 41, score: 4.9,
       createdDay: "2026-08-01",
+      creator: { name: "야근클럽", followers: 57 },
+      updatedDay: "2026-08-02", version: "v1.0",
       firstMessage: "먼저 가도 된다니까 왜 남았어요. …커피 두 잔 뽑아 왔어요. 하나는 그쪽 거예요.",
       startSituation: { id: "sc1", label: "야근 끝 편의점" } },
     { id: "c4", name: "카일", tagline: "계약 연애 상대", category: "로맨스",
       tags: ["계약연애", "집착"], safe: false, likes: 640, reviews: 210, score: 4.2,
       createdDay: "2026-07-25",
+      creator: { name: "계약사무소", followers: 890 },
+      updatedDay: "2026-07-31", version: "v3.1",
       firstMessage: "계약서 3조, 기억하지. 사람들 앞에서는 연인처럼 굴 것. …지금 여기, 보는 눈이 꽤 많은데.",
       startSituation: { id: "sc1", label: "계약 첫날" } },
     { id: "c5", name: "세라", tagline: "이세계 동행자", category: "판타지",
       tags: ["이세계", "빙의"], safe: true, likes: 96, reviews: 12, score: 5.0,
       createdDay: "2026-08-02",
+      creator: { name: "숲의기록", followers: 24 },
+      updatedDay: "2026-08-02", version: "v1.0",
       firstMessage: "네가 떨어진 곳은 지도에 없는 숲이야. 따라와. 혼자 두면 해 지기 전에 죽어.",
       startSituation: { id: "sc1", label: "숲의 첫 밤" } },
     { id: "c6", name: "도윤", tagline: "같은 반 짝꿍", category: "일상",
       tags: ["학원물", "동거"], safe: true, likes: 74, reviews: 3, score: 5.0,
       createdDay: "2026-07-31",
+      creator: { name: "교실뒤편", followers: 12 },
+      updatedDay: "2026-08-01", version: "v1.1",
       firstMessage: "야, 필기 좀 보여줘. …됐고 그냥 옆에 앉아. 같이 보면 되잖아.",
       startSituation: { id: "sc1", label: "시험 전날" } },
     /* 아래 둘은 생성일이 신작 창(60일)보다 오래된 캐릭터입니다. 시트가 전부 최근 생성이면
@@ -68,11 +81,15 @@ const VN_DATA = {
     { id: "c7", name: "은결", tagline: "졸업한 학생회장", category: "로맨스",
       tags: ["후회", "집착"], safe: true, likes: 400, reviews: 150, score: 4.7,
       createdDay: "2026-05-20",
+      creator: { name: "졸업앨범", followers: 205 },
+      updatedDay: "2026-06-30", version: "v2.4",
       firstMessage: "졸업식 이후로 처음이네. 그때 못 한 말이 있어서, 계속 여기 서 있었어.",
       startSituation: { id: "sc1", label: "졸업식 그날" } },
     { id: "c8", name: "라율", tagline: "폐관한 서점 주인", category: "일상",
       tags: ["힐링", "직장"], safe: true, likes: 20, reviews: 60, score: 3.8,
       createdDay: "2026-04-10",
+      creator: { name: "폐점서가", followers: 8 },
+      updatedDay: "2026-05-01", version: "v1.3",
       firstMessage: "오늘로 문을 닫습니다. …마지막 손님이 당신이라 다행이네요.",
       startSituation: { id: "sc1", label: "폐점 전날" } }
   ],

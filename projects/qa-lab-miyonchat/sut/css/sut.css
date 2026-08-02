@@ -251,7 +251,55 @@ button { font-family: inherit; cursor: pointer; }
 .chat-end { margin: 10px 0 0; font-size: 12px; color: #8b8b96; }
 .chat-empty { padding-top: 60px; }
 
-/* ── S3 페르소나 폼 ─────────────────────────── */
+/* ── S3 캐릭터 페이지 ───────────────────────── */
+.screen.s3 { padding-bottom: 24px; }
+.s3-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.s3-head .screen-title { margin: 0; }
+.s3-creator { margin: 12px 0 0; font-size: 12px; color: #a5b4fc; }
+.stat-row { display: flex; gap: 18px; margin: 14px 0; }
+.stat-item { display: flex; flex-direction: column; }
+.stat-num { font-size: 16px; font-weight: 700; }
+.stat-lbl { font-size: 11px; color: #6b6b76; }
+.s3-updated { margin: 0 0 12px; font-size: 11px; color: #6b6b76; }
+.s3-situation {
+  margin: 0 0 16px; padding: 9px 12px; border-radius: 8px;
+  background: #1a1a24; border-left: 3px solid #6d5fd0; font-size: 12px; color: #c9c9d2;
+}
+.s3-foot {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid #2c2c34;
+}
+.room-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.room-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-radius: 8px; text-align: left;
+  background: #1c1c24; border: 1px solid #2c2c34; color: inherit;
+}
+.room-name { font-size: 13px; }
+.room-sub { font-size: 11px; color: #6b6b76; }
+.room-limit {
+  margin: 0 0 10px; padding: 10px; border-radius: 8px;
+  background: #3b2b2b; border: 1px solid #6b4040; color: #f0a3a3; font-size: 12px;
+}
+.room-del { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.s3-actions { display: flex; gap: 8px; align-items: center; }
+.sub-btn {
+  padding: 10px 14px; border-radius: 6px; font-size: 13px;
+  background: #24242e; border: 1px solid #3b3b47; color: inherit;
+}
+
+/* ── P5 대화 프로필 ─────────────────────────── */
+.p5-list { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 8px; }
+.p5-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-radius: 8px; text-align: left;
+  background: #14141a; border: 1px solid #2c2c34; color: inherit;
+}
+.p5-item.on { border-color: #6d5fd0; background: #1d1a2e; }
+.p5-pname { font-size: 13px; }
+.p5-plabel { font-size: 11px; color: #a5b4fc; }
+.p5-add-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+
+/* ── 폼 공통 (P5·S4) ────────────────────────── */
 .screen-title { font-size: 18px; margin: 0 0 6px; }
 .lede-sm { color: #8b8b96; font-size: 13px; margin: 0 0 18px; }
 .start-note {

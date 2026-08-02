@@ -118,9 +118,8 @@ T1 디버그 콘솔 — 상단 바 [디버그] 버튼 (모달 + 딤). S1에서�
 `{화면}-{요소}[-{인덱스|수식어}]`, 전부 kebab-case. 화면 접두는 s1~s8 · p1~p4 ·
 g(전역 셸) · t1(테스트 콘솔).
 
-**표는 세 부분입니다.** ✅는 구현이 끝나 실제로 존재하는 것, ⚠는 코드에는 있지만 골격 v1.4
-개정으로 **자리가 바뀔 예정**인 것, 표시 없는 줄은 앞으로 만들 때 쓸 이름입니다. 새 화면을
-구현하면 그 줄에 ✅를 붙여 목록을 최신으로 유지합니다.
+**표는 두 부분입니다.** ✅ 표시는 구현이 끝나 실제로 존재하는 것이고, 나머지는 앞으로 만들 때
+쓸 이름입니다. 새 화면을 구현하면 그 줄에 ✅를 붙여 목록을 최신으로 유지합니다.
 
 | 예 | 가리키는 것 |
 |---|---|
@@ -146,11 +145,14 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s2-search-info` · `s2-search-clear` · `s2-search-list` | 검색어와 건수 · 검색 해제 · 결과 목록 |
 | ✅ `s2-empty` · `{목록}-empty` | 모수가 빈 상태 · 목록별 0건 안내(예 `s2-cat-list-empty`) |
 | ✅ `s2-card-{id}` / `s2-card-{id}-blur` / `-like` / `-scrap` | 캐릭터 카드 / 블러 표식 / 토글 |
-| ⚠ `s2-detail` · `s2-detail-close` · `s2-detail-locked` · `s2-detail-tags` · `s2-detail-first` · `s2-detail-situation` · `s2-detail-start` | 현재 코드의 카드 상세 패널. **골격 v1.4에서 S3 캐릭터 페이지로 옮겨질 자리**이며, 코드 재작업 시 이 줄은 사라집니다 |
-| ⚠ `s3-screen` · `s3-name` · `s3-nickname` · `s3-gender` · `s3-desc` · `s3-save` · `s3-{항목}-count` · `s3-start-note` | 현재 코드의 페르소나 폼. v1.4에서 **S3은 캐릭터 페이지**가 되고 폼은 **P5 대화 프로필 패널**로 옮겨집니다 |
-| `s3-creator` · `s3-stats` · `s3-updated` · `s3-related` | 캐릭터 페이지 — 제작자 · 현황 · 출시일/업데이트 · 그 외 작품 |
-| `s3-rooms` · `s3-room-{id}` · `s3-new-chat` · `s3-room-limit` | 대화방 목록 · 방 항목 · 새 대화 시작 · 한도 안내 |
-| `p5-panel` · `p5-profile-{id}` · `p5-add` · `p5-name` · `p5-label` · `p5-random` · `p5-save` | 대화 프로필 패널 — 목록·선택·추가 폼·Label·랜덤 완성 |
+| ✅ `s3-screen` · `s3-back` · `s3-name` · `s3-tagline` · `s3-tags` · `s3-first` | 캐릭터 페이지 — 화면·뒤로·이름·한 줄 소개·태그·첫 메시지 전문 |
+| ✅ `s3-creator` · `s3-stats` · `s3-stat-{지표}` · `s3-updated` · `s3-related` | 제작자(표시만) · 현황 묶음과 지표별 값 · 출시일/업데이트 · 그 외 작품 |
+| ✅ `s3-situation` · `s3-locked` | 시작 상황(표시만) · 언세이프 열람 제한 안내 |
+| ✅ `s3-like` · `s3-scrap` | 좋아요 · 스크랩 토글 |
+| ✅ `s3-rooms` · `s3-room-{id}` · `s3-room-{id}-delete` · `s3-room-limit` | 대화방 목록 · 방 항목(이어하기) · 방 삭제 · 한도 안내 |
+| ✅ `s3-pick-profile` · `s3-start` | 프로필 선택(→P5) · 대화 시작(방이 있으면 「새 대화 시작」) |
+| ✅ `p5-panel` · `p5-close` · `p5-profile-{id}` · `p5-empty` · `p5-count` · `p5-limit` | 대화 프로필 패널 · 닫기 · 프로필 항목 · 빈 상태 · 사용 개수 · 한도 안내 |
+| ✅ `p5-name` · `p5-nickname` · `p5-gender` · `p5-desc` · `p5-label` · `p5-{항목}-count` · `p5-random` · `p5-save` | 추가 폼 — 항목·글자수 카운터·랜덤 완성·추가 |
 | ✅ `s4-todo` · `s4-start-info` | S4 자리표시자 · 인계된 시작점과 페르소나 |
 | `s4-input` · `s4-send` · `s4-choice-{n}` | 입력창·전송·고정 선택지 |
 | `s4-msg-{n}` + `-edit` / `-delete` / `-regen` / `-branch` | 메시지와 메시지 액션 |

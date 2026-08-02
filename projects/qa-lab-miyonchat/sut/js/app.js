@@ -5,9 +5,10 @@
  */
 
 /* 공개 — 미로그인도 볼 수 있는 화면 */
-const PUBLIC = ["s2", "s7"];
+/* 캐릭터 페이지(S3)도 공개입니다 — 미로그인도 소개를 볼 수 있고, 대화 시작만 보호 동작입니다 */
+const PUBLIC = ["s2", "s3", "s7"];
 /* 보호 — 로그인해야 들어갈 수 있는 화면. URL 직접 진입도 같은 검사를 거칩니다 */
-const PROTECTED = ["s3", "s4", "s5", "s6", "s8"];
+const PROTECTED = ["s4", "s5", "s6", "s8"];
 
 /* 로그인 후 돌아갈 곳. 차단된 시도를 기억해 두었다가 이어줍니다 */
 let pendingIntent = null;
@@ -82,7 +83,6 @@ function closePanel() {
 /* 홈 재선택 — 활성 칩을 유지한 채 최상단으로 (system-spec §8-5) */
 function goHome() {
   const already = VN.screen === "s2";
-  VN.detailId = null;        // 상세는 목록 위에 열린 것이라 홈으로 오면 걷습니다
   VN.search = "";            // 검색 결과도 마찬가지로 걷고 활성 칩 화면으로 돌아옵니다
   go("s2");
   if (already) window.scrollTo(0, 0);
@@ -96,7 +96,6 @@ function selectChip(name) {
     VN.catTag = null;
   }
   VN.search = "";            // 칩을 고르면 검색 결과에서 목록으로 돌아옵니다
-  VN.detailId = null;
   render();
 }
 
@@ -104,7 +103,6 @@ function selectChip(name) {
  * 결과는 홈이 그리므로 다른 화면에서 검색하면 홈으로 옮겨 갑니다. */
 function runSearch(text) {
   VN.search = (text || "").trim();
-  VN.detailId = null;
   VN.notiOpen = false;
   if (VN.screen !== "s2") go("s2");
   else render();
@@ -123,13 +121,78 @@ function toggleNoti() {
   render();
 }
 
-function openDetail(id) {
-  VN.detailId = id;
+/* 카드를 누르면 캐릭터 페이지로 이동합니다 (system-spec §8-8) */
+function openCharacterPage(id) {
+  VN.pageCharId = id;
+  go("s3");
+}
+
+/* 프로필 고르기 — 고른 프로필이 다음에 여는 방에 고정됩니다 */
+function pickProfile(id) {
+  VN.startProfileId = id;
+  closePanel();
+}
+
+function saveProfile() {
+  const val = (t, limit) => {
+    const e = document.querySelector('[data-testid="' + t + '"]');
+    const v = e ? e.value.trim() : "";
+    return limit ? v.slice(0, limit) : v;
+  };
+  const r = addProfile({
+    name: val("p5-name", PROFILE_LIMITS.name),
+    nickname: val("p5-nickname", PROFILE_LIMITS.nickname),
+    gender: val("p5-gender"),
+    desc: val("p5-desc", PROFILE_LIMITS.desc),
+    label: val("p5-label", PROFILE_LIMITS.label)
+  });
+  if (!r.ok) { toast(r.reason); return; }
+  VN.startProfileId = r.id;      // 방금 만든 프로필을 바로 씁니다
+  toast("프로필을 추가했습니다.");
   render();
 }
 
-function closeDetail() {
-  VN.detailId = null;
+/* 랜덤 완성 — 채워진 값도 상한·필수값 규칙을 그대로 받습니다(트리: 랜덤 완성) */
+function fillRandomProfile() {
+  const n = profilesOf().length;
+  const put = (t, v) => {
+    const e = document.querySelector('[data-testid="' + t + '"]');
+    if (!e) return;
+    e.value = v;
+    e.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  put("p5-name", RANDOM_NAMES[n % RANDOM_NAMES.length]);
+  put("p5-nickname", RANDOM_NICKS[n % RANDOM_NICKS.length]);
+  put("p5-desc", RANDOM_DESCS[n % RANDOM_DESCS.length]);
+  put("p5-label", "기본 모드");
+}
+
+/* 대화 시작 — 보호 동작입니다. 프로필이 없으면 먼저 만들게 하고,
+ * 대화방이 한도까지 찼으면 아무 방도 만들지 않고 삭제를 묻습니다(system-spec §6). */
+function startChat(charId) {
+  if (!requireLogin("start:" + charId, () => startChat(charId))) return;
+  const profile = findProfile(VN.startProfileId) || profilesOf()[0];
+  if (!profile) {
+    toast("대화에 쓸 프로필을 먼저 만들어 주세요.");
+    openPanel("p5");
+    return;
+  }
+  if (roomLimitReached(charId)) {
+    toast("대화방이 가득 찼습니다. 기존 대화를 지워 주세요.");
+    render();
+    return;
+  }
+  openRoom(charId, profile);
+  go("s4");
+}
+
+function resumeChat(roomId) {
+  if (!requireLogin("resume:" + roomId, () => resumeChat(roomId))) return;
+  if (resumeRoom(roomId)) go("s4");
+}
+
+function removeChat(roomId) {
+  deleteRoom(roomId);
   render();
 }
 
@@ -142,31 +205,6 @@ function toggleCardFlag(kind, id) {
   if (at >= 0) list.splice(at, 1);
   else list.push(id);
   render();
-}
-
-/* 페르소나 저장 — 이름이 비면 저장 버튼이 눌리지 않지만, 값 검증은 여기서도 한 번 더 봅니다.
- * 카드 상세에서 시작을 눌러 온 길이면 저장 직후 그 시작점으로 대화를 엽니다. */
-function savePersona() {
-  const acc = currentAccount();
-  if (!acc) return;
-  // 상한은 입력 단계에서 지켜지지만, 저장 경로에서도 잘라 두면 화면을 거치지 않은 값이
-  // 들어와도 계정 스코프에 상한을 넘는 값이 남지 않습니다
-  const val = (t, limit) => {
-    const e = document.querySelector('[data-testid="' + t + '"]');
-    const v = e ? e.value.trim() : "";
-    return limit ? v.slice(0, limit) : v;
-  };
-  const name = val("s3-name", PERSONA_LIMITS.name);
-  if (!name) return;
-  acc.persona = {
-    name: name,
-    nickname: val("s3-nickname", PERSONA_LIMITS.nickname),
-    gender: val("s3-gender"),
-    desc: val("s3-desc", PERSONA_LIMITS.desc)
-  };
-  toast("페르소나를 저장했습니다.");
-  if (VN.pendingStart) enterChat();
-  else render();
 }
 
 /* ── S4 대화 ───────────────────────────────────────────────
@@ -230,26 +268,11 @@ function streamMessage(room, msg) {
   }, STREAM_TICK_MS);
 }
 
-/* 대화 화면을 엽니다 — 시작점을 들고 왔으면 그 방으로, 아니면 마지막 방으로 */
-function enterChat() {
-  if (VN.pendingStart) {
-    openRoom(VN.pendingStart.charId, VN.pendingStart.scenarioId);
-    VN.pendingStart = null;
-  }
-  go("s4");
-}
-
+/* 대화 화면을 나가면 그 캐릭터 페이지로 돌아옵니다 */
 function leaveChat() {
-  go("s2");
-}
-
-/* 대화 시작 — 시작 상황은 제작자가 정한 것이라 유저가 고르지 않습니다(system-spec §8-8).
- * 미로그인이면 시작점을 남기지 않고 모달을 띄웠다가, 로그인하면 여기서부터 다시 탑니다. */
-function startConversation(charId, scenarioId) {
-  const resume = () => startConversation(charId, scenarioId);
-  if (!requireLogin("start:" + charId + ":" + scenarioId, resume)) return;
-  VN.pendingStart = { charId: charId, scenarioId: scenarioId };
-  go("s3");
+  const room = activeRoom();
+  if (room) { VN.pageCharId = room.charId; go("s3"); }
+  else goHome();
 }
 
 function screenBody() {
