@@ -129,6 +129,16 @@ button { font-family: inherit; cursor: pointer; }
   border: 0; border-radius: 6px; color: #fff;
 }
 
+/* ── 안내 토스트 ───────────────────────────── */
+.toast {
+  position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+  z-index: 200; max-width: 88vw;
+  padding: 11px 18px; border-radius: 999px;
+  background: #2b2b38; border: 1px solid #4a4a5a; color: #f2f2f4;
+  font-size: 13px; white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
+}
+
 /* ── T1 디버그 콘솔 ────────────────────────── */
 .debug-btn {
   background: #3b2f6e; border: 1px solid #6d5fd0; border-radius: 6px;
@@ -144,15 +154,54 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
 }
 .t1-console {
-  width: min(420px, 92vw); max-height: 86vh; overflow-y: auto;
+  width: min(940px, 96vw); max-height: 88vh;
+  display: flex; flex-direction: column; overflow: hidden;
   background: #101016; border: 2px solid #4f46e5; border-radius: 10px; padding: 18px;
 }
+/* 가운데만 스크롤 — 머리(제목)와 발(새로고침·닫기)은 자리를 지킵니다 */
+.t1-body { flex: 1 1 auto; overflow-y: auto; padding-right: 4px; }
 .t1-notice {
   background: #1a1a24; border-left: 3px solid #6d5fd0;
   padding: 10px; margin: 0 0 16px; font-size: 12px; line-height: 1.6; color: #c9c9d2;
 }
+/* 캐릭터 지표 표 — 행이 아래로 쌓여 값을 나란히 비교합니다 */
+.t1-row-btns { margin-bottom: 10px; }
+.t1-tablewrap { overflow-x: auto; margin-bottom: 8px; }
+.t1-table-grid { border-collapse: collapse; width: 100%; font-size: 12px; }
+.t1-table-grid th {
+  background: #1f2a44; color: #f3f3f3; font-weight: 700;
+  padding: 6px 8px; text-align: center; white-space: nowrap;
+  position: sticky; top: 0;
+}
+.t1-table-grid td { border: 1px solid #2c2c34; padding: 3px 4px; text-align: center; }
+.t1-table-grid tbody tr:hover td { background: #17171f; }
+.t1-table-grid .t1-cname { text-align: left; white-space: nowrap; padding-left: 8px; }
+.t1-table-grid .t1-ccat { color: #8b8b96; white-space: nowrap; }
+.t1-table-grid input[type="number"] { width: 62px; text-align: right; padding: 4px 6px; }
+.t1-table-grid .t1-cellsel { width: 88px; padding: 4px 6px; font-size: 12px; }
+/* 태그는 여러 개를 쉼표로 적으므로 한눈에 들어올 만큼 넓혀 둡니다 */
+.t1-table-grid .t1-celltag {
+  width: 240px; min-width: 240px; margin: 0;
+  padding: 4px 8px; font-size: 12px; text-align: left;
+}
+.t1-table-grid input[type="checkbox"] { accent-color: #6d5fd0; }
+
+.t1-field {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 6px; font-size: 12px; color: #c9c9d2;
+}
+.t1-field input { width: 96px; text-align: right; }
+.t1-select { width: 100%; margin-bottom: 8px; }
+.t1-block button.primary {
+  background: #4f46e5; border-color: #4f46e5; color: #fff; font-weight: 700;
+}
+.t1-toggle {
+  width: 100%; text-align: left; background: none !important;
+  border: 0 !important; color: #a5b4fc !important; padding: 4px 0 !important;
+}
+
 .t1-foot {
-  display: flex; gap: 8px; margin-top: 6px;
+  flex: none; display: flex; gap: 8px; margin-top: 6px;
   border-top: 1px solid #2c2c34; padding-top: 14px;
 }
 .t1-foot button {
@@ -160,19 +209,35 @@ button { font-family: inherit; cursor: pointer; }
   background: #24242e; border: 1px solid #3b3b47; color: inherit; font-size: 13px;
 }
 .t1-foot button.primary { background: #4f46e5; border-color: #4f46e5; color: #fff; font-weight: 700; }
-.t1-console h2 { margin: 0 0 12px; font-size: 16px; color: #a5b4fc; }
+.t1-console h2 { flex: none; margin: 0 0 12px; font-size: 16px; color: #a5b4fc; }
 .t1-block { margin-bottom: 18px; }
 .t1-block h3 { font-size: 13px; margin: 0 0 8px; color: #c9c9d2; }
+.t1-blockhead {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.t1-badge {
+  margin-bottom: 8px; padding: 3px 10px; border-radius: 999px;
+  background: #24242e; border: 1px solid #3b3b47; color: #8b8b96;
+  font-size: 11px; white-space: nowrap;
+}
+.t1-badge.on { background: #16302a; border-color: #2f6b57; color: #7fd7b4; }
 .t1-block button {
   display: inline-block; margin: 0 6px 6px 0; padding: 6px 10px;
   background: #24242e; border: 1px solid #3b3b47; border-radius: 6px;
   color: inherit; font-size: 12px;
 }
-.t1-block input[type="text"], .t1-block textarea {
-  width: 100%; margin-bottom: 6px; padding: 6px;
+/* 입력 컨트롤은 종류를 가리지 않고 같은 톤으로 — 숫자 입력만 브라우저 기본(흰 상자)으로
+   남으면 어두운 화면에서 튑니다 */
+.t1-block input, .t1-block select, .t1-block textarea {
+  padding: 6px 8px;
   background: #14141a; border: 1px solid #33333d; border-radius: 6px;
-  color: inherit; font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+  color: #f2f2f4; font-family: inherit; font-size: 12px;
 }
+.t1-block input:focus, .t1-block select:focus, .t1-block textarea:focus {
+  outline: none; border-color: #6d5fd0;
+}
+.t1-block input[type="text"], .t1-block textarea { width: 100%; margin-bottom: 6px; }
+.t1-block textarea { font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
 .t1-table { margin-bottom: 12px; }
 .t1-table label { display: block; font-size: 12px; color: #8b8b96; margin-bottom: 4px; }
 .t1-block .hint { color: #8b8b96; font-size: 11px; margin: 0 0 8px; }

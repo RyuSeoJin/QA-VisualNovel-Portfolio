@@ -11,6 +11,8 @@ const PROTECTED = ["s3", "s4", "s5", "s6", "s8"];
 
 /* 로그인 후 돌아갈 곳. 차단된 시도를 기억해 두었다가 이어줍니다 */
 let pendingIntent = null;
+/* 직전에 그린 화면 — 같은 화면을 다시 그릴 때만 스크롤을 이어 붙이는 판단에 씁니다 */
+let lastScreen = null;
 
 function go(screen) {
   if (PROTECTED.includes(screen) && !isLoggedIn()) {
@@ -70,8 +72,16 @@ function screenBody() {
   }
 }
 
+/* 화면을 그립니다. 디버그 콘솔은 #debug에 따로 있으므로 여기서 건드리지 않습니다 —
+ * 콘솔에서 상태를 바꿔도 화면은 그대로 남아, 갱신 시점을 테스터가 정할 수 있습니다. */
 function render() {
   const root = document.getElementById("app");
+
+  // 화면이 바뀔 때는 위에서 시작하는 게 맞으므로, 같은 화면을 다시 그릴 때만 스크롤을 이어 붙입니다
+  const sameScreen = lastScreen === VN.screen;
+  const keepPageTop = window.scrollY;
+  lastScreen = VN.screen;
+
   root.innerHTML = "";
 
   // 셸은 S1을 뺀 모든 화면에 붙습니다 — 미로그인도 홈을 둘러볼 수 있어야 하므로
@@ -90,8 +100,7 @@ function render() {
     root.appendChild(renderExpiredModal());
   }
 
-  const debug = renderConsole();
-  if (debug) root.appendChild(debug);
+  if (sameScreen && keepPageTop) window.scrollTo(0, keepPageTop);
 }
 
 function boot() {
@@ -105,6 +114,7 @@ function boot() {
   if (PROTECTED.includes(VN.screen) && !isLoggedIn()) VN.screen = "s1";
 
   render();
+  paintConsole();
 }
 
 document.addEventListener("DOMContentLoaded", boot);

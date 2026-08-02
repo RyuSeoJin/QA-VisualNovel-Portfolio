@@ -14,6 +14,16 @@ function el(tag, attrs, children) {
   return node;
 }
 
+/* 안내 토스트 — 3초 후 사라집니다.
+ * #app 밖(body)에 붙여서 화면을 다시 그려도 살아남게 합니다. */
+function toast(message) {
+  const old = document.querySelector('[data-testid="g-toast"]');
+  if (old) old.remove();
+  const t = el("div", { class: "toast", "data-testid": "g-toast", text: message });
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
 /* S1 로그인 — 진입점이 아니라 보호 동작 시도 시 뜨는 화면.
  * 로그인하면 원래 하려던 곳으로 이어집니다(system-spec §1-1). */
 function renderS1() {
@@ -152,8 +162,8 @@ function renderP4() {
             text: accountDisplayName(id) }),
           el("p", {
             class: "p4-adult", "data-testid": "p4-adult",
-            text: ACCOUNTS[id].minor ? "미성년 (언세이프 열람 불가)"
-              : acc.adultVerified ? "성인 인증 완료" : "성인 미인증 (인증 시 해제 가능)"
+            text: ACCOUNTS[id].minor ? "미성년 (언세이프 열람 불가 · 해제 수단 없음)"
+              : acc.adultVerified ? "성인 인증 완료" : "본인인증 미진행 (인증하면 해제)"
           })
         ])
       ]),

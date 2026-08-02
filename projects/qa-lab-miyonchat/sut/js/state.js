@@ -149,7 +149,18 @@ window.__VN__ = {
     return deepCopy(room.slots[slot] || null);
   },
 
-  /* 전체 상태를 초기값으로 — 매 테스트 전 conftest에서 호출합니다 */
+  /* 현재 상태로 화면을 다시 그립니다.
+   *
+   * 아래 상태 변경 API는 **화면을 자동으로 갱신하지 않습니다.** 데이터가 바뀌었는데 화면이
+   * 따라오지 않는 결함이 있을 수 있으므로, 갱신 시점을 도구가 대신 정해 버리면 그 결함을
+   * 검증할 수 없습니다. 상태를 바꾼 뒤 무엇을 볼지는 테스트가 정합니다 —
+   * 이 함수로 다시 그리거나, 화면을 이동해 확인합니다. */
+  refresh() {
+    render();
+  },
+
+  /* 전체 상태를 초기값으로 — 매 테스트 전 conftest에서 호출합니다.
+   * 시작점을 만드는 것이므로 화면도 함께 초기화합니다. */
   reset() {
     VN.session = SESSION.GUEST;
     VN.accountId = null;
@@ -159,27 +170,26 @@ window.__VN__ = {
     VN.panel = null;
     VN.homeChip = "추천";
     VN.inject = null;
+    consoleOpen = false;
     render();
+    paintConsole();
   },
 
-  /* 세션 만료 — 시간 조건을 명시적 트리거로 대체합니다 */
+  /* 세션 만료 — 시간 조건을 명시적 트리거로 대체합니다. 화면은 자동 갱신하지 않습니다 */
   expireSession() {
     if (VN.accountId) VN.session = SESSION.EXPIRED;
-    render();
   },
 
-  /* 데이터 주입 — T1 데이터 시트와 같은 저장소에 씁니다 */
+  /* 데이터 주입 — T1 데이터 시트와 같은 저장소에 씁니다. 화면은 자동 갱신하지 않습니다 */
   setData(table, rows) {
     if (!SHEET_TABLES.includes(table)) {
       throw new Error("알 수 없는 테이블: " + table);
     }
     VN.sheet[table] = deepCopy(rows);
-    render();
   },
 
-  /* 기준일 변경 — 가상 시계의 "오늘"을 옮깁니다 */
+  /* 기준일 변경 — 가상 시계의 "오늘"을 옮깁니다. 화면은 자동 갱신하지 않습니다 */
   setBaseDay(day) {
     VN.sheet.baseDay = day;
-    render();
   }
 };
