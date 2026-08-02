@@ -418,12 +418,36 @@ function renderP2() {
     ]);
   }
   const stage = stageOf(room.affection);
+  // 관계 단계·호감도는 엔딩 판정의 근거라 고정 대상이 아닙니다 (system-spec §7-2)
+  // 표시는 실제로 쓰이는 값(고정돼 있으면 고정값)입니다
   const rows = [
     ["관계 단계", stage.name, "p2-stage"],
     ["호감도", String(room.affection), "p2-affection"],
-    ["감정 온도", stage.temp, "p2-temp"],
-    ["호칭", (room.profile && room.profile.nickname) || "-", "p2-nickname"]
+    ["감정 온도", stateValue(room, "temp"), "p2-temp"],
+    ["호칭", stateValue(room, "nickname") || "-", "p2-nickname"]
   ];
+
+  /* 고정 가능한 항목 — 값을 고쳐 고정하면 자동 계산보다 우선합니다.
+   * 고정 중임이 화면에서 읽혀야 "왜 자동 계산을 안 따르는가"가 결함으로 오인되지 않습니다. */
+  const fixable = OVERRIDABLE.map((f) => {
+    const on = isOverridden(room, f.key);
+    const box = el("input", {
+      class: "fix-input", "data-testid": "p2-" + f.key + "-input", maxlength: "12"
+    });
+    box.value = stateValue(room, f.key);
+    const btn = el("button", {
+      class: "mini" + (on ? "" : " primary"), "data-testid": "p2-" + f.key + "-fix",
+      text: on ? "고정 해제" : "고정",
+      onclick: () => (on ? releaseState(f.key) : fixState(f.key, box.value))
+    });
+    return el("div", { class: "fix-row" + (on ? " on" : ""), "data-testid": "p2-" + f.key + "-row" }, [
+      el("span", { class: "fix-label", text: f.label }),
+      box, btn,
+      el("span", { class: "fix-state", "data-testid": "p2-" + f.key + "-state",
+        text: on ? "고정 중" : "자동 " + autoValue(room, f.key) })
+    ]);
+  });
+
   const kids = [
     el("div", { class: "panel-head" }, [
       el("h2", { text: "현재 상태" }),
@@ -434,6 +458,16 @@ function renderP2() {
       rows.reduce((acc, [k, v, id]) => acc.concat([
         el("dt", { text: k }), el("dd", { "data-testid": id, text: v })
       ]), [])),
+    el("div", { class: "fix-list", "data-testid": "p2-fixables" }, fixable),
+    el("p", { class: "hint", "data-testid": "p2-fix-help",
+      text: "고친 값을 고정하면 캐릭터의 자동 계산보다 우선합니다. 관계 단계·호감도는 엔딩 "
+        + "판정의 근거라 고정할 수 없습니다." }),
+    /* 검증 범위를 화면에도 남깁니다 — 「반말 써 줘」가 안 먹는 것을 결함으로 오인하지
+     * 않도록, 값을 바꾸는 통로가 대화가 아니라 이 패널임을 여기서 알립니다 (system-spec §7-2) */
+    el("p", { class: "hint scope", "data-testid": "p2-scope-note",
+      text: "이 SUT는 자연어 지시를 알아듣지 않습니다 — 「반말 써 줘」처럼 대화로 부탁해도 "
+        + "응답은 달라지지 않습니다. 값은 여기서 바꿉니다. 말투는 대사 세트가 두 벌 필요해 "
+        + "구현 범위에서 뺐습니다(트리 제외 영역)." }),
     el("button", {
       class: "help", "data-testid": "p2-help", text: "ⓘ 단계 기준",
       onclick: () => { VN.p2Help = !VN.p2Help; render(); }
@@ -466,7 +500,8 @@ function renderP2() {
           el("span", { class: "mem-text", "data-testid": "p2-memory-" + m.id + "-text",
             text: (m.pinned ? "📌 " : "") + m.text }),
           el("span", { class: "mem-turn", "data-testid": "p2-memory-" + m.id + "-turn",
-            text: m.turn + "턴 · " + m.event + (m.brief ? " · 요점" : "") }),
+            text: m.turn + "턴 · " + m.event + (m.brief ? " · 요점" : "")
+              + (m.source === "user" ? " · 유저 등록" : "") }),
           el("button", { class: "mini", "data-testid": "p2-memory-" + m.id + "-pin",
             text: m.pinned ? "고정 해제" : "고정", onclick: () => pinMemory(m.id) }),
           el("button", { class: "mini", "data-testid": "p2-memory-" + m.id + "-delete",
@@ -997,6 +1032,14 @@ function msgActions(m, room) {
       text: "이 지점에서 분기", onclick: () => askBranch(m.turn) }));
   }
 
+  // 기억 등록은 모든 메시지에 붙습니다 — 되돌림과 달리 과거 턴에도 쓸 수 있어야
+  // "지난 대화에서 이건 기억해 둬"가 성립합니다 (system-spec §7-1)
+  acts.push(el("button", {
+    class: "mini" + (m.userMemory ? " on" : ""), "data-testid": key + m.role + "-remember",
+    text: m.userMemory ? "기억 해제" : "기억하기",
+    onclick: () => (m.userMemory ? dropUserMemory(m.turn, m.role) : addUserMemory(m.turn, m.role))
+  }));
+
   return acts.length ? el("div", { class: "msg-actions" }, acts) : null;
 }
 
@@ -1129,6 +1172,10 @@ function renderS4() {
             text: ch.label, onclick: () => pickChoice(ch.label, ch.delta)
           })))
       : null,
+    // 유저가 친 내용은 응답 선택에 관여하지 않습니다 — 입력창 옆에 그 사실을 둡니다
+    el("p", { class: "hint scope", "data-testid": "s4-scope-note",
+      text: "친 내용은 응답 선택에 관여하지 않습니다(입력 필터·길이 상한·호칭 치환만). "
+        + "자연어 지시는 이 SUT의 범위 밖입니다." }),
     el("div", { class: "chat-foot-head" }, [
       el("span", { class: "count", "data-testid": "s4-input-count", text: "0/" + CHAT_INPUT_MAX }),
       chatStreaming

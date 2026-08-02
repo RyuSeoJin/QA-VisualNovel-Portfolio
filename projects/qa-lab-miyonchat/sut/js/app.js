@@ -458,6 +458,39 @@ function pinMemory(id) {
   render();
 }
 
+/* 대화에서 기억 등록 — 유저가 "이건 기억해 둬"라고 고르는 자리 */
+function addUserMemory(turn, role) {
+  const room = activeRoom();
+  if (!room) return;
+  markUserMemory(room, turn, role, true);
+  toast("이 대화를 기억에 남겼습니다.");
+  render();
+}
+
+function dropUserMemory(turn, role) {
+  const room = activeRoom();
+  if (!room) return;
+  markUserMemory(room, turn, role, false);
+  toast("기억에서 내렸습니다.");
+  render();
+}
+
+/* 현재 상태 값 고정 (system-spec §7-2) — 고정값이 자동 계산보다 우선합니다 */
+function fixState(key, value) {
+  const room = activeRoom();
+  if (!room) return;
+  setOverride(room, key, value);
+  render();
+}
+
+function releaseState(key) {
+  const room = activeRoom();
+  if (!room) return;
+  clearOverride(room, key);
+  toast("고정을 풀었습니다. 자동 계산 값으로 돌아갑니다.");
+  render();
+}
+
 function removeMemory(id) {
   const room = activeRoom();
   if (!room) return;

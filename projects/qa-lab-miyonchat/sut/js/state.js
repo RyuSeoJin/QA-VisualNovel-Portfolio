@@ -504,8 +504,10 @@ function newRoom(charId, scenarioId, firstMessage, profile) {
     affectionBaseTurn: 0,
     // 기억 목록은 대화 기록에서 다시 세웁니다(rebuildMemories) — 아래 둘이 유저가 손댄 부분
     memories: [],
-    pins: {},                // 핀 고정 — { key: { text, turn } }로 그 시점을 얼려 둡니다
-    forgotten: [],           // 지운 기억의 key — 다시 오더라도 받지 않습니다
+    pins: {},                // 고정한 기억의 id — 장면이 끝나도 요점화되지 않습니다
+    forgotten: [],           // 지운 기억의 id — 이후 응답이 참조하지 않습니다
+    // 현재 상태 값 고정 — 유저가 고친 값이 자동 계산보다 우선합니다 (system-spec §7-2)
+    overrides: {},           // { temp, nickname }
     // 시점 슬롯 — 방마다 독립입니다(분기 방도 자기 4칸을 새로 받습니다, system-spec §6)
     slots: {},
     ending: null,                            // 도달한 엔딩 — 있으면 입력이 막힙니다
@@ -617,9 +619,11 @@ function cloneRoomFrom(src, data) {
   if (roomLimitReached(src.charId)) return null;
   const copy = newRoom(src.charId, src.scenarioId, "", data.profile);
   copy.messages = deepCopy(data.messages || []);
-  // 핀·삭제는 유저가 손댄 값이라 함께 따라갑니다. 기억 목록 자체는 기록에서 다시 세웁니다
+  // 고정·삭제·상태 값 고정은 유저가 정한 값이라 함께 따라갑니다.
+  // 기억 목록 자체는 기록에서 다시 세웁니다
   copy.pins = deepCopy(data.pins || {});
   copy.forgotten = deepCopy(data.forgotten || []);
+  copy.overrides = deepCopy(data.overrides || {});
   copy.affectionBase = data.affectionBase || 0;
   copy.affectionBaseTurn = data.affectionBaseTurn || 0;
   recomputeRoom(copy);                     // 상태는 여기서도 다시 셉니다 (system-spec §5-1)
@@ -634,7 +638,7 @@ function branchRoom(room, turn) {
   return cloneRoomFrom(room, {
     profile: room.profile,
     messages: room.messages.filter((m) => m.turn <= turn),
-    pins: room.pins, forgotten: room.forgotten,
+    pins: room.pins, forgotten: room.forgotten, overrides: room.overrides,
     affectionBase: room.affectionBase || 0,
     affectionBaseTurn: Math.min(room.affectionBaseTurn || 0, turn)
   });
@@ -692,6 +696,20 @@ function rebuildMemories(room) {
   const seen = {};
   const out = [];
   room.messages.forEach((m) => {
+    // 유저가 등록한 기억 — 그 메시지에 표시가 붙어 있습니다. 유저가 고른 문장이라
+    // 줄일 근거(요약본)가 없으므로 간략화하지 않습니다 (system-spec §7-1)
+    if (m.userMemory) {
+      const uid = "u" + m.turn + "-" + m.role;
+      if (forgotten.indexOf(uid) < 0 && !seen[uid]) {
+        seen[uid] = true;
+        const uev = eventOfTurn(room, m.turn);
+        out.push({
+          id: uid, turn: m.turn, text: m.text,
+          brief: false, pinned: !!pins[uid], source: "user",
+          event: uev ? uev.label : ""
+        });
+      }
+    }
     const add = m.memoryAdd;
     if (!add || !add.id) return;
     if (forgotten.indexOf(add.id) >= 0 || seen[add.id]) return;
@@ -702,11 +720,60 @@ function rebuildMemories(room) {
     out.push({
       id: add.id, turn: m.turn,
       text: brief ? (add.brief || add.text) : add.text,
-      brief: brief, pinned: pinned,
+      brief: brief, pinned: pinned, source: "auto",
       event: ev ? ev.label : ""
     });
   });
   room.memories = out;
+}
+
+/* 대화에서 기억 등록 — 그 메시지에 표시를 답니다.
+ * 목록에 직접 넣지 않는 이유는 자동 축적과 같습니다 — 기록에서 파생되어야 되돌림·분기·
+ * 로드가 저절로 따라옵니다(메시지가 사라지면 기억도 사라집니다). */
+function markUserMemory(room, turn, role, on) {
+  const m = room.messages.find((x) => x.turn === turn && x.role === role);
+  if (!m) return null;
+  m.userMemory = on !== false;
+  if (!m.userMemory) {
+    const uid = "u" + turn + "-" + role;
+    if (room.pins) delete room.pins[uid];
+    room.forgotten = (room.forgotten || []).filter((id) => id !== uid);
+  }
+  rebuildMemories(room);
+  return m;
+}
+
+/* ── 현재 상태 값 고정 (system-spec §7-2) ──────────────────
+ * 캐릭터가 계속 다시 계산하는 값을 유저가 붙잡아 두는 자리입니다. 관계 단계·호감도는
+ * 엔딩 판정의 근거라 대상에서 뺐습니다 — 고정하면 판정과 표시가 어긋납니다.
+ */
+const OVERRIDABLE = [
+  { key: "temp", label: "감정 온도" },
+  { key: "nickname", label: "호칭" }
+];
+
+function autoValue(room, key) {
+  if (key === "temp") return stageOf(room.affection).temp;
+  return (room.profile && room.profile.nickname) || "";
+}
+
+/* 표시·응답에 실제로 쓰이는 값 — 고정돼 있으면 고정값이 이깁니다 */
+function stateValue(room, key) {
+  const ov = (room.overrides || {})[key];
+  return typeof ov === "string" ? ov : autoValue(room, key);
+}
+
+function isOverridden(room, key) {
+  return typeof (room.overrides || {})[key] === "string";
+}
+
+function setOverride(room, key, value) {
+  room.overrides = room.overrides || {};
+  room.overrides[key] = String(value == null ? "" : value).slice(0, 12);
+}
+
+function clearOverride(room, key) {
+  if (room.overrides) delete room.overrides[key];
 }
 
 function findMemory(room, id) {
@@ -784,13 +851,14 @@ function saveSlot(room, n) {
       // 재계산의 기준점도 함께 담습니다 — 로드는 이 값으로 복원됩니다(§5-1)
       affectionBase: room.affectionBase || 0,
       affectionBaseTurn: room.affectionBaseTurn || 0,
-      temperature: stageOf(room.affection).temp,
-      nickname: (room.profile && room.profile.nickname) || "",
+      temperature: stateValue(room, "temp"),
+      nickname: stateValue(room, "nickname"),
       profile: deepCopy(room.profile),
       memories: deepCopy(room.memories || []),        // 표시 확인용 사본
-      // 복원의 근거는 유저가 손댄 둘입니다 — 목록 자체는 기록에서 다시 세웁니다
+      // 복원의 근거는 유저가 정한 값들입니다 — 목록 자체는 기록에서 다시 세웁니다
       pins: deepCopy(room.pins || {}),
       forgotten: deepCopy(room.forgotten || []),
+      overrides: deepCopy(room.overrides || {}),
       seedPath: { seed: VN.seed, turn: room.turn }
     }
   };
@@ -803,6 +871,7 @@ function applySnapshot(room, snap) {
   room.messages = deepCopy(snap.room.messages);
   room.pins = deepCopy(snap.room.pins || {});
   room.forgotten = deepCopy(snap.room.forgotten || []);
+  room.overrides = deepCopy(snap.room.overrides || {});
   room.profile = deepCopy(snap.room.profile);
   room.affectionBase = snap.room.affectionBase || 0;
   room.affectionBaseTurn = snap.room.affectionBaseTurn || 0;
@@ -825,9 +894,10 @@ function loadSlotToNewRoom(room, n) {
   return cloneRoomFrom(room, {
     profile: snap.room.profile,
     messages: snap.room.messages,
-    // 핀·삭제도 스냅샷의 일부입니다 — 빼면 지운 기억이 새 방에서 되살아납니다
+    // 유저가 정한 값도 스냅샷의 일부입니다 — 빼면 지운 기억이 새 방에서 되살아납니다
     pins: snap.room.pins,
     forgotten: snap.room.forgotten,
+    overrides: snap.room.overrides,
     affectionBase: snap.room.affectionBase || 0,
     affectionBaseTurn: snap.room.affectionBaseTurn || 0
   });
@@ -871,12 +941,14 @@ function roomMessageCount(room) {
 
 /* 응답문의 페르소나 슬롯을 채웁니다 — 준수율 계측이 붙잡는 지점입니다 */
 function fillSlots(text, room) {
-  // 방에 고정된 프로필로 채웁니다 — 계정의 프로필 목록이 바뀌어도 이 방은 그대로입니다
+  // 방에 고정된 프로필로 채웁니다 — 계정의 프로필 목록이 바뀌어도 이 방은 그대로입니다.
+  // 호칭은 유저가 고정해 두었으면 그 값이 이깁니다 (system-spec §7-2)
   const p = room.profile || {};
   const c = findCharacter(room.charId);
+  const nick = stateValue(room, "nickname") || p.name || "당신";
   return String(text)
     .replace(/\{userName\}/g, p.name || "당신")
-    .replace(/\{nickname\}/g, p.nickname || p.name || "당신")
+    .replace(/\{nickname\}/g, nick)
     .replace(/\{charName\}/g, c ? c.name : "");
 }
 
@@ -945,6 +1017,10 @@ window.__VN__ = {
           // 기억과 단기 맥락 창 — 창 경계는 화면만으로 대조하기 어려워 여기서도 냅니다
           memories: r.memories || [],
           forgotten: r.forgotten || [],
+          // 고정한 상태 값 — 표시가 자동 계산을 따르지 않는 이유가 여기 있습니다
+          overrides: r.overrides || {},
+          temp: stateValue(r, "temp"),
+          nickname: stateValue(r, "nickname"),
           context: contextRange(r)
         } : null;
       })(),

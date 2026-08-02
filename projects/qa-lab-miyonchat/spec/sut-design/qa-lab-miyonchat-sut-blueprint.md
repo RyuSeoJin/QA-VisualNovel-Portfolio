@@ -179,7 +179,10 @@ g(전역 셸) · t1(테스트 콘솔).
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
 | ✅ `p2-event` | 지금 장면과 구간(`첫날 밤 (21~33턴)`) — 간략화가 언제 오는지를 읽는 자리 |
 | ✅ `p2-context` | 단기 맥락 창 안내 — 창 길이와 지금 창에 든 구간(`19~28턴`) |
-| ✅ `p2-memories` · `p2-memory-{id}` · `-text` · `-turn` · `-pin` · `-delete` · `p2-memory-empty` | 기억 목록 · 항목 · 내용(고정이면 📌) · 알게 된 턴·장면·요점 여부 · 고정 토글 · 삭제 · 빈 상태 |
+| ✅ `p2-memories` · `p2-memory-{id}` · `-text` · `-turn` · `-pin` · `-delete` · `p2-memory-empty` | 기억 목록 · 항목 · 내용(고정이면 📌) · 알게 된 턴·장면·요점 여부·출처 · 고정 토글 · 삭제 · 빈 상태. 유저가 등록한 항목의 id는 `u{턴}-{화자}` |
+| ✅ `p2-fixables` · `p2-{temp\|nickname}-row` · `-input` · `-fix` · `-state` | 상태 값 고정 — 항목 행 · 값 입력(12자) · 고정/해제 · 「고정 중」 또는 「자동 {값}」 |
+| ✅ `p2-fix-help` | 관계 단계·호감도를 고정할 수 없는 이유 안내 |
+| ✅ `s4-msg-{n}-{화자}-remember` | 「기억하기」 — 모든 메시지에 붙습니다(과거 턴 포함) |
 | ✅ `p2-forgotten` | 지운 기억 안내 — 이후 응답이 그 내용을 참조하지 않음을 화면에서 읽는 자리 |
 | ✅ `p3-panel` · `p3-close` · `p3-wallet-free` · `p3-wallet-paid` · `p3-help` | 재화 패널 · 닫기 · 잔액 2종 · 요율 안내 |
 | ✅ `p3-charge-ok` · `p3-charge-fail` | 충전 mock 성공/실패 |

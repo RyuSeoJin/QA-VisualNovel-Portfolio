@@ -302,6 +302,26 @@ button { font-family: inherit; cursor: pointer; }
   padding: 3px 8px; border-radius: 6px; font-size: 11px;
   background: #24242e; border: 1px solid #3b3b47; color: inherit;
 }
+.msg-actions .mini.on { border-color: #6d5fd0; color: #cfcfe0; }
+
+/* P2 현재 상태 값 고정 — 고정 중임이 한눈에 보여야 합니다 (system-spec §7-2) */
+.fix-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 6px; }
+.fix-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border-radius: 8px; background: #1c1c24; border: 1px solid #2c2c34;
+}
+.fix-row.on { border-color: #6d5fd0; }
+.fix-label { font-size: 12px; color: #9a9aa8; width: 64px; flex: none; }
+.fix-input {
+  flex: 1 1 auto; min-width: 0; padding: 5px 8px; border-radius: 6px; font-size: 13px;
+  background: #14141c; border: 1px solid #3b3b47; color: inherit;
+}
+.fix-row .mini {
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; flex: none;
+  background: #24242e; border: 1px solid #3b3b47; color: inherit;
+}
+.fix-row .mini.primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+.fix-state { font-size: 11px; color: #7a7a88; flex: none; }
 
 .chat-choices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .chat-choices .choice {
@@ -656,3 +676,6 @@ textarea.f-input { resize: vertical; line-height: 1.6; }
 .t1-table { margin-bottom: 12px; }
 .t1-table label { display: block; font-size: 12px; color: #8b8b96; margin-bottom: 4px; }
 .t1-block .hint { color: #8b8b96; font-size: 11px; margin: 0 0 8px; }
+
+/* 검증 범위 안내 — 결함으로 오인되기 쉬운 지점에 둡니다 (system-spec §7-2) */
+.hint.scope { border-left: 2px solid #3b3b47; padding-left: 8px; color: #8a8a98; }

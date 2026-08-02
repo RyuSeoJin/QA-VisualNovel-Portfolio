@@ -49,6 +49,7 @@
     ],
     "pins": { "m3": true },
     "forgotten": ["m2"],
+    "overrides": { "nickname": "너" },
     "seedPath": { "seed": 42, "turn": 12 }
   }
 }
@@ -65,7 +66,9 @@
 | `room.affection` | 저장 시점의 호감도 표시값. **복원의 근거는 아래 기준점**입니다 |
 | `room.affectionBase` · `affectionBaseTurn` | 재계산의 기준점. 로드는 이 둘을 되돌린 뒤 재계산을 통과시킵니다 — 호감도를 그대로 얹으면 다음 재계산이 기록만 보고 그 값을 지웁니다(system-spec §5-1) |
 | `room.memories` | 표시 확인용 사본입니다. 목록은 대화 기록에서 다시 세우므로 **복원의 근거는 아래 둘**입니다(system-spec §7-1) |
-| `room.pins` · `room.forgotten` | 유저가 정한 것 — 핀은 그 항목을 간략화에서 빼고, `forgotten`은 이후 응답이 그 기억을 참조하지 못하게 합니다. **로드 두 갈래 모두 이 값을 복원합니다** — 새 방으로 로드했을 때만 지운 기억이 되살아나면 실패입니다 |
+| `room.pins` · `room.forgotten` · `room.overrides` | 유저가 정한 것 — 고정은 그 항목을 간략화에서 빼고, `forgotten`은 이후 응답이 그 기억을 참조하지 못하게 하며, `overrides`는 현재 상태 값(감정 온도·호칭)을 자동 계산보다 우선시킵니다. **로드 두 갈래 모두 이 값을 복원합니다** — 새 방으로 로드했을 때만 지운 기억이 되살아나면 실패입니다 |
+| `room.messages[].userMemory` | 유저가 기억으로 등록한 메시지 표시. 목록은 이 표시에서 파생되므로 되돌림으로 메시지가 사라지면 기억도 사라집니다 |
+| `room.temperature` · `room.nickname` | **실제로 쓰이는 값**(고정돼 있으면 고정값)의 사본입니다. 복원의 근거는 `overrides`입니다 |
 | `room.profile` | 그 방에 고정된 대화 프로필의 사본 — 계정의 프로필 목록이 바뀌어도 방은 저장된 값으로 답합니다 |
 | `room.seedPath` | mock 경로 위치 — 로드 후 같은 시드 흐름이 이어지는 근거 |
 
