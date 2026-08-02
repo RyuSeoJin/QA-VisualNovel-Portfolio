@@ -145,7 +145,9 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s2-card-{id}` / `s2-card-{id}-blur` / `-like` / `-scrap` | 캐릭터 카드 / 블러 표식 / 토글 |
 | ✅ `s2-detail` · `s2-detail-close` · `s2-detail-locked` | 카드 상세 · 닫기 · 언세이프 열람 제한 안내 |
 | ✅ `s2-detail-tags` · `s2-detail-first` · `s2-detail-scenario` · `s2-detail-start` | 태그 · 첫 메시지 전문 · 시나리오 선택 · 시작 |
-| `s3-name` · `s3-desc` · `s3-save` | 페르소나 폼 |
+| ✅ `s3-screen` · `s3-name` · `s3-nickname` · `s3-gender` · `s3-desc` · `s3-save` | 페르소나 폼 |
+| ✅ `s3-{항목}-count` · `s3-start-note` | 글자수 카운터(`현재/상한`) · 넘어온 시작점 안내 |
+| ✅ `s4-todo` · `s4-start-info` | S4 자리표시자 · 인계된 시작점과 페르소나 |
 | `s4-input` · `s4-send` · `s4-choice-{n}` | 입력창·전송·고정 선택지 |
 | `s4-msg-{n}` + `-edit` / `-delete` / `-regen` / `-branch` | 메시지와 메시지 액션 |
 | `s5-room-{id}` / `-count` | 채팅 탭 방 목록 / 방별 대화수 |

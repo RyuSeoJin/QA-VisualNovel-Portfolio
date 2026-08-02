@@ -10,6 +10,7 @@ function el(tag, attrs, children) {
     else if (k === "onclick") node.addEventListener("click", attrs[k]);
     else if (k === "onchange") node.addEventListener("change", attrs[k]);
     else if (k === "onkeydown") node.addEventListener("keydown", attrs[k]);
+    else if (k === "oninput") node.addEventListener("input", attrs[k]);
     else node.setAttribute(k, attrs[k]);
   }
   (children || []).forEach((c) => c && node.appendChild(c));
@@ -484,6 +485,116 @@ function renderS2() {
   const target = VN.detailId ? findCharacter(VN.detailId) : null;
   return el("section", { class: "screen s2", "data-testid": "s2-screen" },
     [chips, body, target ? renderS2Detail(target) : null]);
+}
+
+/* ── S3 페르소나 설정 ───────────────────────────────────────
+ * 상한은 입력을 막아서 지킵니다(maxlength) — 명세가 "잘리거나 입력이 막힌다"로 둘 다
+ * 허용하므로, 경계에서 무엇이 일어나는지가 하나로 정해지는 쪽을 골랐습니다(system-spec §2).
+ *
+ * 입력할 때마다 화면을 다시 그리면 커서가 튀므로, 카운터와 저장 버튼만 직접 손봅니다.
+ */
+const PERSONA_LIMITS = { name: 12, nickname: 12, desc: 1000 };
+
+/* 성별은 명세에 값이 없어 표시용 선택지만 둡니다 — mock 응답이 읽지 않습니다 */
+const PERSONA_GENDERS = ["설정 안 함", "여성", "남성"];
+
+function personaField(key, label, value, opts) {
+  opts = opts || {};
+  const limit = PERSONA_LIMITS[key];
+  const count = el("span", {
+    class: "count", "data-testid": "s3-" + key + "-count",
+    text: value.length + "/" + limit
+  });
+  const input = el(opts.multiline ? "textarea" : "input", {
+    class: "f-input", "data-testid": "s3-" + key, maxlength: String(limit),
+    rows: opts.multiline ? "6" : null, type: opts.multiline ? null : "text",
+    placeholder: opts.placeholder || "",
+    oninput: (e) => {
+      // maxlength는 사람이 칠 때만 걸립니다. 붙여넣기나 자동화의 값 주입은 그대로 들어오므로
+      // 여기서 한 번 더 잘라야 경계가 두 경로에서 같게 지켜집니다(system-spec §2)
+      if (e.target.value.length > limit) e.target.value = e.target.value.slice(0, limit);
+      count.textContent = e.target.value.length + "/" + limit;
+      syncPersonaSave();
+    }
+  });
+  input.value = value;
+  return el("div", { class: "field" }, [
+    el("div", { class: "field-head" }, [
+      el("label", { text: label + (opts.required ? " (필수)" : "") }), count
+    ]),
+    input
+  ]);
+}
+
+/* 필수값이 비면 저장을 막습니다 — 빈 값 검증 (system-spec §2) */
+function syncPersonaSave() {
+  const name = document.querySelector('[data-testid="s3-name"]');
+  const save = document.querySelector('[data-testid="s3-save"]');
+  if (!name || !save) return;
+  save.disabled = !name.value.trim();
+}
+
+function renderS3() {
+  const acc = currentAccount();
+  const p = (acc && acc.persona) || { name: "", nickname: "", gender: "", desc: "" };
+  const gender = el("select", { class: "f-input", "data-testid": "s3-gender" },
+    PERSONA_GENDERS.map((g) => el("option", { value: g, text: g })));
+  gender.value = p.gender || PERSONA_GENDERS[0];
+
+  const kids = [
+    el("h2", { class: "screen-title", text: "페르소나 설정" }),
+    el("p", { class: "lede-sm", text: "대화에서 캐릭터가 나를 어떻게 부르고 대할지 정합니다." })
+  ];
+
+  // 카드 상세에서 시작을 눌러 넘어왔다면 무엇을 시작하려는 중인지 화면에 남깁니다
+  if (VN.pendingStart) {
+    const c = findCharacter(VN.pendingStart.charId);
+    const sc = c && (c.scenarios || []).find((s) => s.id === VN.pendingStart.scenarioId);
+    kids.push(el("p", {
+      class: "start-note", "data-testid": "s3-start-note",
+      text: "저장하면 " + (c ? c.name : VN.pendingStart.charId) + " · "
+        + (sc ? sc.label : VN.pendingStart.scenarioId) + " 시작점으로 대화를 시작합니다."
+    }));
+  }
+
+  kids.push(personaField("name", "이름", p.name, { required: true, placeholder: "대화에서 쓸 내 이름" }));
+  kids.push(personaField("nickname", "호칭", p.nickname, { placeholder: "캐릭터가 나를 부르는 말" }));
+  kids.push(el("div", { class: "field" }, [
+    el("div", { class: "field-head" }, [el("label", { text: "성별" })]), gender
+  ]));
+  kids.push(personaField("desc", "자유 설명", p.desc,
+    { multiline: true, placeholder: "성격·취향·관계 설정 등" }));
+
+  const save = el("button", {
+    class: "primary-btn", "data-testid": "s3-save", text: "저장",
+    onclick: () => savePersona()
+  });
+  save.disabled = !p.name.trim();
+  kids.push(save);
+
+  return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
+}
+
+/* S4는 다음 슬라이스입니다. 지금은 S3에서 무엇을 들고 넘어왔는지만 보여 줘서
+ * 시작점과 페르소나가 화면 사이를 제대로 건너오는지 지금 확인할 수 있게 합니다. */
+function renderS4Todo() {
+  const acc = currentAccount();
+  const kids = [
+    el("h2", { class: "screen-title", text: "대화" }),
+    el("p", { class: "lede-sm", text: "다음 구현 단위입니다." })
+  ];
+  if (VN.pendingStart) {
+    const c = findCharacter(VN.pendingStart.charId);
+    const sc = c && (c.scenarios || []).find((s) => s.id === VN.pendingStart.scenarioId);
+    const p = acc && acc.persona;
+    kids.push(el("p", {
+      class: "start-note", "data-testid": "s4-start-info",
+      text: "시작점 " + (c ? c.name : VN.pendingStart.charId) + " · "
+        + (sc ? sc.label : VN.pendingStart.scenarioId)
+        + " / 페르소나 " + (p ? p.name + (p.nickname ? "(" + p.nickname + ")" : "") : "없음")
+    }));
+  }
+  return el("section", { class: "screen todo", "data-testid": "s4-todo" }, kids);
 }
 
 function renderPlaceholder(key, label) {

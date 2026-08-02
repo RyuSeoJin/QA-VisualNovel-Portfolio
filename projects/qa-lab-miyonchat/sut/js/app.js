@@ -145,6 +145,31 @@ function toggleCardFlag(kind, id) {
   render();
 }
 
+/* 페르소나 저장 — 이름이 비면 저장 버튼이 눌리지 않지만, 값 검증은 여기서도 한 번 더 봅니다.
+ * 카드 상세에서 시작을 눌러 온 길이면 저장 직후 그 시작점으로 대화를 엽니다. */
+function savePersona() {
+  const acc = currentAccount();
+  if (!acc) return;
+  // 상한은 입력 단계에서 지켜지지만, 저장 경로에서도 잘라 두면 화면을 거치지 않은 값이
+  // 들어와도 계정 스코프에 상한을 넘는 값이 남지 않습니다
+  const val = (t, limit) => {
+    const e = document.querySelector('[data-testid="' + t + '"]');
+    const v = e ? e.value.trim() : "";
+    return limit ? v.slice(0, limit) : v;
+  };
+  const name = val("s3-name", PERSONA_LIMITS.name);
+  if (!name) return;
+  acc.persona = {
+    name: name,
+    nickname: val("s3-nickname", PERSONA_LIMITS.nickname),
+    gender: val("s3-gender"),
+    desc: val("s3-desc", PERSONA_LIMITS.desc)
+  };
+  toast("페르소나를 저장했습니다.");
+  if (VN.pendingStart) go("s4");
+  else render();
+}
+
 /* 시나리오 선택 시작 — 대화 개시는 페르소나 설정(S3)을 거칩니다(청사진 §1 화면 맵).
  * 미로그인이면 시작점을 남기지 않고 모달을 띄웠다가, 로그인하면 여기서부터 다시 탑니다.
  * 고른 시작점은 S4 슬라이스가 읽습니다. */
@@ -159,6 +184,8 @@ function screenBody() {
   switch (VN.screen) {
     case "s1": return renderS1();
     case "s2": return renderS2();
+    case "s3": return renderS3();
+    case "s4": return renderS4Todo();
     case "s5": return renderPlaceholder("s5", "채팅");
     case "s6": return renderPlaceholder("s6", "MY");
     case "s7": return renderStub("s7", "커뮤니티는 전시용 정적 화면입니다. 소셜 기능은 별도 앱 규모라 구현 범위에서 제외했습니다.");
