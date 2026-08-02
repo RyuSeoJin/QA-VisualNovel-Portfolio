@@ -244,6 +244,22 @@ button { font-family: inherit; cursor: pointer; }
 .msg.fail .bubble { background: #3b2b2b; border-color: #6b4040; color: #f0a3a3; }
 .msg.typing .bubble::after { content: "▌"; color: #6d5fd0; }
 
+.chat-choices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.chat-choices .choice {
+  padding: 10px 12px; border-radius: 8px; text-align: left; font-size: 13px;
+  background: #24242e; border: 1px solid #3b3b47; color: inherit;
+}
+.chat-choices .choice:hover { border-color: #6d5fd0; }
+.ending-card {
+  margin-top: 12px; padding: 14px; border-radius: 10px;
+  background: #1d1a2e; border: 1px solid #6d5fd0;
+}
+.ending-kind { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #d6cffb; }
+.ending-note { margin: 4px 0 0; font-size: 12px; color: #8b8b96; }
+.p2-list { margin: 16px 0; }
+.p2-list dt { padding-top: 12px; border-top: 1px solid #2c2c34; font-size: 11px; color: #6b6b76; }
+.p2-list dd { margin: 5px 0 12px; font-size: 14px; font-weight: 700; }
+
 .chat-foot {
   flex: none; padding: 10px 14px 14px; background: #1c1c24; border-top: 1px solid #2c2c34;
 }

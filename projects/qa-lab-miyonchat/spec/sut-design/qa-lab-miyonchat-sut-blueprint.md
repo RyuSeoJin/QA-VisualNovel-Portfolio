@@ -157,12 +157,18 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `p5-panel` · `p5-close` · `p5-profile-{id}` · `p5-empty` · `p5-count` · `p5-limit` | 대화 프로필 패널 · 닫기 · 프로필 항목 · 빈 상태 · 사용 개수 · 한도 안내 |
 | ✅ `p5-name` · `p5-nickname` · `p5-gender` · `p5-desc` · `p5-label` · `p5-{항목}-count` · `p5-random` · `p5-save` | 추가 폼 — 항목·글자수 카운터·랜덤 완성·추가 |
 | ✅ `s4-todo` · `s4-start-info` | S4 자리표시자 · 인계된 시작점과 페르소나 |
-| `s4-input` · `s4-send` · `s4-choice-{n}` | 입력창·전송·고정 선택지 |
+| ✅ `s4-screen` · `s4-back` · `s4-char` · `s4-scenario` · `s4-log` | 대화 화면 — 뒤로 · 캐릭터명 · 시작 상황/세트/시드 · 메시지 목록 |
+| ✅ `s4-input` · `s4-input-count` · `s4-send` · `s4-streaming` | 입력창(500자)·글자수·전송·표시 중 표식 |
+| ✅ `s4-choices` · `s4-choice-{n}` | 고정 선택지 영역 · 선택지(가중치는 mock 세트) |
+| ✅ `s4-ending` · `s4-ending-kind` · `s4-ended` | 엔딩 카드 · 엔딩 종류(굿·노멀·배드) · 경로 종점 안내 |
+| ✅ `s4-state` · `s4-wallet` | S4 헤더의 현재 상태(→P2) · 잔액(→P3) |
+| ✅ `p2-panel` · `p2-close` · `p2-list` · `p2-stage` · `p2-affection` · `p2-temp` · `p2-nickname` | 현재 상태 패널 — 관계 단계·호감도·감정 온도·호칭 |
+| ✅ `p2-help` · `p2-help-body` | 규칙성 화면의 ⓘ — 단계 구간표 |
 | `s4-msg-{n}` + `-edit` / `-delete` / `-regen` / `-branch` | 메시지와 메시지 액션 |
 | `s5-room-{id}` / `-count` | 채팅 탭 방 목록 / 방별 대화수 |
 | `s6-logout` · `s6-activity-like` · `s6-activity-scrap` · `s6-safety-toggle` | MY 로그아웃·활동 목록·세이프티 필터 |
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
-| `p2-stage` · `p2-pin-{항목}` · `p2-memory-{n}-delete` | 현재 상태·핀·기억 삭제 |
+| `p2-pin-{항목}` · `p2-memory-{n}-delete` | 핀·기억 삭제 (메모리 슬라이스) |
 | ✅ `p3-panel` · `p3-close` · `p3-wallet-free` · `p3-wallet-paid` · `p3-help` | 재화 패널 · 닫기 · 잔액 2종 · 요율 안내 |
 | ✅ `p3-charge-ok` · `p3-charge-fail` | 충전 mock 성공/실패 |
 | ✅ `p3-ledger` · `p4-ledger` (+ `-row-{id}` · `-ledger-empty` · `-filter-{구분}`) | 내역 목록·항목·빈 상태·필터(`all`·`gain`·`spend`). P3와 P4가 같은 데이터를 같은 뷰로 봅니다 |
@@ -189,6 +195,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `t1-raw-toggle` · `t1-table-{테이블}` · `t1-table-{테이블}-apply` | 원본 편집 접기 · JSON · 초안에 넣기 |
 | ✅ `t1-fail-next` · `t1-show-metrics` | 다음 응답 생성 실패 스위치(1회성) · 카드 지표 표시 토글 |
 | ✅ `t1-wallet-free` · `t1-wallet-paid` · `t1-wallet-locked` | 잔액 설정(계정 스코프) · 미로그인 안내 |
+| ✅ `t1-affection` · `t1-room-state` · `t1-room-none` | 호감도 설정(방 스코프) · 방 상태 · 방 없음 안내 |
 | ✅ `t1-save` · `t1-confirm` · `t1-confirm-list` · `t1-confirm-ok` · `t1-confirm-cancel` | 저장(변경 없으면 비활성) · 재확인 팝업 · 변경 목록 · 반영 · 취소 |
 | ✅ `t1-reset` · `t1-refresh` · `t1-close` | 전체 초기화 · 현재 화면 새로고침(저장된 값 기준) · 닫기(초안 폐기) |
 
@@ -291,6 +298,7 @@ JSON 편집은 폼으로 만들 수 없는 이상 데이터(형식 위반·극�
 | 캐릭터 전체 비우기 | 버튼 | 빈 상태 문구 |
 | 잔액 설정 | 캔디·크리스탈 입력(로그인 상태에서만) | **잔액 0·부족 경계** — 전송 차단과 혼합 차감을 만드는 자리입니다 |
 | 카드 지표 표시 | 토글 | 카드에서 **정렬 근거**를 눈으로 확인 — 서비스 화면은 지표 없이 두고 검증할 때만 켭니다 |
+| 호감도 설정 | 열려 있는 대화방에 값 지정 | **관계 단계 임계**(19/20·59/60·119/120)와 **엔딩 판정 경계** — 자연 누적으로는 수십 턴이 필요합니다 |
 | 다음 응답 생성 실패 | 1회성 스위치 — 켜 두면 다음 전송 한 번만 실패합니다 | **생성 실패 시 재화 미차감**. mock 세트의 `fail` 후보로도 나지만(시드·턴 고정) 사람이 확인할 때마다 여러 턴을 걸어가야 해서 둡니다 |
 | 알림 1건 발송 | 버튼 | 알림 목록 표시 반영 |
 | 계정 속성 | 팔로워·팔로잉 입력 | MY 표시 반영 |

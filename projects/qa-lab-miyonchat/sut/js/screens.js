@@ -312,6 +312,55 @@ function renderLedger(prefix) {
   ]);
 }
 
+/* ── P2 현재 상태 ─────────────────────────
+ * 관계 단계·호감도·감정 온도·호칭을 보여 줍니다. 규칙성 화면이라 ⓘ에 단계표를 답니다.
+ */
+function renderP2() {
+  const room = activeRoom();
+  if (!room) {
+    return el("div", { class: "panel-wrap", "data-testid": "p2-panel" }, [
+      el("div", { class: "panel" }, [
+        el("div", { class: "panel-head" }, [
+          el("h2", { text: "현재 상태" }),
+          el("button", { class: "panel-close", "data-testid": "p2-close", text: "✕",
+            onclick: () => closePanel() })
+        ]),
+        el("p", { class: "empty", text: "열려 있는 대화방이 없습니다." })
+      ])
+    ]);
+  }
+  const stage = stageOf(room.affection);
+  const rows = [
+    ["관계 단계", stage.name, "p2-stage"],
+    ["호감도", String(room.affection), "p2-affection"],
+    ["감정 온도", stage.temp, "p2-temp"],
+    ["호칭", (room.profile && room.profile.nickname) || "-", "p2-nickname"]
+  ];
+  const kids = [
+    el("div", { class: "panel-head" }, [
+      el("h2", { text: "현재 상태" }),
+      el("button", { class: "panel-close", "data-testid": "p2-close", text: "✕",
+        onclick: () => closePanel() })
+    ]),
+    el("dl", { class: "p2-list", "data-testid": "p2-list" },
+      rows.reduce((acc, [k, v, id]) => acc.concat([
+        el("dt", { text: k }), el("dd", { "data-testid": id, text: v })
+      ]), [])),
+    el("button", {
+      class: "help", "data-testid": "p2-help", text: "ⓘ 단계 기준",
+      onclick: () => { VN.p2Help = !VN.p2Help; render(); }
+    })
+  ];
+  if (VN.p2Help) {
+    kids.push(el("p", { class: "help-body", "data-testid": "p2-help-body",
+      text: STAGES.map((x) => x.name + " " + x.from + (x.to === Infinity ? "+" : "~" + x.to)).join(" · ")
+        + " · 호감도 하한은 0이며 상한은 없습니다." }));
+  }
+  return el("div", { class: "panel-wrap", "data-testid": "p2-panel" }, [
+    el("div", { class: "panel" }, kids)
+  ]);
+}
+
 function renderP3() {
   const acc = currentAccount();
   return el("div", { class: "panel-wrap", "data-testid": "p3-panel" }, [
@@ -342,6 +391,7 @@ function renderP3() {
 }
 
 function renderPanel() {
+  if (VN.panel === "p2") return renderP2();
   if (VN.panel === "p3") return renderP3();
   if (VN.panel === "p4") return renderP4();
   if (VN.panel === "p5") return renderP5();
@@ -845,9 +895,21 @@ function renderS4() {
     class: "primary-btn", "data-testid": "s4-send", text: "전송",
     onclick: () => sendMessage(input.value)
   });
-  send.disabled = chatStreaming || room.ended;
+  send.disabled = chatStreaming || room.ended || !!room.ending;
+
+  // 고정 선택지 — 이번 턴에 제시된 것만 노출됩니다 (system-spec §4-1)
+  const set2 = mockSetFor(room.charId, room.scenarioId);
+  const nextDef = set2.turns[room.turn];
+  const choices = (!room.ending && !room.ended && nextDef && nextDef.choices) ? nextDef.choices : [];
 
   const foot = [
+    choices.length
+      ? el("div", { class: "chat-choices", "data-testid": "s4-choices" },
+          choices.map((ch, i) => el("button", {
+            class: "choice", "data-testid": "s4-choice-" + (i + 1),
+            text: ch.label, onclick: () => pickChoice(ch.label, ch.delta)
+          })))
+      : null,
     el("div", { class: "chat-foot-head" }, [
       el("span", { class: "count", "data-testid": "s4-input-count", text: "0/" + CHAT_INPUT_MAX }),
       chatStreaming
@@ -856,10 +918,17 @@ function renderS4() {
     ].filter(Boolean)),
     el("div", { class: "chat-send" }, [input, send])
   ];
-  if (room.ended) {
+  if (room.ending) {
+    foot.push(el("div", { class: "ending-card", "data-testid": "s4-ending" }, [
+      el("p", { class: "ending-kind", "data-testid": "s4-ending-kind", text: room.ending + " 엔딩" }),
+      el("p", { class: "ending-note",
+        text: "호감도 " + room.affection + " · 단계 " + stageOf(room.affection).name }),
+      el("p", { class: "ending-note", text: "엔딩에 도달해 이 방에서는 더 이상 전송할 수 없습니다." })
+    ]));
+  } else if (room.ended) {
     foot.push(el("p", {
       class: "chat-end", "data-testid": "s4-ended",
-      text: "이 경로의 마지막 턴까지 왔습니다. 엔딩 판정은 다음 구현 단위에서 붙습니다."
+      text: "이 경로의 마지막 턴까지 왔습니다."
     }));
   }
 
@@ -875,6 +944,10 @@ function renderS4() {
             + " · 시드 " + VN.seed
         })
       ]),
+      el("button", {
+        class: "icon", "data-testid": "s4-state", text: "현재 상태",
+        onclick: () => openPanel("p2")
+      }),
       el("button", {
         class: "icon", "data-testid": "s4-wallet",
         text: "캔디 " + (currentAccount() ? currentAccount().wallet.free : 0)

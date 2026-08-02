@@ -221,9 +221,9 @@ let chatStreaming = false;
 let STREAM_TICK_MS = 12;
 let STREAM_CHARS = 3;
 
-function sendMessage(text) {
+function sendMessage(text, choiceDelta) {
   const room = activeRoom();
-  if (!room || room.ended || chatStreaming) return;
+  if (!room || room.ended || room.ending || chatStreaming) return;
   const t = (text || "").trim().slice(0, CHAT_INPUT_MAX);
   if (!t) return;
 
@@ -266,7 +266,10 @@ function sendMessage(text) {
   }
 
   room.turn += 1;
-  room.messages.push({ role: "user", text: t, turn: room.turn, done: true });
+  room.messages.push({
+    role: "user", text: t, turn: room.turn, done: true,
+    delta: typeof choiceDelta === "number" ? choiceDelta : 0
+  });
   const msg = {
     role: "ai", turn: room.turn, done: false, fail: false,
     text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0
@@ -290,7 +293,7 @@ function streamMessage(room, msg) {
       clearInterval(timer);
       msg.done = true;
       chatStreaming = false;
-      if (room.turn >= mockSetFor(room.charId, room.scenarioId).endTurn) room.ended = true;
+      applyTurnState(room, msg);
       render();
     }
   }, STREAM_TICK_MS);
@@ -328,6 +331,30 @@ function chargeMock(ok) {
   ledgerAdd(acc, "paid", CHARGE_AMOUNT, "충전");
   toast("크리스탈 " + CHARGE_AMOUNT + "개를 충전했습니다.");
   render();
+}
+
+/* 표시가 끝난 뒤에 상태를 반영합니다 — 연출 도중에 점수가 오르면 되돌림 검증이 흔들립니다.
+ * 호감도는 유저 선택지 가중치 + 응답 델타이며 하한은 0입니다 (system-spec §4-1). */
+function applyTurnState(room, msg) {
+  const user = room.messages.find((m) => m.role === "user" && m.turn === msg.turn);
+  const delta = (user && user.delta ? user.delta : 0) + (msg.delta || 0);
+  const before = stageOf(room.affection).name;
+  room.affection = Math.max(0, room.affection + delta);
+  const after = stageOf(room.affection).name;
+  if (after !== before) toast("관계 단계가 「" + after + "」이 되었습니다.");
+
+  // 검사 시점 판정 → 경로 종점 최종 판정 (system-spec §4-2)
+  const hit = endingAtCheckpoint(room);
+  if (hit) { room.ending = hit; return; }
+  if (room.turn >= mockSetFor(room.charId, room.scenarioId).endTurn) {
+    room.ended = true;
+    room.ending = endingAtPathEnd(room);
+  }
+}
+
+/* 고정 선택지 — 라벨이 그대로 유저 메시지가 되고 가중치가 그 턴의 기여분이 됩니다 */
+function pickChoice(label, delta) {
+  sendMessage(label, delta);
 }
 
 /* 대화 화면을 나가면 그 캐릭터 페이지로 돌아옵니다 */

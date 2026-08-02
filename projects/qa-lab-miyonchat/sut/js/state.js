@@ -60,6 +60,7 @@ const VN = {
   noFund: false,        // 재화 부족 안내 화면 (system-spec §3)
   ledgerFilter: "all",  // 재화 내역 필터 — all / gain / spend
   showMetrics: false,   // 카드 지표 표시 — T1에서 켜는 검증용 표시 (청사진 §4-2)
+  p2Help: false,        // P2 단계표 ⓘ 펼침
   seed: 1,
   inject: null
 };
@@ -356,6 +357,44 @@ function spend(acc, cost, reason) {
   return { free: free, paid: paid, rows: rows };
 }
 
+/* ── 서사 (system-spec §4) ────────────────────────────────
+ * 호감도는 0에서 시작하고 하한은 0입니다. 단계는 호감도에서 파생하며 따로 저장하지
+ * 않습니다 — 두 곳에 저장하면 어긋나기 시작합니다(save-schema §2).
+ */
+const STAGES = [
+  { name: "경계", from: 0, to: 19, temp: "서먹함" },
+  { name: "호기심", from: 20, to: 59, temp: "미지근함" },
+  { name: "애착", from: 60, to: 119, temp: "따뜻함" },
+  { name: "운명", from: 120, to: Infinity, temp: "뜨거움" }
+];
+
+function stageOf(affection) {
+  return STAGES.find((s) => affection >= s.from && affection <= s.to) || STAGES[0];
+}
+
+const ENDING_CHECK_FROM = 10;   // 10턴 이후 5턴마다
+const ENDING_CHECK_EVERY = 5;
+const ENDING_GOOD = 120;        // 운명 도달
+const ENDING_BAD_AFFECTION = 20;
+
+/* 검사 시점 판정 — 10·15·20…턴에서만 보며 **호감도만** 봅니다.
+ * 참여율(선택지 응답 비율)은 폐지했습니다 — 원 출처는 실시간 채팅 참여였는데 이 SUT에는
+ * 실시계가 없고, 자유 입력으로도 호감도가 오르는 구조라 "호감도가 높은데 배드"가 되어
+ * 기대값을 설명할 수 없었습니다(2026-08-03 확정). */
+function endingAtCheckpoint(room) {
+  if (room.turn < ENDING_CHECK_FROM) return null;
+  if ((room.turn - ENDING_CHECK_FROM) % ENDING_CHECK_EVERY !== 0) return null;
+  if (room.affection >= ENDING_GOOD) return "굿";
+  return null;
+}
+
+/* 경로 종점 최종 판정 */
+function endingAtPathEnd(room) {
+  if (room.affection >= ENDING_GOOD) return "굿";
+  if (room.affection < ENDING_BAD_AFFECTION) return "배드";
+  return "노멀";
+}
+
 /* ── 미션 (system-spec §3) ─────────────────────────────────
  * 달성 판정 로직은 만들지 않습니다 — 전 항목이 수령 가능 상태로 노출되며, 검증 대상은
  * 수령·중복 차단·잔액 반영입니다. 미구현 사유는 화면에 적습니다.
@@ -453,6 +492,7 @@ function newRoom(charId, scenarioId, firstMessage, profile) {
       ? [{ role: "ai", text: firstMessage, turn: 0, done: true }] : [],
     affection: 0,
     memories: [],
+    ending: null,                            // 도달한 엔딩 — 있으면 입력이 막힙니다
     ended: false,
     active: true
   };
@@ -597,6 +637,7 @@ window.__VN__ = {
         return r ? {
           id: r.id, charId: r.charId, scenarioId: r.scenarioId, turn: r.turn,
           messageCount: roomMessageCount(r), affection: r.affection,
+          stage: stageOf(r.affection).name, ending: r.ending,
           ended: r.ended, streaming: !!chatStreaming
         } : null;
       })(),

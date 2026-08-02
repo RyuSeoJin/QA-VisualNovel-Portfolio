@@ -77,6 +77,11 @@ function snapshotDraft() {
     usage: usage,
     accountStats: deepCopy(VN.sheet.accountStats),
     notifications: deepCopy(VN.sheet.notifications),
+    // 방 스코프 — 임계 경계(단계 전이·엔딩)를 만들려면 호감도를 직접 세울 수 있어야 합니다
+    room: (function () {
+      const r = activeRoom();
+      return r ? { id: r.id, affection: r.affection } : null;
+    })(),
     failNext: !!VN.failNext,
     showMetrics: !!VN.showMetrics
   };
@@ -155,6 +160,11 @@ function describeChanges() {
       out.push("크리스탈 — " + acc0.wallet.paid + " → " + draft.wallet.paid);
     }
   }
+  const room0 = activeRoom();
+  if (room0 && draft.room && room0.affection !== draft.room.affection) {
+    out.push("호감도(" + room0.id + ") — " + room0.affection + " → " + draft.room.affection
+      + " · 단계 " + stageOf(room0.affection).name + " → " + stageOf(draft.room.affection).name);
+  }
   if (!!VN.showMetrics !== !!draft.showMetrics) {
     out.push("카드 지표 표시 — " + (VN.showMetrics ? "켜짐" : "꺼짐")
       + " → " + (draft.showMetrics ? "켜짐" : "꺼짐"));
@@ -223,6 +233,8 @@ function commitDraft() {
     acc.wallet.free = draft.wallet.free;
     acc.wallet.paid = draft.wallet.paid;
   }
+  const room = activeRoom();
+  if (room && draft.room) room.affection = draft.room.affection;
   VN.failNext = !!draft.failNext;
   VN.showMetrics = !!draft.showMetrics;
 
@@ -544,6 +556,22 @@ function renderConsole() {
   }
   const wallet = block("재화 (계정 스코프)", walletKids, walletBadge);
 
+  const roomKids = [
+    el("p", { class: "hint",
+      text: "관계 단계 임계(" + STAGES.map((x) => x.from).join("·")
+        + ")와 엔딩 판정 경계를 만드는 자리입니다. 열려 있는 대화방에 적용됩니다." })
+  ];
+  if (draft.room) {
+    roomKids.push(field("호감도", "t1-affection", draft.room.affection,
+      (v) => { draft.room.affection = Math.max(0, v); }));
+    roomKids.push(el("p", { class: "hint", "data-testid": "t1-room-state",
+      text: draft.room.id + " · 단계 " + stageOf(draft.room.affection).name }));
+  } else {
+    roomKids.push(el("p", { class: "hint", "data-testid": "t1-room-none",
+      text: "열려 있는 대화방이 없습니다. 대화를 시작한 뒤 다시 열어 주세요." }));
+  }
+  const roomBlock = block("대화방 상태 (방 스코프)", roomKids);
+
   // 카드에서 정렬 근거를 확인할 때만 켭니다 — 평소 화면은 서비스 그대로 둡니다
   const metrics = block("카드 지표 표시", [
     el("p", { class: "hint",
@@ -652,7 +680,7 @@ function renderConsole() {
     el("aside", { class: "t1-console", "data-testid": "t1-console" }, [
       el("h2", { text: "디버그 설정" }),
       el("div", { class: "t1-body", "data-testid": "t1-body" }, [
-        notice, switcher, adult, baseDay, wallet, failSwitch, metrics,
+        notice, switcher, adult, baseDay, wallet, roomBlock, failSwitch, metrics,
         renderCharBlock(), noti, account, raw, reset
       ]),
       foot
