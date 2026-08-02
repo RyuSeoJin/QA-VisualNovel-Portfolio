@@ -183,6 +183,15 @@ function canViewUnsafe() {
   return gateState() === "adult";
 }
 
+/* 게이팅 상태의 화면 표기 — MY에서 지금 어느 상태인지 읽히지 않으면 언세이프가 왜
+ * 가려졌는지 판단할 수 없습니다. T1의 STATE_LABEL은 디버그 프리셋 이름이라 따로 둡니다 */
+const GATE_LABEL = {
+  guest: "미로그인",
+  unverified: "본인인증 미진행",
+  adult: "성인 인증 완료",
+  minor: "미성년"
+};
+
 /* 막힌 이유는 상태마다 다릅니다 — 미로그인·미인증은 풀 수단이 있고 미성년은 없습니다 */
 const GATE_NOTICE = {
   guest: "로그인하고 본인인증을 하면 볼 수 있습니다.",

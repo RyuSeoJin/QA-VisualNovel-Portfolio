@@ -202,6 +202,18 @@ function removeChat(roomId) {
   render();
 }
 
+/* 세이프티 필터 — 성인 인증 계정만 켤 수 있습니다 (system-spec §9).
+ * 게이팅과 층이 다릅니다: 필터는 목록에서 아예 숨기고, 게이팅은 가린 채 남깁니다. */
+function toggleSafetyFilter() {
+  const acc = currentAccount();
+  if (!acc || gateState() !== "adult") return;
+  acc.safetyFilter = !acc.safetyFilter;
+  toast(acc.safetyFilter
+    ? "세이프티 필터를 켰습니다. 언세이프 작품이 목록에서 빠집니다."
+    : "세이프티 필터를 껐습니다.");
+  render();
+}
+
 /* 좋아요·스크랩은 보호 동작입니다 — 미로그인이면 토글하지 않고 로그인으로 유도합니다 */
 function toggleCardFlag(kind, id) {
   if (!requireLogin(kind + ":" + id, () => toggleCardFlag(kind, id))) return;
@@ -672,8 +684,8 @@ function screenBody() {
     case "s2": return renderS2();
     case "s3": return renderS3();
     case "s4": return renderS4();
-    case "s5": return renderPlaceholder("s5", "채팅");
-    case "s6": return renderPlaceholder("s6", "MY");
+    case "s5": return renderS5();
+    case "s6": return renderS6();
     case "s7": return renderStub("s7", "커뮤니티는 전시용 정적 화면입니다. 소셜 기능은 별도 앱 규모라 구현 범위에서 제외했습니다.");
     case "s8": return renderStub("s8", "캐릭터 저작은 검증 내용이 페르소나 폼과 중복되어 구현 범위에서 제외했습니다.");
     default: return renderS1();

@@ -177,8 +177,15 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `p1-slots` · `p1-slot-{n}` · `-info` · `-save` · `-load` | 슬롯 목록 · 슬롯 행 · 정보(요약·저장 기준일 / 「비어 있음」) · 저장 · 로드(**빈 슬롯은 비활성**) |
 | ✅ `p1-load-pick` · `-body` · `p1-load-here` · `p1-load-new` · `p1-load-cancel` | 로드 갈래 — 이 방에 덮어쓰기 / 새 방으로(=분기) / 취소 |
 | ✅ `p1-rooms-head` · `p1-rooms` · `p1-room-{id}` | 이 캐릭터의 대화방 수·한도 · 방 목록 · 방 항목(지금 방은 비활성) |
-| `s5-room-{id}` / `-count` | 채팅 탭 방 목록 / 방별 대화수 |
-| `s6-logout` · `s6-activity-like` · `s6-activity-scrap` · `s6-safety-toggle` | MY 로그아웃·활동 목록·세이프티 필터 |
+| ✅ `s5-screen` · `s5-summary` · `s5-empty` · `s5-rooms` | 채팅 탭 — 방 수·대화수 합계 · 빈 상태 · 목록 |
+| ✅ `s5-room-{id}` · `-open` · `-info` · `-count` · `-delete` | 방 항목 · 재진입 · 프로필/단계/턴 · 대화수와 세이브 칸 · 삭제 |
+| ✅ `s6-screen` · `s6-account` · `s6-gate` | MY — 계정 표시명 · 게이팅 상태(미로그인·본인인증 미진행·성인 인증 완료·미성년) |
+| ✅ `s6-stats` · `s6-total-count` · `s6-room-count` · `s6-followers` · `s6-following` | 대화수 합계(= Σ 방 대화수) · 방 수 · 팔로워/팔로잉(시트 값 표시만) |
+| ✅ `s6-wallet` · `s6-missions` | 보유 재화(→P3) · 웰컴 미션(→P4) |
+| ✅ `s6-safety-toggle` · `s6-safety-hidden` | 세이프티 필터 토글 — **성인 인증 계정에만** 노출. 그 외에는 미노출 안내 |
+| ✅ `s6-activity-{like\|scrap}` · `-{id}` · `-empty` | 활동 목록 — 항목을 고르면 캐릭터 페이지로 |
+| ✅ `s6-stubs` · `s6-stub-{library\|notice\|faq\|ask\|settings}` | 제외 영역 진입점 — 누르면 사유를 알립니다 |
+| ✅ `s6-logout` | 로그아웃 |
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
 | ✅ `p2-event` | 지금 장면과 구간(`첫날 밤 (21~33턴)`) — 간략화가 언제 오는지를 읽는 자리 |
 | ✅ `p2-context` | 단기 맥락 창 안내 — 창 길이와 지금 창에 든 구간(`19~28턴`) |

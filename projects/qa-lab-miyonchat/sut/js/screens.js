@@ -1284,6 +1284,144 @@ function renderS4() {
   ]);
 }
 
+/* ── S5 채팅 탭 ────────────────────────────────────────────
+ * 캐릭터 페이지의 방 목록이 **그 캐릭터의 방**만 보여 주는 데 비해, 여기는 **계정의 방
+ * 전부**를 봅니다. 그래서 방·분기가 여러 캐릭터에 걸쳐 있을 때 어디에 무엇이 있는지가
+ * 이 화면에서만 읽힙니다.
+ *
+ * 대화수(유저+AI 턴 합산·첫 메시지 포함)는 이 화면과 S6 합계가 같은 값을 써야 합니다 —
+ * 두 곳에서 따로 세면 「방 카드와 MY 합계가 어긋나는」 결함이 만들어집니다.
+ */
+function renderS5() {
+  const acc = currentAccount();
+  const rooms = acc ? acc.rooms : [];
+  const kids = [
+    el("h2", { class: "screen-title", text: "채팅" }),
+    el("p", { class: "hint", "data-testid": "s5-summary",
+      text: "대화방 " + rooms.length + "개 · 대화수 합계 "
+        + rooms.reduce((n, r) => n + roomMessageCount(r), 0) })
+  ];
+
+  if (!rooms.length) {
+    kids.push(el("p", { class: "empty", "data-testid": "s5-empty",
+      text: "진행 중인 대화가 없습니다. 홈에서 캐릭터를 골라 시작해 주세요." }));
+    return el("section", { class: "screen s5", "data-testid": "s5-screen" }, kids);
+  }
+
+  // 최근에 연 방이 위로 — active가 지금 방입니다
+  const sorted = rooms.slice().sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0));
+  kids.push(el("div", { class: "room-list", "data-testid": "s5-rooms" }, sorted.map((r) => {
+    const c = findCharacter(r.charId);
+    const stage = stageOf(r.affection);
+    return el("div", { class: "s5-room" + (r.active ? " here" : ""), "data-testid": "s5-room-" + r.id }, [
+      el("button", { class: "room-item", "data-testid": "s5-room-" + r.id + "-open",
+        onclick: () => resumeChat(r.id) }, [
+        el("span", { class: "room-name",
+          text: (c ? c.name : r.charId) + " · " + (c ? c.pageTitle : "")
+            + (r.active ? " (지금 방)" : "") }),
+        el("span", { class: "room-sub", "data-testid": "s5-room-" + r.id + "-info",
+          text: (r.profile ? r.profile.name : "프로필 없음")
+            + (r.profile && r.profile.label ? "(" + r.profile.label + ")" : "")
+            + " · " + stage.name + " " + r.affection + " · " + r.turn + "턴"
+            + (r.ending ? " · " + r.ending + " 엔딩" : "") }),
+        el("span", { class: "room-sub", "data-testid": "s5-room-" + r.id + "-count",
+          text: "대화수 " + roomMessageCount(r)
+            + " · 세이브 " + Object.keys(r.slots || {}).length + "/" + SLOT_COUNT })
+      ]),
+      el("button", { class: "mini", "data-testid": "s5-room-" + r.id + "-delete", text: "삭제",
+        onclick: () => removeChat(r.id) })
+    ]);
+  })));
+
+  return el("section", { class: "screen s5", "data-testid": "s5-screen" }, kids);
+}
+
+/* ── S6 MY 탭 ──────────────────────────────────────────────
+ * 여러 영역의 값이 한 화면에 모입니다 — 대화수 합계(대화 세션) · 좋아요/스크랩(탐색) ·
+ * 재화(재화) · 세이프티 필터(게이팅) · 로그아웃(앱 진입/세션). 그래서 이 화면의 검증은
+ * **다른 화면에서 만든 상태가 여기에 그대로 오는가**입니다.
+ */
+function renderS6() {
+  const acc = currentAccount();
+  const rooms = acc.rooms;
+  const total = rooms.reduce((n, r) => n + roomMessageCount(r), 0);
+  const stats = VN.sheet.accountStats || { followers: 0, following: 0 };
+
+  const kids = [
+    el("h2", { class: "screen-title", text: "MY" }),
+    el("div", { class: "my-id" }, [
+      el("span", { class: "avatar lg", text: accountDisplayName(VN.accountId).slice(0, 1) }),
+      el("div", {}, [
+        el("p", { class: "p4-name", "data-testid": "s6-account", text: accountDisplayName(VN.accountId) }),
+        el("p", { class: "p4-adult", "data-testid": "s6-gate", text: GATE_LABEL[gateState()] })
+      ])
+    ]),
+    el("dl", { class: "p2-list", "data-testid": "s6-stats" }, [
+      el("dt", { text: "대화수 합계" }),
+      el("dd", { "data-testid": "s6-total-count", text: String(total) }),
+      el("dt", { text: "대화방" }),
+      el("dd", { "data-testid": "s6-room-count", text: rooms.length + "개" }),
+      // 팔로워·팔로잉은 시트 값의 표시만입니다 — 소셜은 제외 영역이라 동작이 없습니다
+      el("dt", { text: "팔로워" }),
+      el("dd", { "data-testid": "s6-followers", text: String(stats.followers) }),
+      el("dt", { text: "팔로잉" }),
+      el("dd", { "data-testid": "s6-following", text: String(stats.following) })
+    ]),
+    el("button", { class: "p4-my", "data-testid": "s6-wallet",
+      text: "보유 재화 — 캔디 " + acc.wallet.free + " / 크리스탈 " + acc.wallet.paid,
+      onclick: () => openPanel("p3") }),
+    el("button", { class: "p4-my", "data-testid": "s6-missions",
+      text: "웰컴 미션 받기", onclick: () => openPanel("p4") })
+  ];
+
+  /* 세이프티 필터 — 성인 인증 계정에만 노출됩니다. 게이팅과 층이 다릅니다:
+   * 필터는 목록에서 아예 숨기고(존재도 안 보임), 게이팅은 가린 채 남깁니다 (system-spec §9) */
+  if (gateState() === "adult") {
+    const btn = el("button", {
+      class: "p4-my" + (acc.safetyFilter ? " on" : ""), "data-testid": "s6-safety-toggle",
+      text: "세이프티 필터 — " + (acc.safetyFilter ? "켜짐(언세이프 숨김)" : "꺼짐"),
+      onclick: () => toggleSafetyFilter()
+    });
+    kids.push(btn);
+  } else {
+    kids.push(el("p", { class: "hint", "data-testid": "s6-safety-hidden",
+      text: "세이프티 필터는 성인 인증 계정에만 노출됩니다." }));
+  }
+
+  // 활동 목록 — 좋아요·스크랩은 탐색 화면에서 만든 상태가 그대로 와야 합니다
+  const actRow = (label, ids, key) => el("div", { class: "sec" }, [
+    el("h3", { class: "sec-title", text: label + " " + ids.length + "건" }),
+    ids.length
+      ? el("div", { class: "act-list", "data-testid": "s6-activity-" + key },
+          ids.map((id) => {
+            const c = findCharacter(id);
+            return el("button", {
+              class: "act-item", "data-testid": "s6-activity-" + key + "-" + id,
+              text: c ? c.pageTitle + " · " + c.name : id,
+              onclick: () => { VN.pageCharId = id; go("s3"); }
+            });
+          }))
+      : el("p", { class: "empty", "data-testid": "s6-activity-" + key + "-empty", text: "없습니다." })
+  ]);
+  kids.push(actRow("좋아요", acc.likes, "like"));
+  kids.push(actRow("스크랩", acc.scraps, "scrap"));
+
+  // 스텁 진입점 — 제외 영역임을 화면에서 읽히게 둡니다
+  kids.push(el("div", { class: "sec" }, [
+    el("h3", { class: "sec-title", text: "그 외" }),
+    el("div", { class: "stub-links", "data-testid": "s6-stubs" },
+      [["내 서재", "s6-stub-library"], ["공지", "s6-stub-notice"], ["FAQ", "s6-stub-faq"],
+       ["문의", "s6-stub-ask"], ["설정", "s6-stub-settings"]].map(([label, id]) =>
+        el("button", { class: "sub-btn", "data-testid": id, text: label,
+          onclick: () => toast("검증 범위에서 제외한 영역입니다(트리 제외 영역 참조).") })))
+  ]));
+
+  kids.push(el("button", { class: "primary-btn", "data-testid": "s6-logout", text: "로그아웃",
+    onclick: () => { logout(); render(); } }));
+
+  return el("section", { class: "screen s6", "data-testid": "s6-screen" }, kids);
+}
+
 function renderPlaceholder(key, label) {
   return el("section", { class: "screen todo", "data-testid": key + "-todo" }, [
     el("h2", { text: label }),

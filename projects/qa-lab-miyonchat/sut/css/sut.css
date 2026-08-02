@@ -682,3 +682,34 @@ textarea.f-input { resize: vertical; line-height: 1.6; }
 
 /* 필터가 돈 자리를 말풍선 아래에 남깁니다 (system-spec §9-1) */
 .msg-note { font-size: 11px; color: #c58f8f; margin-top: 3px; }
+
+/* ── S5 채팅 탭 ─────────────────────────────
+ * 계정의 방 전부를 봅니다 — 캐릭터·프로필·진행·대화수가 한 줄에서 읽혀야
+ * 「어느 방이 어디까지 갔는가」를 목록에서 판단할 수 있습니다. */
+.s5-room {
+  display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px;
+}
+.s5-room .room-item {
+  flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;
+  padding: 12px; text-align: left; border-radius: 10px;
+  background: #1c1c24; border: 1px solid #2c2c34; color: inherit;
+}
+.s5-room.here .room-item { border-color: #6d5fd0; }
+.s5-room .room-name { font-size: 13px; font-weight: 700; }
+.s5-room .room-sub { font-size: 11px; color: #8b8b96; }
+.s5-room .mini {
+  flex: none; padding: 0 12px; border-radius: 8px; font-size: 12px;
+  background: #24242e; border: 1px solid #3b3b47; color: #9a9aa8;
+}
+
+/* ── S6 MY ─────────────────────────────────
+ * 여러 영역의 값이 모이는 화면이라 블록마다 무엇의 값인지 구분되어야 합니다. */
+.my-id { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+.p4-my.on { border-color: #6d5fd0; color: #d6cffb; }
+.act-list { display: flex; flex-direction: column; gap: 6px; }
+.act-item {
+  padding: 10px 12px; border-radius: 8px; text-align: left; font-size: 13px;
+  background: #1c1c24; border: 1px solid #2c2c34; color: inherit;
+}
+.stub-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.stub-links .sub-btn { flex: none; }
