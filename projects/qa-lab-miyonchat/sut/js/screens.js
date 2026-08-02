@@ -394,12 +394,8 @@ function renderS2Detail(c) {
       text: "19세 이상 콘텐츠입니다. " + GATE_NOTICE[gateState()]
     }));
   } else {
-    const scenarios = c.scenarios || [];
-    const sel = el("select", {
-      class: "d-sel", "data-testid": "s2-detail-scenario",
-      onchange: (e) => { VN.detailScenario = e.target.value; }
-    }, scenarios.map((s) => el("option", { value: s.id, text: s.label })));
-    sel.value = VN.detailScenario || (scenarios[0] ? scenarios[0].id : "");
+    // 시작 상황은 제작자가 정한 것이라 표시만 합니다 — 유저는 고르지 않습니다(system-spec §8-8)
+    const sit = c.startSituation || { id: "sc1", label: "기본 시작점" };
 
     kids.push(el("p", { class: "d-line", text: c.tagline }));
     kids.push(el("p", {
@@ -425,10 +421,11 @@ function renderS2Detail(c) {
       })
     ]));
     kids.push(el("div", { class: "d-start" }, [
-      sel,
+      el("p", { class: "d-situation", "data-testid": "s2-detail-situation",
+        text: "시작 상황 — " + sit.label }),
       el("button", {
-        class: "start", "data-testid": "s2-detail-start", text: "이 시나리오로 시작",
-        onclick: () => startConversation(c.id, sel.value)
+        class: "start", "data-testid": "s2-detail-start", text: "대화 시작",
+        onclick: () => startConversation(c.id, sit.id)
       })
     ]));
   }
@@ -549,11 +546,11 @@ function renderS3() {
   // 카드 상세에서 시작을 눌러 넘어왔다면 무엇을 시작하려는 중인지 화면에 남깁니다
   if (VN.pendingStart) {
     const c = findCharacter(VN.pendingStart.charId);
-    const sc = c && (c.scenarios || []).find((s) => s.id === VN.pendingStart.scenarioId);
+    const sit = c && c.startSituation;
     kids.push(el("p", {
       class: "start-note", "data-testid": "s3-start-note",
       text: "저장하면 " + (c ? c.name : VN.pendingStart.charId) + " · "
-        + (sc ? sc.label : VN.pendingStart.scenarioId) + " 시작점으로 대화를 시작합니다."
+        + (sit ? sit.label : VN.pendingStart.scenarioId) + " 상황으로 대화를 시작합니다."
     }));
   }
 
@@ -575,26 +572,91 @@ function renderS3() {
   return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
 }
 
-/* S4는 다음 슬라이스입니다. 지금은 S3에서 무엇을 들고 넘어왔는지만 보여 줘서
- * 시작점과 페르소나가 화면 사이를 제대로 건너오는지 지금 확인할 수 있게 합니다. */
-function renderS4Todo() {
-  const acc = currentAccount();
-  const kids = [
-    el("h2", { class: "screen-title", text: "대화" }),
-    el("p", { class: "lede-sm", text: "다음 구현 단위입니다." })
+/* ── S4 대화 ────────────────────────────────────────────────
+ * 셸 밖 전체 화면입니다(청사진 §1). 셸이 없으므로 디버그 버튼을 헤더에 단독으로 둡니다.
+ */
+function renderChatMessage(m) {
+  const who = m.role === "ai" ? "ai" : "user";
+  return el("div", {
+    class: "msg " + who + (m.fail ? " fail" : "") + (m.done ? "" : " typing"),
+    "data-testid": "s4-msg-" + m.turn + "-" + who
+  }, [
+    el("div", { class: "bubble" }, [
+      el("span", { class: "bubble-text", text: m.done ? m.text : "" })
+    ])
+  ]);
+}
+
+function renderS4() {
+  const room = activeRoom();
+  const c = room ? findCharacter(room.charId) : null;
+
+  if (!room) {
+    return el("section", { class: "screen chat-empty", "data-testid": "s4-noroom" }, [
+      el("h2", { class: "screen-title", text: "대화" }),
+      el("p", { class: "lede-sm", text: "열려 있는 대화방이 없습니다. 홈에서 캐릭터를 골라 시작해 주세요." }),
+      el("button", { class: "primary-btn", "data-testid": "s4-back", text: "홈으로", onclick: () => leaveChat() })
+    ]);
+  }
+
+  const set = mockSetFor(room.charId, room.scenarioId);
+  const sit = c && c.startSituation;
+
+  const input = el("textarea", {
+    class: "chat-input", "data-testid": "s4-input", rows: "2",
+    maxlength: String(CHAT_INPUT_MAX), placeholder: "메시지를 입력하세요",
+    oninput: (e) => {
+      // 상한은 사람이 치는 입력과 값 주입 양쪽에서 같게 지켜야 합니다 (system-spec §2·§5)
+      if (e.target.value.length > CHAT_INPUT_MAX) {
+        e.target.value = e.target.value.slice(0, CHAT_INPUT_MAX);
+      }
+      const n = document.querySelector('[data-testid="s4-input-count"]');
+      if (n) n.textContent = e.target.value.length + "/" + CHAT_INPUT_MAX;
+    },
+    onkeydown: (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(e.target.value); }
+    }
+  });
+
+  const send = el("button", {
+    class: "primary-btn", "data-testid": "s4-send", text: "전송",
+    onclick: () => sendMessage(input.value)
+  });
+  send.disabled = chatStreaming || room.ended;
+
+  const foot = [
+    el("div", { class: "chat-foot-head" }, [
+      el("span", { class: "count", "data-testid": "s4-input-count", text: "0/" + CHAT_INPUT_MAX }),
+      chatStreaming
+        ? el("span", { class: "streaming", "data-testid": "s4-streaming", text: "응답 표시 중…" })
+        : null
+    ].filter(Boolean)),
+    el("div", { class: "chat-send" }, [input, send])
   ];
-  if (VN.pendingStart) {
-    const c = findCharacter(VN.pendingStart.charId);
-    const sc = c && (c.scenarios || []).find((s) => s.id === VN.pendingStart.scenarioId);
-    const p = acc && acc.persona;
-    kids.push(el("p", {
-      class: "start-note", "data-testid": "s4-start-info",
-      text: "시작점 " + (c ? c.name : VN.pendingStart.charId) + " · "
-        + (sc ? sc.label : VN.pendingStart.scenarioId)
-        + " / 페르소나 " + (p ? p.name + (p.nickname ? "(" + p.nickname + ")" : "") : "없음")
+  if (room.ended) {
+    foot.push(el("p", {
+      class: "chat-end", "data-testid": "s4-ended",
+      text: "이 경로의 마지막 턴까지 왔습니다. 엔딩 판정은 다음 구현 단위에서 붙습니다."
     }));
   }
-  return el("section", { class: "screen todo", "data-testid": "s4-todo" }, kids);
+
+  return el("section", { class: "screen s4", "data-testid": "s4-screen" }, [
+    el("header", { class: "chat-head" }, [
+      el("button", { class: "chat-back", "data-testid": "s4-back", text: "‹ 뒤로", onclick: () => leaveChat() }),
+      el("div", { class: "chat-title" }, [
+        el("p", { class: "chat-name", "data-testid": "s4-char", text: c ? c.name : room.charId }),
+        el("p", {
+          class: "chat-sub", "data-testid": "s4-scenario",
+          text: (sit ? sit.label : room.scenarioId)
+            + " · " + (set.characterId === "*" ? "공통 세트" : "전용 세트")
+            + " · 시드 " + VN.seed
+        })
+      ]),
+      renderDebugButton()      // 셸이 없는 화면이라 여기 단독으로 둡니다
+    ]),
+    el("div", { class: "chat-log", "data-testid": "s4-log" }, room.messages.map(renderChatMessage)),
+    el("div", { class: "chat-foot" }, foot)
+  ]);
 }
 
 function renderPlaceholder(key, label) {

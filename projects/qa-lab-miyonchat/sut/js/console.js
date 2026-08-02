@@ -87,7 +87,7 @@ function addRandomCharacter() {
     createdDay: VN.sheet.baseDay,
     // 카드 상세가 읽는 값 — 생성된 캐릭터도 상세를 열 수 있어야 목록 증가를 끝까지 따라갑니다
     firstMessage: "생성된 캐릭터의 첫 메시지입니다. 데이터 시트에서 만든 캐릭터라 내용은 고정 문구입니다.",
-    scenarios: [{ id: "sc1", label: "기본 시작점" }]
+    startSituation: { id: "sc1", label: "기본 시작점" }
   });
   window.__VN__.setData("characters", rows);
   paintConsole();
@@ -195,7 +195,7 @@ function renderCharBlock() {
     return block("캐릭터", children);
   }
 
-  const head = el("tr", {}, ["캐릭터", "카테고리", "태그", "생성일", "19세 이상"]
+  const head = el("tr", {}, ["캐릭터", "mock", "카테고리", "태그", "생성일", "19세 이상"]
     .concat(CHAR_COLS.map((c) => c[0]))
     .map((h) => el("th", { text: h })));
 
@@ -219,8 +219,16 @@ function renderCharBlock() {
       type: "text", class: "t1-cellday",
       "data-testid": "t1-row-" + c.id + "-created", value: c.createdDay || ""
     });
+    // 어느 mock 세트로 말하는지 — 화면에서 읽히지 않으면 "이 캐릭터만 대사가 다르다"를
+    // 결함으로 오인합니다 (mock-llm-spec §2-1)
+    const dedicated = hasDedicatedMock(c.id);
     return el("tr", {}, [
       el("td", { class: "t1-cname", text: c.name + " (" + c.id + ")" }),
+      el("td", {}, [el("span", {
+        class: "t1-badge" + (dedicated ? " on" : ""),
+        "data-testid": "t1-row-" + c.id + "-mock",
+        text: dedicated ? "전용" : "공통"
+      })]),
       el("td", {}, [cat]),
       el("td", {}, [tags]),
       el("td", {}, [created]),
@@ -242,6 +250,8 @@ function renderCharBlock() {
   children.push(el("p", { class: "hint",
     text: "이용수는 이벤트를 합성해 맞춥니다 (일간 ≤ 주간 ≤ 월간) · 태그는 쉼표로 구분합니다"
       + " · 생성일을 기준일에서 " + NEW_WINDOW_DAYS + "일보다 앞으로 옮기면 신작 섹션에서 빠집니다" }));
+  children.push(el("p", { class: "hint",
+    text: "mock — 전용 세트는 하루(c1)뿐이고 나머지와 새로 만든 캐릭터는 공통 세트로 말합니다" }));
   children.push(el("p", { class: "hint", "data-testid": "t1-tag-guide",
     text: "쓸 수 있는 태그 — " + VN.sheet.categories
       .map((g) => g.name + "(" + g.tags.join("·") + ")").join(" / ") }));

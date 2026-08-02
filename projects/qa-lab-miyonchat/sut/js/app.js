@@ -125,7 +125,6 @@ function toggleNoti() {
 
 function openDetail(id) {
   VN.detailId = id;
-  VN.detailScenario = null;
   render();
 }
 
@@ -166,13 +165,86 @@ function savePersona() {
     desc: val("s3-desc", PERSONA_LIMITS.desc)
   };
   toast("페르소나를 저장했습니다.");
-  if (VN.pendingStart) go("s4");
+  if (VN.pendingStart) enterChat();
   else render();
 }
 
-/* 시나리오 선택 시작 — 대화 개시는 페르소나 설정(S3)을 거칩니다(청사진 §1 화면 맵).
- * 미로그인이면 시작점을 남기지 않고 모달을 띄웠다가, 로그인하면 여기서부터 다시 탑니다.
- * 고른 시작점은 S4 슬라이스가 읽습니다. */
+/* ── S4 대화 ───────────────────────────────────────────────
+ * 응답은 유저가 무엇을 쳤는지가 아니라 **턴 번호와 시드**가 고릅니다(mock-llm-spec §1).
+ * 유저 입력이 관여하는 곳은 입력 필터·길이 상한·페르소나 슬롯 치환뿐입니다.
+ */
+
+/* 스트리밍 중에는 다음 전송을 받지 않습니다 — 표시가 끝나야 한 턴이 닫힙니다 */
+let chatStreaming = false;
+
+/* 타이핑 연출의 속도 — 연출 시간은 검증 대상이 아니라서(mock-llm-spec §4) 상수로 둡니다.
+ * 브라우저는 배경 탭의 타이머를 초당 1회로 묶으므로, 개발 중 화면을 안 보고 확인할 때는
+ * 이 두 값을 콘솔에서 키워 한 번에 표시되게 할 수 있습니다. */
+let STREAM_TICK_MS = 12;
+let STREAM_CHARS = 3;
+
+function sendMessage(text) {
+  const room = activeRoom();
+  if (!room || room.ended || chatStreaming) return;
+  const t = (text || "").trim().slice(0, CHAT_INPUT_MAX);
+  if (!t) return;
+
+  room.turn += 1;
+  room.messages.push({ role: "user", text: t, turn: room.turn, done: true });
+
+  const set = mockSetFor(room.charId, room.scenarioId);
+  const def = set.turns[room.turn - 1];
+  if (!def) {
+    // 경로 종점 — 엔딩 판정은 서사 슬라이스에서 붙입니다 (system-spec §4-2)
+    room.ended = true;
+    render();
+    return;
+  }
+  const cand = def.candidates[VN.seed % def.candidates.length];
+  const msg = {
+    role: "ai", turn: room.turn, done: false, fail: !!cand.fail,
+    text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0
+  };
+  room.messages.push(msg);
+  streamMessage(room, msg);
+}
+
+/* 문자 단위 타이핑 연출 — 검증은 "표시 완료"만 봅니다(연출 시간은 대상 아님).
+ * 글자마다 화면 전체를 다시 그리면 입력 포커스가 튀므로 말풍선 하나만 손봅니다. */
+function streamMessage(room, msg) {
+  chatStreaming = true;
+  render();
+  const node = document.querySelector('[data-testid="s4-msg-' + msg.turn + '-ai"] .bubble-text');
+  const full = msg.text;
+  let at = 0;
+  const timer = setInterval(() => {
+    at += STREAM_CHARS;
+    if (node) node.textContent = full.slice(0, at);
+    if (at >= full.length) {
+      clearInterval(timer);
+      msg.done = true;
+      chatStreaming = false;
+      if (room.turn >= mockSetFor(room.charId, room.scenarioId).endTurn) room.ended = true;
+      render();
+    }
+  }, STREAM_TICK_MS);
+}
+
+/* 대화 화면을 엽니다 — 시작점을 들고 왔으면 그 방으로, 아니면 마지막 방으로 */
+function enterChat() {
+  if (VN.pendingStart) {
+    openRoom(VN.pendingStart.charId, VN.pendingStart.scenarioId);
+    VN.pendingStart = null;
+  }
+  go("s4");
+}
+
+function leaveChat() {
+  go("s2");
+}
+
+/* 대화 시작 — 시작 상황은 제작자가 정한 것이라 유저가 고르지 않습니다(system-spec §8-8).
+ * 미로그인이면 시작점을 남기지 않고 모달을 띄웠다가, 로그인하면 여기서부터 다시 탑니다. */
 function startConversation(charId, scenarioId) {
   const resume = () => startConversation(charId, scenarioId);
   if (!requireLogin("start:" + charId + ":" + scenarioId, resume)) return;
@@ -185,7 +257,7 @@ function screenBody() {
     case "s1": return renderS1();
     case "s2": return renderS2();
     case "s3": return renderS3();
-    case "s4": return renderS4Todo();
+    case "s4": return renderS4();
     case "s5": return renderPlaceholder("s5", "채팅");
     case "s6": return renderPlaceholder("s6", "MY");
     case "s7": return renderStub("s7", "커뮤니티는 전시용 정적 화면입니다. 소셜 기능은 별도 앱 규모라 구현 범위에서 제외했습니다.");
@@ -206,8 +278,8 @@ function render() {
 
   root.innerHTML = "";
 
-  // 셸은 S1을 뺀 모든 화면에 붙습니다 — 미로그인도 홈을 둘러볼 수 있어야 하므로
-  const shell = VN.screen !== "s1";
+  // 셸은 S1과 S4를 뺀 모든 화면에 붙습니다 — S4는 셸 밖 전체 화면입니다(청사진 §1)
+  const shell = VN.screen !== "s1" && VN.screen !== "s4";
 
   if (shell) root.appendChild(renderTopBar());
   root.appendChild(screenBody());

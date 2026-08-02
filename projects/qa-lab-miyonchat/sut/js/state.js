@@ -50,7 +50,6 @@ const VN = {
   catTag: null,         // 카테고리 취향 태그 — null이면 태그 필터 없음
   catSort: "chat",      // 카테고리 전체 목록 정렬 — chat(대화순) / new(최신순)
   detailId: null,       // 열려 있는 카드 상세의 캐릭터 id
-  detailScenario: null, // 카드 상세에서 고른 시나리오 id
   search: "",           // 확정된 검색어 — 결과는 홈에 표시합니다 (청사진 §1 전역 셸)
   notiOpen: false,      // 상단 바 알림 목록 펼침
   loginOpen: false,     // 로그인 모달 — 셸 안에서 막혔을 때만 (system-spec §1-1)
@@ -115,7 +114,6 @@ function resetViewState() {
   VN.catTag = null;
   VN.catSort = "chat";
   VN.detailId = null;
-  VN.detailScenario = null;
   VN.pendingStart = null;
 }
 
@@ -304,6 +302,69 @@ function categoryList(category) {
   return sortChars(base, (c) => usageCount(c.id, null));   // 대화순 = 누적 이용수
 }
 
+/* ── 방 스코프 ───────────────────────────────────────────
+ * 방·분기 간 격리의 단위입니다(청사진 §2). 대화 이력·호감도·기억이 방 안에만 있고,
+ * 방 밖에서 이 값을 참조하지 않아야 격리 검증이 성립합니다.
+ */
+
+/* 자유 입력 상한 (system-spec §5) */
+const CHAT_INPUT_MAX = 500;
+
+function newRoom(charId, scenarioId, firstMessage) {
+  const acc = currentAccount();
+  const same = acc.rooms.filter((r) => r.charId === charId && r.scenarioId === scenarioId);
+  return {
+    // 실시계·난수를 쓰지 않으므로 방 id도 결정적으로 만듭니다
+    id: charId + "-" + scenarioId + "-" + (same.length + 1),
+    charId: charId,
+    scenarioId: scenarioId,
+    turn: 0,                 // 진행한 유저 턴 수
+    // 첫 메시지는 대화수에 포함됩니다 (system-spec §5)
+    messages: firstMessage
+      ? [{ role: "ai", text: firstMessage, turn: 0, done: true }] : [],
+    affection: 0,
+    memories: [],
+    ended: false,
+    active: true
+  };
+}
+
+function activeRoom() {
+  const acc = currentAccount();
+  return acc ? acc.rooms.find((r) => r.active) || null : null;
+}
+
+/* 시작점으로 방을 엽니다 — 같은 캐릭터·같은 시나리오 방이 있으면 그 방으로 돌아갑니다 */
+function openRoom(charId, scenarioId) {
+  const acc = currentAccount();
+  if (!acc) return null;
+  const c = findCharacter(charId);
+  acc.rooms.forEach((r) => { r.active = false; });
+  let room = acc.rooms.find((r) => r.charId === charId && r.scenarioId === scenarioId);
+  if (!room) {
+    room = newRoom(charId, scenarioId, c ? c.firstMessage : "");
+    acc.rooms.push(room);
+  }
+  room.active = true;
+  return room;
+}
+
+/* 대화수 — 유저+AI 메시지 합산, 첫 메시지 포함 (system-spec §5) */
+function roomMessageCount(room) {
+  return room ? room.messages.length : 0;
+}
+
+/* 응답문의 페르소나 슬롯을 채웁니다 — 준수율 계측이 붙잡는 지점입니다 */
+function fillSlots(text, room) {
+  const acc = currentAccount();
+  const p = (acc && acc.persona) || {};
+  const c = findCharacter(room.charId);
+  return String(text)
+    .replace(/\{userName\}/g, p.name || "당신")
+    .replace(/\{nickname\}/g, p.nickname || p.name || "당신")
+    .replace(/\{charName\}/g, c ? c.name : "");
+}
+
 /* 키워드 검색 — 제목(캐릭터 이름) 부분일치 (system-spec §8-7).
  * 선택 기준이 따로 없는 목록이라 순서는 체인의 첫 고리인 월간 이용수가 잡습니다(§8-4). */
 function searchList() {
@@ -344,6 +405,15 @@ window.__VN__ = {
       seed: VN.seed,
       inject: VN.inject,
       account: currentAccount(),
+      // 방 스코프 요약 — 격리 검증은 화면에 나타나지 않으므로 이 통로가 유일한 수단입니다
+      room: (() => {
+        const r = activeRoom();
+        return r ? {
+          id: r.id, charId: r.charId, scenarioId: r.scenarioId, turn: r.turn,
+          messageCount: roomMessageCount(r), affection: r.affection,
+          ended: r.ended, streaming: !!chatStreaming
+        } : null;
+      })(),
       baseDay: VN.sheet ? VN.sheet.baseDay : null
     });
   },
