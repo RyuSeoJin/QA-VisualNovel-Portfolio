@@ -444,6 +444,41 @@ function renderP2() {
       text: STAGES.map((x) => x.name + " " + x.from + (x.to === Infinity ? "+" : "~" + x.to)).join(" · ")
         + " · 호감도 하한은 0이며 상한은 없습니다." }));
   }
+
+  /* 기억 목록 (system-spec §7-1)
+   * 장면이 끝나면 그 장면의 기억은 요점만 남고, 고정한 항목만 원문 그대로 남습니다.
+   * 어느 장면에서 온 기억인지·줄었는지가 한 줄에서 읽혀야 규칙을 화면으로 확인할 수 있습니다. */
+  const ctx = contextRange(room);
+  const ev = currentEvent(room);
+  kids.push(el("h3", { class: "p2-sub", text: "기억" }));
+  kids.push(el("p", { class: "hint", "data-testid": "p2-event",
+    text: "지금 장면 — " + (ev ? ev.label + " (" + ev.from + "~" + ev.to + "턴)" : "아직 없음")
+      + ". 장면이 끝나면 그 장면의 기억은 요점만 남습니다." }));
+  kids.push(el("p", { class: "hint", "data-testid": "p2-context",
+    text: "단기 맥락 창 " + CONTEXT_WINDOW_TURNS + "턴 — "
+      + (ctx.to ? ctx.from + "~" + ctx.to + "턴" : "아직 없음")
+      + ". 창 밖의 대화는 응답에 반영되지 않습니다." }));
+
+  const mems = room.memories || [];
+  kids.push(mems.length
+    ? el("ul", { class: "mem-list", "data-testid": "p2-memories" }, mems.map((m) =>
+        el("li", { class: "mem" + (m.pinned ? " pinned" : ""), "data-testid": "p2-memory-" + m.id }, [
+          el("span", { class: "mem-text", "data-testid": "p2-memory-" + m.id + "-text",
+            text: (m.pinned ? "📌 " : "") + m.text }),
+          el("span", { class: "mem-turn", "data-testid": "p2-memory-" + m.id + "-turn",
+            text: m.turn + "턴 · " + m.event + (m.brief ? " · 요점" : "") }),
+          el("button", { class: "mini", "data-testid": "p2-memory-" + m.id + "-pin",
+            text: m.pinned ? "고정 해제" : "고정", onclick: () => pinMemory(m.id) }),
+          el("button", { class: "mini", "data-testid": "p2-memory-" + m.id + "-delete",
+            text: "삭제", onclick: () => removeMemory(m.id) })
+        ])))
+    : el("p", { class: "empty", "data-testid": "p2-memory-empty",
+        text: "쌓인 기억이 없습니다. 대화를 이어가면 쌓입니다." }));
+
+  if ((room.forgotten || []).length) {
+    kids.push(el("p", { class: "hint", "data-testid": "p2-forgotten",
+      text: "지운 기억 " + room.forgotten.length + "건 — 이후 응답에서 이 내용을 참조하지 않습니다" }));
+  }
   return el("div", { class: "panel-wrap", "data-testid": "p2-panel" }, [
     el("div", { class: "panel" }, kids)
   ]);

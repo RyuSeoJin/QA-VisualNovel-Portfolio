@@ -502,7 +502,10 @@ function newRoom(charId, scenarioId, firstMessage, profile) {
     // 기준점으로 남기고 그 뒤 턴만 더합니다 (청사진 §4-2)
     affectionBase: 0,
     affectionBaseTurn: 0,
+    // 기억 목록은 대화 기록에서 다시 세웁니다(rebuildMemories) — 아래 둘이 유저가 손댄 부분
     memories: [],
+    pins: {},                // 핀 고정 — { key: { text, turn } }로 그 시점을 얼려 둡니다
+    forgotten: [],           // 지운 기억의 key — 다시 오더라도 받지 않습니다
     // 시점 슬롯 — 방마다 독립입니다(분기 방도 자기 4칸을 새로 받습니다, system-spec §6)
     slots: {},
     ending: null,                            // 도달한 엔딩 — 있으면 입력이 막힙니다
@@ -594,8 +597,8 @@ function recomputeRoom(room) {
   room.ending = ending;
   room.ended = ended;
   room.turn = lastTurnOf(room);
-  // 기억은 메모리 슬라이스에서 쌓입니다. 지운 턴의 기억이 남으면 안 되므로 여기서 함께 걷습니다
-  room.memories = (room.memories || []).filter((m) => !m.turn || m.turn <= room.turn);
+  // 기억도 같은 기록에서 다시 세웁니다 — 지운 턴의 기억이 남지 않는 것이 여기서 보장됩니다
+  rebuildMemories(room);
 }
 
 /* 교환 통째로 삭제 — 유저 메시지와 그에 딸린 응답을 한 쌍으로 지웁니다 */
@@ -614,7 +617,9 @@ function cloneRoomFrom(src, data) {
   if (roomLimitReached(src.charId)) return null;
   const copy = newRoom(src.charId, src.scenarioId, "", data.profile);
   copy.messages = deepCopy(data.messages || []);
-  copy.memories = deepCopy(data.memories || []);
+  // 핀·삭제는 유저가 손댄 값이라 함께 따라갑니다. 기억 목록 자체는 기록에서 다시 세웁니다
+  copy.pins = deepCopy(data.pins || {});
+  copy.forgotten = deepCopy(data.forgotten || []);
   copy.affectionBase = data.affectionBase || 0;
   copy.affectionBaseTurn = data.affectionBaseTurn || 0;
   recomputeRoom(copy);                     // 상태는 여기서도 다시 셉니다 (system-spec §5-1)
@@ -629,10 +634,120 @@ function branchRoom(room, turn) {
   return cloneRoomFrom(room, {
     profile: room.profile,
     messages: room.messages.filter((m) => m.turn <= turn),
-    memories: (room.memories || []).filter((m) => !m.turn || m.turn <= turn),
+    pins: room.pins, forgotten: room.forgotten,
     affectionBase: room.affectionBase || 0,
     affectionBaseTurn: Math.min(room.affectionBaseTurn || 0, turn)
   });
+}
+
+/* ── 메모리/컨텍스트 (system-spec §7) ──────────────────────
+ *
+ * **기억 목록은 저장하지 않고 대화 기록에서 다시 세웁니다.** 호감도와 같은 이유입니다 —
+ * 목록을 따로 들고 있으면 되돌림 때 무엇을 빼야 하는지 다시 계산해야 하고, 그 계산이
+ * 어긋나면 지운 턴의 기억이 남습니다. 유저가 손댄 부분(핀·삭제)만 방에 남깁니다.
+ */
+const CONTEXT_WINDOW_TURNS = 10;
+
+/* 단기 맥락 창 — 최근 10턴. 창 밖은 응답에 반영되지 않아야 하므로 경계가 화면과
+ * getState에서 읽혀야 합니다(창이 몇 턴인지 눈으로 못 보면 경계를 검증할 수 없습니다) */
+function contextRange(room) {
+  if (!room || room.turn < 1) return { from: 0, to: 0 };
+  return { from: Math.max(1, room.turn - CONTEXT_WINDOW_TURNS + 1), to: room.turn };
+}
+
+function inContext(room, turn) {
+  const r = contextRange(room);
+  return turn >= r.from && turn <= r.to;
+}
+
+/* 이벤트 — 대화는 장면 단위로 끊깁니다(mock 세트의 `events`).
+ * 한 장면이 끝나면 그 장면에서 알게 된 것들이 간략형으로 정리됩니다 — 캐릭터가 지난 일을
+ * 요점만 기억하는 자리이고, 이 SUT에서 **기억이 저절로 바뀌는 유일한 사건**입니다. */
+function eventsOf(room) {
+  return mockSetFor(room.charId, room.scenarioId).events || [];
+}
+
+function eventOfTurn(room, turn) {
+  return eventsOf(room).find((e) => turn >= e.from && turn <= e.to) || null;
+}
+
+function currentEvent(room) {
+  return eventOfTurn(room, Math.max(1, room.turn));
+}
+
+/* 그 기억이 속한 장면이 이미 끝났는가 — 끝났으면 간략형으로 남습니다 */
+function eventEnded(room, turn) {
+  const e = eventOfTurn(room, turn);
+  return !!e && room.turn > e.to;
+}
+
+/* 남은 응답들의 memoryAdd를 턴 순서대로 훑어 목록을 세웁니다.
+ * - 지운 항목은 받지 않습니다
+ * - 장면이 끝난 기억은 간략형(brief)으로 바뀝니다
+ * - **핀이 꽂힌 항목은 간략화되지 않습니다** — 유저가 세부까지 남기라고 정한 것이라
+ *   캐릭터의 자동 정리가 그 위를 덮지 못합니다 (system-spec §7-1) */
+function rebuildMemories(room) {
+  const forgotten = room.forgotten || [];
+  const pins = room.pins || {};
+  const seen = {};
+  const out = [];
+  room.messages.forEach((m) => {
+    const add = m.memoryAdd;
+    if (!add || !add.id) return;
+    if (forgotten.indexOf(add.id) >= 0 || seen[add.id]) return;
+    seen[add.id] = true;
+    const pinned = !!pins[add.id];
+    const brief = !pinned && eventEnded(room, m.turn);
+    const ev = eventOfTurn(room, m.turn);
+    out.push({
+      id: add.id, turn: m.turn,
+      text: brief ? (add.brief || add.text) : add.text,
+      brief: brief, pinned: pinned,
+      event: ev ? ev.label : ""
+    });
+  });
+  room.memories = out;
+}
+
+function findMemory(room, id) {
+  return (room.memories || []).find((m) => m.id === id) || null;
+}
+
+/* 핀 토글 — 켜면 그 항목은 장면이 끝나도 줄어들지 않습니다 */
+function toggleMemoryPin(room, id) {
+  if (!findMemory(room, id)) return;
+  room.pins = room.pins || {};
+  if (room.pins[id]) delete room.pins[id];
+  else room.pins[id] = true;
+  rebuildMemories(room);
+}
+
+/* 삭제 — 목록에서 빼고, 이후 그 기억을 참조하는 응답도 나오지 않습니다 */
+function deleteMemory(room, id) {
+  if (!findMemory(room, id)) return;
+  room.forgotten = room.forgotten || [];
+  if (room.forgotten.indexOf(id) < 0) room.forgotten.push(id);
+  if (room.pins) delete room.pins[id];
+  rebuildMemories(room);
+}
+
+/* 그 후보가 참조하는 기억이 아직 남아 있는가.
+ * 삭제·되돌림·분기로 사라진 기억을 참조하는 응답이 나오면 실패이므로(트리: 삭제 기억
+ * 재등장 차단), 그런 후보는 쓰지 않고 다음 후보로 넘깁니다. 난수를 쓰지 않으므로
+ * 어느 후보로 넘어가는지도 정해져 있습니다. */
+function candidateRefsAlive(room, cand) {
+  const refs = (cand && cand.memoryRefs) || [];
+  return refs.every((id) => !!findMemory(room, id));
+}
+
+/* 시드가 고른 자리에서 시작해, 참조가 살아 있는 첫 후보를 씁니다 */
+function pickCandidate(room, def, at) {
+  const n = def.candidates.length;
+  for (let i = 0; i < n; i++) {
+    const idx = (at + i) % n;
+    if (candidateRefsAlive(room, def.candidates[idx])) return idx;
+  }
+  return at % n;              // 전부 막히면 시드 자리를 그대로 씁니다
 }
 
 /* ── 세이브/로드 (system-spec §6 · save-schema) ─────────────
@@ -672,7 +787,10 @@ function saveSlot(room, n) {
       temperature: stageOf(room.affection).temp,
       nickname: (room.profile && room.profile.nickname) || "",
       profile: deepCopy(room.profile),
-      memories: deepCopy(room.memories || []),
+      memories: deepCopy(room.memories || []),        // 표시 확인용 사본
+      // 복원의 근거는 유저가 손댄 둘입니다 — 목록 자체는 기록에서 다시 세웁니다
+      pins: deepCopy(room.pins || {}),
+      forgotten: deepCopy(room.forgotten || []),
       seedPath: { seed: VN.seed, turn: room.turn }
     }
   };
@@ -683,7 +801,8 @@ function saveSlot(room, n) {
  * 재계산을 통과시킵니다. 얹어 두면 다음 되돌림 때 재계산이 기록만 보고 그 값을 지웁니다. */
 function applySnapshot(room, snap) {
   room.messages = deepCopy(snap.room.messages);
-  room.memories = deepCopy(snap.room.memories || []);
+  room.pins = deepCopy(snap.room.pins || {});
+  room.forgotten = deepCopy(snap.room.forgotten || []);
   room.profile = deepCopy(snap.room.profile);
   room.affectionBase = snap.room.affectionBase || 0;
   room.affectionBaseTurn = snap.room.affectionBaseTurn || 0;
@@ -706,7 +825,9 @@ function loadSlotToNewRoom(room, n) {
   return cloneRoomFrom(room, {
     profile: snap.room.profile,
     messages: snap.room.messages,
-    memories: snap.room.memories,
+    // 핀·삭제도 스냅샷의 일부입니다 — 빼면 지운 기억이 새 방에서 되살아납니다
+    pins: snap.room.pins,
+    forgotten: snap.room.forgotten,
     affectionBase: snap.room.affectionBase || 0,
     affectionBaseTurn: snap.room.affectionBaseTurn || 0
   });
@@ -820,7 +941,11 @@ window.__VN__ = {
           stage: stageOf(r.affection).name, ending: r.ending,
           ended: r.ended, streaming: !!chatStreaming,
           // 슬롯은 방의 것입니다 — 어느 칸이 찼는지가 격리 검증의 첫 대조점입니다
-          savedSlots: Object.keys(r.slots || {}).map(Number).sort()
+          savedSlots: Object.keys(r.slots || {}).map(Number).sort(),
+          // 기억과 단기 맥락 창 — 창 경계는 화면만으로 대조하기 어려워 여기서도 냅니다
+          memories: r.memories || [],
+          forgotten: r.forgotten || [],
+          context: contextRange(r)
         } : null;
       })(),
       baseDay: VN.sheet ? VN.sheet.baseDay : null

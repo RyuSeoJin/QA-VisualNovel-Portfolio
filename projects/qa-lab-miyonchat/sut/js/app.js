@@ -251,7 +251,8 @@ function sendMessage(text, choiceDelta) {
   // (사람은 T1 스위치, 자동화는 __VN__.failNext()). 스위치는 여기서 꺼집니다
   const forced = VN.failNext;
   if (forced) VN.failNext = false;
-  const variant = VN.seed % def.candidates.length;
+  // 지운 기억을 참조하는 후보는 건너뜁니다 (system-spec §7-1)
+  const variant = pickCandidate(room, def, VN.seed % def.candidates.length);
   const cand = forced
     ? { fail: true }
     : def.candidates[variant];
@@ -275,7 +276,9 @@ function sendMessage(text, choiceDelta) {
     role: "ai", turn: room.turn, done: false, fail: false,
     // 몇 번째 후보를 쓰고 있는지 — 재생성이 여기서 한 칸을 밉니다 (mock-llm-spec §2)
     variant: variant,
-    text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0
+    text: fillSlots(cand.text, room), delta: cand.deltaAffection || 0,
+    // 기억은 응답에 실려 옵니다 — 목록은 이 값들로 다시 세웁니다 (system-spec §7)
+    memoryAdd: cand.memoryAdd || null
   };
   room.messages.push(msg);
   streamMessage(room, msg);
@@ -405,12 +408,15 @@ function regenerateAt(turn, newUserText) {
   if (newUserText !== null && user) user.text = newUserText;
   VN.editTurn = null;
 
-  // 후보를 한 칸 밉니다 — 난수를 쓰지 않으므로 몇 번째 재생성인지가 결과를 정합니다
-  const at = ((typeof ai.variant === "number" ? ai.variant : 0) + 1) % def.candidates.length;
+  // 후보를 한 칸 밉니다 — 난수를 쓰지 않으므로 몇 번째 재생성인지가 결과를 정합니다.
+  // 밀어 간 자리가 지운 기억을 참조하면 그 다음 후보로 넘어갑니다
+  const at = pickCandidate(room, def,
+    ((typeof ai.variant === "number" ? ai.variant : 0) + 1) % def.candidates.length);
   const cand = def.candidates[at];
   ai.variant = at;
   ai.text = fillSlots(cand.text, room);
   ai.delta = cand.deltaAffection || 0;
+  ai.memoryAdd = cand.memoryAdd || null;   // 버려진 응답이 남긴 기억도 함께 갈립니다
   ai.done = false;
 
   // 버려진 응답의 기여분을 먼저 걷습니다 — 새 응답은 표시가 끝나야 반영됩니다
@@ -436,6 +442,27 @@ function askBranch(turn) {
 
 function closeConfirm() {
   VN.confirm = null;
+  render();
+}
+
+/* ── 메모리 (system-spec §7) ───────────────────────────────
+ * 핀과 삭제만 유저가 정하고, 목록 자체는 대화 기록에서 다시 세웁니다.
+ */
+function pinMemory(id) {
+  const room = activeRoom();
+  if (!room) return;
+  toggleMemoryPin(room, id);
+  const m = findMemory(room, id);
+  toast(m && m.pinned ? "고정했습니다. 장면이 끝나도 줄어들지 않습니다."
+    : "고정을 풀었습니다. 지난 장면의 기억은 요점만 남습니다.");
+  render();
+}
+
+function removeMemory(id) {
+  const room = activeRoom();
+  if (!room) return;
+  deleteMemory(room, id);
+  toast("기억을 지웠습니다. 이후 응답에서 이 내용을 참조하지 않습니다.");
   render();
 }
 

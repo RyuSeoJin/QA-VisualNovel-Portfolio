@@ -18,12 +18,12 @@
  * 필드
  *   text            {userName}·{nickname}·{charName} 슬롯을 담은 응답문
  *   deltaAffection  이 후보가 만드는 호감도 변화
- *   memoryAdd       기억 목록에 쌓이는 항목 (메모리 슬라이스에서 반영)
- *   personaReflect  페르소나를 반영한 변주인지 — 준수율 계측이 읽는 표기
- *   contextReflect  단기 맥락을 반영한 변주인지
- *   fail            생성 실패 재현 후보. **기본 세트에는 두지 않습니다** — 서버 오류는
- *                   정상 플레이에서 저절로 나는 사건이 아니라 테스트가 일으키는 조건입니다.
- *                   사람은 T1 스위치로, 자동화는 __VN__.failNext()로 일으킵니다
+ *   memoryAdd       유저에 대한 사실 { id, text, brief }. **그 턴의 모든 후보에 같은
+ *                   값으로 답니다** — 시드가 어느 후보를 고르든 같은 턴에 같은 기억이
+ *                   쌓여야 합니다. 이벤트가 끝나면 text 대신 brief 가 남습니다
+ *   memoryRefs      그 기억을 참조하는 응답. 참조 대상이 지워졌거나 되돌림·분기로
+ *                   사라졌으면 이 후보를 쓰지 않습니다(system-spec §7-1)
+ *   events          이벤트 구간. **끝나는 턴을 지나면 그 구간의 기억이 간략화**됩니다
  *   choices         고정 선택지와 가중치 (+2/+1/-1) — 없는 턴은 자유 입력만
  *   endTurn         경로 종점. 도달하면 엔딩 최종 판정(system-spec §4-2)
  */
@@ -34,6 +34,17 @@
  * 1~33턴 첫날 · 34~66턴 둘째 날 · 67~100턴 마지막 날. 3턴마다 고정 선택지가 붙습니다. */
 const MOCK_C7_SC1 = {
   characterId: "c7", scenarioId: "sc1", label: "해수욕장 앞",
+  events: [
+    { id: "e1", label: "첫 만남", from: 1, to: 10 },
+    { id: "e2", label: "해질녘", from: 11, to: 20 },
+    { id: "e3", label: "첫날 밤", from: 21, to: 33 },
+    { id: "e4", label: "다시 그 자리", from: 34, to: 43 },
+    { id: "e5", label: "파라솔 아래", from: 44, to: 53 },
+    { id: "e6", label: "지나가는 배", from: 54, to: 66 },
+    { id: "e7", label: "마지막 아침", from: 67, to: 76 },
+    { id: "e8", label: "사흘째 노을", from: 77, to: 86 },
+    { id: "e9", label: "작별", from: 87, to: 100 }
+  ],
   turns: [
     { turn: 1, candidates: [
       { text: "파도 소리가 크죠, {nickname}. 그래서 여기 앉아 있었어요.", deltaAffection: 1, personaReflect: true, contextReflect: false },
@@ -48,8 +59,8 @@ const MOCK_C7_SC1 = {
       { text: "오늘 처음 봤는데 오래 앉아 있게 되네요.", deltaAffection: 1, personaReflect: false, contextReflect: true }
     ], choices: [{ label: "노을 기다려 볼게요", delta: 2 }, { label: "조금만 있다 갈게요", delta: 1 }, { label: "저는 이만 가 볼게요", delta: -1 }] },
     { turn: 4, candidates: [
-      { text: "{userName}, 발 시리지 않아요? 물이 생각보다 차요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "{nickname}, 이 근처에 아이스크림 파는 데가 있어요. 걸어서 오 분.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "{userName}, 발 시리지 않아요? 물이 생각보다 차요.", deltaAffection: 1, memoryAdd: { id: "m1", text: "바다 소리를 들으려고 혼자 왔다고 했다", brief: "바다 소리를 좋아함" }, personaReflect: true, contextReflect: true },
+      { text: "{nickname}, 이 근처에 아이스크림 파는 데가 있어요. 걸어서 오 분.", deltaAffection: 1, memoryAdd: { id: "m1", text: "바다 소리를 들으려고 혼자 왔다고 했다", brief: "바다 소리를 좋아함" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 5, candidates: [
       { text: "사실 오늘은 아무하고도 말 안 하려고 했어요. {userName} 앞에서는 왜 이럴까요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -60,12 +71,12 @@ const MOCK_C7_SC1 = {
       { text: "{userName}이라고 했죠. 이름을 두 번 물어봐서 미안해요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "아이스크림 좋아요", delta: 2 }, { label: "물이나 마실래요", delta: 1 }, { label: "됐어요", delta: -1 }] },
     { turn: 7, candidates: [
-      { text: "파도 소리가 크죠, {nickname}. 그래서 여기 앉아 있었어요.", deltaAffection: 1, memoryAdd: "7턴에 나눈 이야기", personaReflect: true, contextReflect: false },
+      { text: "파도 소리가 크죠, {nickname}. 그래서 여기 앉아 있었어요.", deltaAffection: 1, personaReflect: true, contextReflect: false },
       { text: "{nickname}, 모래 밟는 소리 좋아해요? 저는 이 소리 들으려고 와요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 8, candidates: [
       { text: "바다는 오래 봐도 안 질리네요. {userName}은 어때요?", deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "울고 있었냐고요, {userName}? …그냥 바람이 좀 셌어요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "바다 소리 들으러 왔다고 했죠. 오늘은 파도가 좀 크네요.", deltaAffection: 1, memoryRefs: ["m1"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 9, candidates: [
       { text: "여기 노을은 삼십 분쯤 뒤가 제일 좋아요. 기다려 볼래요, {nickname}?", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -88,8 +99,8 @@ const MOCK_C7_SC1 = {
       { text: "{nickname}, 모래 밟는 소리 좋아해요? 저는 이 소리 들으려고 와요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 14, candidates: [
-      { text: "바다는 오래 봐도 안 질리네요. {userName}은 어때요?", deltaAffection: 1, memoryAdd: "14턴에 나눈 이야기", personaReflect: true, contextReflect: true },
-      { text: "울고 있었냐고요, {userName}? …그냥 바람이 좀 셌어요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "바다는 오래 봐도 안 질리네요. {userName}은 어때요?", deltaAffection: 1, memoryAdd: { id: "m2", text: "민트초코를 싫어한다고 했다. 어릴 때 체한 적이 있어서.", brief: "민트초코를 싫어함" }, personaReflect: true, contextReflect: true },
+      { text: "울고 있었냐고요, {userName}? …그냥 바람이 좀 셌어요.", deltaAffection: 1, memoryAdd: { id: "m2", text: "민트초코를 싫어한다고 했다. 어릴 때 체한 적이 있어서.", brief: "민트초코를 싫어함" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 15, candidates: [
       { text: "여기 노을은 삼십 분쯤 뒤가 제일 좋아요. 기다려 볼래요, {nickname}?", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -105,7 +116,7 @@ const MOCK_C7_SC1 = {
     ] },
     { turn: 18, candidates: [
       { text: "괜찮으세요? 여기 혼자 앉아 있길래…", deltaAffection: 1, personaReflect: false, contextReflect: true },
-      { text: "{userName}이라고 했죠. 이름을 두 번 물어봐서 미안해요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "아이스크림은 민트초코 빼고 고를게요.", deltaAffection: 1, memoryRefs: ["m2"], personaReflect: true, contextReflect: true }
     ], choices: [{ label: "괜찮냐고 물어봐 준 게 고마워요", delta: 2 }, { label: "그냥 지나가던 길이었어요", delta: 1 }, { label: "신경 쓰지 마세요", delta: -1 }] },
     { turn: 19, candidates: [
       { text: "파도 소리가 크죠, {nickname}. 그래서 여기 앉아 있었어요.", deltaAffection: 1, personaReflect: true, contextReflect: false },
@@ -116,7 +127,7 @@ const MOCK_C7_SC1 = {
       { text: "울고 있었냐고요, {userName}? …그냥 바람이 좀 셌어요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 21, candidates: [
-      { text: "여기 노을은 삼십 분쯤 뒤가 제일 좋아요. 기다려 볼래요, {nickname}?", deltaAffection: 2, memoryAdd: "21턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "여기 노을은 삼십 분쯤 뒤가 제일 좋아요. 기다려 볼래요, {nickname}?", deltaAffection: 2, personaReflect: true, contextReflect: true },
       { text: "오늘 처음 봤는데 오래 앉아 있게 되네요.", deltaAffection: 1, personaReflect: false, contextReflect: true }
     ], choices: [{ label: "노을 기다려 볼게요", delta: 2 }, { label: "조금만 있다 갈게요", delta: 1 }, { label: "저는 이만 가 볼게요", delta: -1 }] },
     { turn: 22, candidates: [
@@ -128,8 +139,8 @@ const MOCK_C7_SC1 = {
       { text: "{nickname}이랑 있으면 시간이 빨리 가요. 그게 좀 아깝네요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 24, candidates: [
-      { text: "괜찮으세요? 여기 혼자 앉아 있길래…", deltaAffection: 1, personaReflect: false, contextReflect: true },
-      { text: "{userName}이라고 했죠. 이름을 두 번 물어봐서 미안해요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "괜찮으세요? 여기 혼자 앉아 있길래…", deltaAffection: 1, memoryAdd: { id: "m3", text: "노을이 질 때까지 같이 있기로 약속했다", brief: "노을까지 함께하기로 약속" }, personaReflect: false, contextReflect: true },
+      { text: "{userName}이라고 했죠. 이름을 두 번 물어봐서 미안해요.", deltaAffection: 1, memoryAdd: { id: "m3", text: "노을이 질 때까지 같이 있기로 약속했다", brief: "노을까지 함께하기로 약속" }, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "아이스크림 좋아요", delta: 2 }, { label: "물이나 마실래요", delta: 1 }, { label: "됐어요", delta: -1 }] },
     { turn: 25, candidates: [
       { text: "파도 소리가 크죠, {nickname}. 그래서 여기 앉아 있었어요.", deltaAffection: 1, personaReflect: true, contextReflect: false },
@@ -144,8 +155,8 @@ const MOCK_C7_SC1 = {
       { text: "오늘 처음 봤는데 오래 앉아 있게 되네요.", deltaAffection: 1, personaReflect: false, contextReflect: true }
     ], choices: [{ label: "괜찮냐고 물어봐 준 게 고마워요", delta: 2 }, { label: "그냥 지나가던 길이었어요", delta: 1 }, { label: "신경 쓰지 마세요", delta: -1 }] },
     { turn: 28, candidates: [
-      { text: "{userName}, 발 시리지 않아요? 물이 생각보다 차요.", deltaAffection: 1, memoryAdd: "28턴에 나눈 이야기", personaReflect: true, contextReflect: true },
-      { text: "{nickname}, 이 근처에 아이스크림 파는 데가 있어요. 걸어서 오 분.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "{userName}, 발 시리지 않아요? 물이 생각보다 차요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
+      { text: "노을까지 같이 있기로 한 거, 잊지 않았어요.", deltaAffection: 1, memoryRefs: ["m3"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 29, candidates: [
       { text: "사실 오늘은 아무하고도 말 안 하려고 했어요. {userName} 앞에서는 왜 이럴까요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -172,7 +183,7 @@ const MOCK_C7_SC1 = {
       { text: "{userName}은 왜 여기 왔어요? 물어본 적이 없네요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 35, candidates: [
-      { text: "오늘 밤은 별이 보일 것 같아요. 구름이 얇아요.", deltaAffection: 1, memoryAdd: "35턴에 나눈 이야기", personaReflect: false, contextReflect: false },
+      { text: "오늘 밤은 별이 보일 것 같아요. 구름이 얇아요.", deltaAffection: 1, personaReflect: false, contextReflect: false },
       { text: "…고마워요, {nickname}. 이유는 묻지 말아 줘요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 36, candidates: [
@@ -180,8 +191,8 @@ const MOCK_C7_SC1 = {
       { text: "오늘은 파라솔을 빌렸어요, {nickname}. 그늘이 있어야 오래 앉죠.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "오늘도 보러 왔어요", delta: 2 }, { label: "지나가다 들렀어요", delta: 1 }, { label: "우연이에요", delta: -1 }] },
     { turn: 37, candidates: [
-      { text: "{nickname}, 어제 아이스크림 뭐 골랐는지 기억해요? 저는 기억해요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
-      { text: "바다는 어제랑 같은데 {userName}과 보니 다르게 보이네요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "{nickname}, 어제 아이스크림 뭐 골랐는지 기억해요? 저는 기억해요.", deltaAffection: 2, memoryAdd: { id: "m4", text: "사진 찍히는 걸 어색해한다고 했다", brief: "사진을 어색해함" }, personaReflect: true, contextReflect: true },
+      { text: "바다는 어제랑 같은데 {userName}과 보니 다르게 보이네요.", deltaAffection: 1, memoryAdd: { id: "m4", text: "사진 찍히는 걸 어색해한다고 했다", brief: "사진을 어색해함" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 38, candidates: [
       { text: "병원에서는 오래 걷지 말라고 했어요. …오늘은 좀 걸었네요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
@@ -197,10 +208,10 @@ const MOCK_C7_SC1 = {
     ] },
     { turn: 41, candidates: [
       { text: "오늘 밤은 별이 보일 것 같아요. 구름이 얇아요.", deltaAffection: 1, personaReflect: false, contextReflect: false },
-      { text: "…고마워요, {nickname}. 이유는 묻지 말아 줘요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "사진은 안 찍을게요. 어색해한다고 했으니까.", deltaAffection: 2, memoryRefs: ["m4"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 42, candidates: [
-      { text: "어제 그 자리에 또 왔네요, {userName}.", deltaAffection: 2, memoryAdd: "42턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "어제 그 자리에 또 왔네요, {userName}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
       { text: "오늘은 파라솔을 빌렸어요, {nickname}. 그늘이 있어야 오래 앉죠.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "바다가 좋아서요", delta: 2 }, { label: "쉬러 왔어요", delta: 1 }, { label: "딱히 이유는 없어요", delta: -1 }] },
     { turn: 43, candidates: [
@@ -220,15 +231,15 @@ const MOCK_C7_SC1 = {
       { text: "{userName}은 왜 여기 왔어요? 물어본 적이 없네요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 47, candidates: [
-      { text: "오늘 밤은 별이 보일 것 같아요. 구름이 얇아요.", deltaAffection: 1, personaReflect: false, contextReflect: false },
-      { text: "…고마워요, {nickname}. 이유는 묻지 말아 줘요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "오늘 밤은 별이 보일 것 같아요. 구름이 얇아요.", deltaAffection: 1, memoryAdd: { id: "m5", text: "단 것보다 짠 것을 좋아한다고 했다", brief: "짠 것을 좋아함" }, personaReflect: false, contextReflect: false },
+      { text: "…고마워요, {nickname}. 이유는 묻지 말아 줘요.", deltaAffection: 2, memoryAdd: { id: "m5", text: "단 것보다 짠 것을 좋아한다고 했다", brief: "짠 것을 좋아함" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 48, candidates: [
       { text: "어제 그 자리에 또 왔네요, {userName}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
       { text: "오늘은 파라솔을 빌렸어요, {nickname}. 그늘이 있어야 오래 앉죠.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "사진 찍어 줄게요", delta: 2 }, { label: "잘 못 찍는데요", delta: 1 }, { label: "사진은 좀…", delta: -1 }] },
     { turn: 49, candidates: [
-      { text: "{nickname}, 어제 아이스크림 뭐 골랐는지 기억해요? 저는 기억해요.", deltaAffection: 2, memoryAdd: "49턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "{nickname}, 어제 아이스크림 뭐 골랐는지 기억해요? 저는 기억해요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
       { text: "바다는 어제랑 같은데 {userName}과 보니 다르게 보이네요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 50, candidates: [
@@ -237,7 +248,7 @@ const MOCK_C7_SC1 = {
     ] },
     { turn: 51, candidates: [
       { text: "모래성은 무너지라고 쌓는 거래요, {nickname}. 그 말이 요즘 좋아요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "이따 배 지나가는 거 볼래요? 일곱 시쯤 지나가요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "단 것 말고 짠 걸로 가져올게요.", deltaAffection: 2, memoryRefs: ["m5"], personaReflect: true, contextReflect: true }
     ], choices: [{ label: "바다가 좋아서요", delta: 2 }, { label: "쉬러 왔어요", delta: 1 }, { label: "딱히 이유는 없어요", delta: -1 }] },
     { turn: 52, candidates: [
       { text: "어제보다 말이 많아졌죠, {userName}. 스스로도 놀랐어요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
@@ -256,12 +267,12 @@ const MOCK_C7_SC1 = {
       { text: "바다는 어제랑 같은데 {userName}과 보니 다르게 보이네요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 56, candidates: [
-      { text: "병원에서는 오래 걷지 말라고 했어요. …오늘은 좀 걸었네요.", deltaAffection: 2, memoryAdd: "56턴에 나눈 이야기", personaReflect: false, contextReflect: true },
+      { text: "병원에서는 오래 걷지 말라고 했어요. …오늘은 좀 걸었네요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
       { text: "{userName}, 사진 한 장만 찍어 줄래요? 잘 나오게 말고 그냥.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 57, candidates: [
-      { text: "모래성은 무너지라고 쌓는 거래요, {nickname}. 그 말이 요즘 좋아요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "이따 배 지나가는 거 볼래요? 일곱 시쯤 지나가요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "모래성은 무너지라고 쌓는 거래요, {nickname}. 그 말이 요즘 좋아요.", deltaAffection: 1, memoryAdd: { id: "m6", text: "일곱 시에 지나가는 배를 같이 보기로 했다", brief: "배를 같이 보기로 함" }, personaReflect: true, contextReflect: true },
+      { text: "이따 배 지나가는 거 볼래요? 일곱 시쯤 지나가요, {nickname}.", deltaAffection: 2, memoryAdd: { id: "m6", text: "일곱 시에 지나가는 배를 같이 보기로 했다", brief: "배를 같이 보기로 함" }, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "사진 찍어 줄게요", delta: 2 }, { label: "잘 못 찍는데요", delta: 1 }, { label: "사진은 좀…", delta: -1 }] },
     { turn: 58, candidates: [
       { text: "어제보다 말이 많아졌죠, {userName}. 스스로도 놀랐어요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
@@ -277,14 +288,14 @@ const MOCK_C7_SC1 = {
     ], choices: [{ label: "바다가 좋아서요", delta: 2 }, { label: "쉬러 왔어요", delta: 1 }, { label: "딱히 이유는 없어요", delta: -1 }] },
     { turn: 61, candidates: [
       { text: "{nickname}, 어제 아이스크림 뭐 골랐는지 기억해요? 저는 기억해요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
-      { text: "바다는 어제랑 같은데 {userName}과 보니 다르게 보이네요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "일곱 시예요. 배 보러 갈까요, {nickname}?", deltaAffection: 1, memoryRefs: ["m6"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 62, candidates: [
       { text: "병원에서는 오래 걷지 말라고 했어요. …오늘은 좀 걸었네요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
       { text: "{userName}, 사진 한 장만 찍어 줄래요? 잘 나오게 말고 그냥.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 63, candidates: [
-      { text: "모래성은 무너지라고 쌓는 거래요, {nickname}. 그 말이 요즘 좋아요.", deltaAffection: 1, memoryAdd: "63턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "모래성은 무너지라고 쌓는 거래요, {nickname}. 그 말이 요즘 좋아요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
       { text: "이따 배 지나가는 거 볼래요? 일곱 시쯤 지나가요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "오늘도 보러 왔어요", delta: 2 }, { label: "지나가다 들렀어요", delta: 1 }, { label: "우연이에요", delta: -1 }] },
     { turn: 64, candidates: [
@@ -312,8 +323,8 @@ const MOCK_C7_SC1 = {
       { text: "{nickname}이 불러 주는 이름이 좋았어요. 그 말은 해 두고 싶었어요.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "손 잡아 줄게요", delta: 2 }, { label: "…네", delta: 1 }, { label: "그건 좀 부담스러워요", delta: -1 }] },
     { turn: 70, candidates: [
-      { text: "노을이 어제보다 붉네요, {userName}. 마지막이라 그런가.", deltaAffection: 1, memoryAdd: "70턴에 나눈 이야기", personaReflect: true, contextReflect: true },
-      { text: "{userName}, 손 한 번만 잡아 봐도 돼요?", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "노을이 어제보다 붉네요, {userName}. 마지막이라 그런가.", deltaAffection: 1, memoryAdd: { id: "m7", text: "떠나는 날을 아직 정하지 않았다고 했다", brief: "떠날 날 미정" }, personaReflect: true, contextReflect: true },
+      { text: "{userName}, 손 한 번만 잡아 봐도 돼요?", deltaAffection: 2, memoryAdd: { id: "m7", text: "떠나는 날을 아직 정하지 않았다고 했다", brief: "떠날 날 미정" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 71, candidates: [
       { text: "사흘 동안 웃은 게 올해 웃은 것보다 많아요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
@@ -329,7 +340,7 @@ const MOCK_C7_SC1 = {
     ] },
     { turn: 74, candidates: [
       { text: "이 사흘이 제일 길었으면 했는데 제일 빨리 갔어요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
-      { text: "{userName}, 나중에 여기 다시 오면 이 자리에 앉아 줄래요?", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "떠날 날은 아직 안 정했다고 했죠.", deltaAffection: 2, memoryRefs: ["m7"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 75, candidates: [
       { text: "울지 마요, {nickname}. 저 아직 여기 있어요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -340,7 +351,7 @@ const MOCK_C7_SC1 = {
       { text: "{userName}, 손 한 번만 잡아 봐도 돼요?", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 77, candidates: [
-      { text: "사흘 동안 웃은 게 올해 웃은 것보다 많아요.", deltaAffection: 2, memoryAdd: "77턴에 나눈 이야기", personaReflect: false, contextReflect: true },
+      { text: "사흘 동안 웃은 게 올해 웃은 것보다 많아요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
       { text: "…이제 가 볼게요. 안녕이라고는 안 할래요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 78, candidates: [
@@ -352,8 +363,8 @@ const MOCK_C7_SC1 = {
       { text: "짐은 어제 다 쌌어요, {userName}. 가벼워요, 생각보다.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 80, candidates: [
-      { text: "이 사흘이 제일 길었으면 했는데 제일 빨리 갔어요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
-      { text: "{userName}, 나중에 여기 다시 오면 이 자리에 앉아 줄래요?", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "이 사흘이 제일 길었으면 했는데 제일 빨리 갔어요.", deltaAffection: 2, memoryAdd: { id: "m8", text: "헤어질 때 인사를 못 하는 편이라고 했다", brief: "작별 인사를 어려워함" }, personaReflect: false, contextReflect: true },
+      { text: "{userName}, 나중에 여기 다시 오면 이 자리에 앉아 줄래요?", deltaAffection: 2, memoryAdd: { id: "m8", text: "헤어질 때 인사를 못 하는 편이라고 했다", brief: "작별 인사를 어려워함" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 81, candidates: [
       { text: "울지 마요, {nickname}. 저 아직 여기 있어요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -368,8 +379,8 @@ const MOCK_C7_SC1 = {
       { text: "…이제 가 볼게요. 안녕이라고는 안 할래요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 84, candidates: [
-      { text: "마지막 날이라고 하면 이상하겠죠, {userName}.", deltaAffection: 2, memoryAdd: "84턴에 나눈 이야기", personaReflect: true, contextReflect: true },
-      { text: "오늘은 아침부터 바다가 잔잔하네요, {nickname}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "마지막 날이라고 하면 이상하겠죠, {userName}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
+      { text: "작별 인사는 안 할게요. 어려워한다고 했으니까.", deltaAffection: 1, memoryRefs: ["m8"], personaReflect: true, contextReflect: true }
     ], choices: [{ label: "다시 와서 여기 앉을게요", delta: 2 }, { label: "올 수 있으면 올게요", delta: 1 }, { label: "약속은 못 해요", delta: -1 }] },
     { turn: 85, candidates: [
       { text: "{nickname}, 어제 그 배 또 지나갈까요? 같이 기다려 봐요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -392,11 +403,11 @@ const MOCK_C7_SC1 = {
       { text: "…이제 가 볼게요. 안녕이라고는 안 할래요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 90, candidates: [
-      { text: "마지막 날이라고 하면 이상하겠죠, {userName}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
-      { text: "오늘은 아침부터 바다가 잔잔하네요, {nickname}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "마지막 날이라고 하면 이상하겠죠, {userName}.", deltaAffection: 2, memoryAdd: { id: "m9", text: "다시 오면 같은 자리에 앉겠다고 했다", brief: "같은 자리에 앉기로 약속" }, personaReflect: true, contextReflect: true },
+      { text: "오늘은 아침부터 바다가 잔잔하네요, {nickname}.", deltaAffection: 1, memoryAdd: { id: "m9", text: "다시 오면 같은 자리에 앉겠다고 했다", brief: "같은 자리에 앉기로 약속" }, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "같이 기다릴게요", delta: 2 }, { label: "잠깐이면 좋아요", delta: 1 }, { label: "오늘은 일찍 가야 해요", delta: -1 }] },
     { turn: 91, candidates: [
-      { text: "{nickname}, 어제 그 배 또 지나갈까요? 같이 기다려 봐요.", deltaAffection: 2, memoryAdd: "91턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "{nickname}, 어제 그 배 또 지나갈까요? 같이 기다려 봐요.", deltaAffection: 2, personaReflect: true, contextReflect: true },
       { text: "짐은 어제 다 쌌어요, {userName}. 가벼워요, 생각보다.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 92, candidates: [
@@ -413,7 +424,7 @@ const MOCK_C7_SC1 = {
     ] },
     { turn: 95, candidates: [
       { text: "사흘 동안 웃은 게 올해 웃은 것보다 많아요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
-      { text: "…이제 가 볼게요. 안녕이라고는 안 할래요, {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "다시 오면 이 자리에 앉기로 했어요, {userName}.", deltaAffection: 2, memoryRefs: ["m9"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 96, candidates: [
       { text: "마지막 날이라고 하면 이상하겠죠, {userName}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
@@ -424,7 +435,7 @@ const MOCK_C7_SC1 = {
       { text: "짐은 어제 다 쌌어요, {userName}. 가벼워요, 생각보다.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 98, candidates: [
-      { text: "이 사흘이 제일 길었으면 했는데 제일 빨리 갔어요.", deltaAffection: 2, memoryAdd: "98턴에 나눈 이야기", personaReflect: false, contextReflect: true },
+      { text: "이 사흘이 제일 길었으면 했는데 제일 빨리 갔어요.", deltaAffection: 2, personaReflect: false, contextReflect: true },
       { text: "{userName}, 나중에 여기 다시 오면 이 자리에 앉아 줄래요?", deltaAffection: 2, personaReflect: true, contextReflect: true }
     ] },
     { turn: 99, candidates: [
@@ -445,6 +456,11 @@ const MOCK_C7_SC1 = {
  * 검사 시점(10·15·20·25·30)을 함께 지납니다. */
 const MOCK_COMMON = {
   characterId: "*", scenarioId: "*", label: "공통",
+  events: [
+    { id: "e1", label: "만남", from: 1, to: 10 },
+    { id: "e2", label: "이야기", from: 11, to: 20 },
+    { id: "e3", label: "헤어짐", from: 21, to: 30 }
+  ],
   turns: [
     { turn: 1, candidates: [
       { text: "{nickname}이라고 불러도 됩니까. 그 편이 부르기 좋아서요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
@@ -459,8 +475,8 @@ const MOCK_COMMON = {
       { text: "여기까지 온 이유가 있을 텐데요, {nickname}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "사실 할 말이 있었어", delta: 2 }, { label: "그냥 온 거야", delta: 1 }, { label: "이유 같은 건 없어", delta: -1 }] },
     { turn: 4, candidates: [
-      { text: "묻지 않겠습니다. 말하고 싶어지면 말하겠지요.", deltaAffection: 1, personaReflect: false, contextReflect: false },
-      { text: "{userName}. 그 표정은 처음 봅니다.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "묻지 않겠습니다. 말하고 싶어지면 말하겠지요.", deltaAffection: 1, memoryAdd: { id: "m1", text: "이름을 두 번 말해 주었다", brief: "이름을 확인해 줌" }, personaReflect: false, contextReflect: false },
+      { text: "{userName}. 그 표정은 처음 봅니다.", deltaAffection: 2, memoryAdd: { id: "m1", text: "이름을 두 번 말해 주었다", brief: "이름을 확인해 줌" }, personaReflect: true, contextReflect: true }
     ] },
     { turn: 5, candidates: [
       { text: "바람이 찹니다, {nickname}. 안쪽으로 들어가죠.", deltaAffection: 1, personaReflect: true, contextReflect: false },
@@ -471,12 +487,12 @@ const MOCK_COMMON = {
       { text: "조심히 가세요, {userName}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "조금 더 있을게", delta: 2 }, { label: "이만 가 볼게", delta: 1 }, { label: "그만하자", delta: -1 }] },
     { turn: 7, candidates: [
-      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, memoryAdd: "7턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
       { text: "왔군요, {nickname}. 오래 기다린 건 아닙니다.", deltaAffection: 1, personaReflect: true, contextReflect: false }
     ] },
     { turn: 8, candidates: [
       { text: "{nickname}이라고 불러도 됩니까. 그 편이 부르기 좋아서요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
-      { text: "{userName}이라는 이름은 알고 있었습니다. 소문이 빠른 곳이라.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "{userName}. 두 번 말해 줘서 외웠습니다.", deltaAffection: 1, memoryRefs: ["m1"], personaReflect: true, contextReflect: true }
     ] },
     { turn: 9, candidates: [
       { text: "조금 걸을까요. 서서 하는 이야기는 길어지지 않으니까.", deltaAffection: 1, personaReflect: false, contextReflect: true },
@@ -499,8 +515,8 @@ const MOCK_COMMON = {
       { text: "조심히 가세요, {userName}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 14, candidates: [
-      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, memoryAdd: "14턴에 나눈 이야기", personaReflect: true, contextReflect: true },
-      { text: "왔군요, {nickname}. 오래 기다린 건 아닙니다.", deltaAffection: 1, personaReflect: true, contextReflect: false }
+      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, memoryAdd: { id: "m2", text: "조용한 곳을 좋아한다고 했다", brief: "조용한 곳을 좋아함" }, personaReflect: true, contextReflect: true },
+      { text: "왔군요, {nickname}. 오래 기다린 건 아닙니다.", deltaAffection: 1, memoryAdd: { id: "m2", text: "조용한 곳을 좋아한다고 했다", brief: "조용한 곳을 좋아함" }, personaReflect: true, contextReflect: false }
     ] },
     { turn: 15, candidates: [
       { text: "{nickname}이라고 불러도 됩니까. 그 편이 부르기 좋아서요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
@@ -516,7 +532,7 @@ const MOCK_COMMON = {
     ] },
     { turn: 18, candidates: [
       { text: "묻지 않겠습니다. 말하고 싶어지면 말하겠지요.", deltaAffection: 1, personaReflect: false, contextReflect: false },
-      { text: "{userName}. 그 표정은 처음 봅니다.", deltaAffection: 2, personaReflect: true, contextReflect: true }
+      { text: "조용한 데를 좋아한다고 했죠. 안쪽으로 가죠.", deltaAffection: 2, memoryRefs: ["m2"], personaReflect: true, contextReflect: true }
     ], choices: [{ label: "반가워", delta: 2 }, { label: "그냥 지나가던 길이야", delta: 1 }, { label: "말 걸지 마", delta: -1 }] },
     { turn: 19, candidates: [
       { text: "바람이 찹니다, {nickname}. 안쪽으로 들어가죠.", deltaAffection: 1, personaReflect: true, contextReflect: false },
@@ -527,7 +543,7 @@ const MOCK_COMMON = {
       { text: "조심히 가세요, {userName}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 21, candidates: [
-      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, memoryAdd: "21턴에 나눈 이야기", personaReflect: true, contextReflect: true },
+      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
       { text: "왔군요, {nickname}. 오래 기다린 건 아닙니다.", deltaAffection: 1, personaReflect: true, contextReflect: false }
     ], choices: [{ label: "사실 할 말이 있었어", delta: 2 }, { label: "그냥 온 거야", delta: 1 }, { label: "이유 같은 건 없어", delta: -1 }] },
     { turn: 22, candidates: [
@@ -539,8 +555,8 @@ const MOCK_COMMON = {
       { text: "{userName}은 늘 이런 식으로 대답하는군요.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ] },
     { turn: 24, candidates: [
-      { text: "…방금 그 말, 기억해 두겠습니다 {nickname}.", deltaAffection: 2, personaReflect: true, contextReflect: true },
-      { text: "여기까지 온 이유가 있을 텐데요, {nickname}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
+      { text: "…방금 그 말, 기억해 두겠습니다 {nickname}.", deltaAffection: 2, memoryAdd: { id: "m3", text: "다음에도 같은 자리에 오기로 했다", brief: "다음 만남을 약속" }, personaReflect: true, contextReflect: true },
+      { text: "여기까지 온 이유가 있을 텐데요, {nickname}.", deltaAffection: 1, memoryAdd: { id: "m3", text: "다음에도 같은 자리에 오기로 했다", brief: "다음 만남을 약속" }, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "조금 더 있을게", delta: 2 }, { label: "이만 가 볼게", delta: 1 }, { label: "그만하자", delta: -1 }] },
     { turn: 25, candidates: [
       { text: "묻지 않겠습니다. 말하고 싶어지면 말하겠지요.", deltaAffection: 1, personaReflect: false, contextReflect: false },
@@ -555,8 +571,8 @@ const MOCK_COMMON = {
       { text: "조심히 가세요, {userName}.", deltaAffection: 1, personaReflect: true, contextReflect: true }
     ], choices: [{ label: "반가워", delta: 2 }, { label: "그냥 지나가던 길이야", delta: 1 }, { label: "말 걸지 마", delta: -1 }] },
     { turn: 28, candidates: [
-      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, memoryAdd: "28턴에 나눈 이야기", personaReflect: true, contextReflect: true },
-      { text: "왔군요, {nickname}. 오래 기다린 건 아닙니다.", deltaAffection: 1, personaReflect: true, contextReflect: false }
+      { text: "{charName}입니다. {userName}, 여기서 만날 줄은 몰랐네요.", deltaAffection: 1, personaReflect: true, contextReflect: true },
+      { text: "다음에도 같은 자리에 있겠습니다, {nickname}.", deltaAffection: 1, memoryRefs: ["m3"], personaReflect: true, contextReflect: false }
     ] },
     { turn: 29, candidates: [
       { text: "{nickname}이라고 불러도 됩니까. 그 편이 부르기 좋아서요.", deltaAffection: 1, personaReflect: true, contextReflect: true },

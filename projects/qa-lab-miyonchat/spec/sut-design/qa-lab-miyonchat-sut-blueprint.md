@@ -177,7 +177,10 @@ g(전역 셸) · t1(테스트 콘솔).
 | `s5-room-{id}` / `-count` | 채팅 탭 방 목록 / 방별 대화수 |
 | `s6-logout` · `s6-activity-like` · `s6-activity-scrap` · `s6-safety-toggle` | MY 로그아웃·활동 목록·세이프티 필터 |
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
-| `p2-pin-{항목}` · `p2-memory-{n}-delete` | 핀·기억 삭제 (메모리 슬라이스) |
+| ✅ `p2-event` | 지금 장면과 구간(`첫날 밤 (21~33턴)`) — 간략화가 언제 오는지를 읽는 자리 |
+| ✅ `p2-context` | 단기 맥락 창 안내 — 창 길이와 지금 창에 든 구간(`19~28턴`) |
+| ✅ `p2-memories` · `p2-memory-{id}` · `-text` · `-turn` · `-pin` · `-delete` · `p2-memory-empty` | 기억 목록 · 항목 · 내용(고정이면 📌) · 알게 된 턴·장면·요점 여부 · 고정 토글 · 삭제 · 빈 상태 |
+| ✅ `p2-forgotten` | 지운 기억 안내 — 이후 응답이 그 내용을 참조하지 않음을 화면에서 읽는 자리 |
 | ✅ `p3-panel` · `p3-close` · `p3-wallet-free` · `p3-wallet-paid` · `p3-help` | 재화 패널 · 닫기 · 잔액 2종 · 요율 안내 |
 | ✅ `p3-charge-ok` · `p3-charge-fail` | 충전 mock 성공/실패 |
 | ✅ `p3-ledger` · `p4-ledger` (+ `-row-{id}` · `-ledger-empty` · `-filter-{구분}`) | 내역 목록·항목·빈 상태·필터(`all`·`gain`·`spend`). P3와 P4가 같은 데이터를 같은 뷰로 봅니다 |

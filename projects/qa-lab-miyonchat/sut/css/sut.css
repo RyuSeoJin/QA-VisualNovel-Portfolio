@@ -288,6 +288,21 @@ button { font-family: inherit; cursor: pointer; }
 }
 .slot-room.here { border-color: #6d5fd0; color: #cfcfe0; }
 
+/* P2 기억 목록 — 핀과 창 밖 여부가 한 줄에서 읽혀야 합니다 (system-spec §7) */
+.p2-sub { font-size: 13px; margin: 18px 0 6px; }
+.mem-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.mem {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border-radius: 8px; background: #1c1c24; border: 1px solid #2c2c34;
+}
+.mem.pinned { border-color: #6d5fd0; }
+.mem-text { flex: 1 1 auto; font-size: 13px; }
+.mem-turn { font-size: 11px; color: #7a7a88; flex: none; }
+.mem .mini {
+  padding: 3px 8px; border-radius: 6px; font-size: 11px;
+  background: #24242e; border: 1px solid #3b3b47; color: inherit;
+}
+
 .chat-choices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .chat-choices .choice {
   padding: 10px 12px; border-radius: 8px; text-align: left; font-size: 13px;
