@@ -8,8 +8,8 @@
   `sut-design/`의 각 명세입니다
 - 구현 범위의 정본은 `spec/` 평면 feature-tree의 범위 컬럼(구현/보류/제외)입니다
 - 설계 결정의 근거와 타당성 검증 기록은 `rationale/…-sut-rationale.md`에 있습니다
-- 상태: **확정** (2026-08-01, 트리 v1.0 동기) — 단, data-testid 전체 목록은 SUT 구현과
-  함께 §3-1에 확정 등재합니다
+- 상태: **확정** (2026-08-01, 트리 v1.0 동기). data-testid 전체 목록은 SUT 구현 완료와 함께
+  §3-1에 **확정 등재했습니다**(2026-08-03) — 코드에서 뽑은 239종이 모두 표에 있습니다
 
 ---
 
@@ -151,6 +151,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s2-empty` · `{목록}-empty` | 모수가 빈 상태 · 목록별 0건 안내(예 `s2-cat-list-empty`) |
 | ✅ `s2-card-{id}` · `-thumb` · `-blur` · `-metric` | 캐릭터 카드 · 이미지 자리(이름 텍스트) · 블러 표식 · 지표 줄(T1에서 켤 때만) |
 | ✅ `s3-screen` · `s3-back` · `s3-page-title` · `s3-page-subtitle` · `s3-story` | 캐릭터 페이지 — 화면·뒤로 · 작품 층(제목·보조 설명·스토리) |
+| ✅ `s3-missing` | 없는 캐릭터 id로 들어왔을 때 |
 | ✅ `s3-thumb` · `s3-title` · `s3-categories` · `s3-cat-{이름}` · `s3-stories` · `s3-story-{n}` | 캐릭터 이미지 · 본문 제목 · 카테고리 칩 묶음·칩 · 스토리 블록 묶음·블록 |
 | ✅ `s3-char-block` · `s3-name` · `s3-tagline` · `s3-char-desc` · `s3-situation` · `s3-first` | 캐릭터 소개(구분선 목록) — 이름·한 줄 설명·상세 설명·시작 상황·첫 메시지 |
 | ✅ `s3-creator` · `s3-stats` · `s3-stat-{지표}` · `s3-updated` · `s3-related` | 제작자(표시만) · 현황 묶음과 지표별 값 · 출시일/업데이트 · 그 외 작품 |
@@ -160,7 +161,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s3-pick-profile` · `s3-start` | 프로필 선택(→P5) · 대화 시작(방이 있으면 「새 대화 시작」) |
 | ✅ `p5-panel` · `p5-close` · `p5-profile-{id}` · `p5-empty` · `p5-count` · `p5-limit` | 대화 프로필 패널 · 닫기 · 프로필 항목 · 빈 상태 · 사용 개수 · 한도 안내 |
 | ✅ `p5-name` · `p5-nickname` · `p5-gender` · `p5-desc` · `p5-label` · `p5-{항목}-count` · `p5-random` · `p5-save` | 추가 폼 — 항목·글자수 카운터·랜덤 완성·추가 |
-| ✅ `s4-todo` · `s4-start-info` | S4 자리표시자 · 인계된 시작점과 페르소나 |
+| ✅ `s4-noroom` | 열려 있는 대화방이 없을 때 |
 | ✅ `s4-screen` · `s4-back` · `s4-char` · `s4-scenario` · `s4-log` | 대화 화면 — 뒤로 · 캐릭터명 · 시작 상황/세트/시드 · 메시지 목록 |
 | ✅ `s4-input` · `s4-input-count` · `s4-send` · `s4-streaming` | 입력창(500자)·글자수·전송·표시 중 표식 |
 | ✅ `s4-choices` · `s4-choice-{n}` | 고정 선택지 영역 · 선택지(가중치는 mock 세트) |
@@ -179,6 +180,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `p1-rooms-head` · `p1-rooms` · `p1-room-{id}` | 이 캐릭터의 대화방 수·한도 · 방 목록 · 방 항목(지금 방은 비활성) |
 | ✅ `s5-screen` · `s5-summary` · `s5-empty` · `s5-rooms` | 채팅 탭 — 방 수·대화수 합계 · 빈 상태 · 목록 |
 | ✅ `s5-room-{id}` · `-open` · `-info` · `-count` · `-delete` | 방 항목 · 재진입 · 프로필/단계/턴 · 대화수와 세이브 칸 · 삭제 |
+| ✅ `s6-noaccount` | 계정 없이 이 화면에 닿았을 때의 폴백 — 정상 경로에서는 가드가 막습니다(gate-bypass 주입에서만 보입니다) |
 | ✅ `s6-screen` · `s6-account` · `s6-gate` | MY — 계정 표시명 · 게이팅 상태(미로그인·본인인증 미진행·성인 인증 완료·미성년) |
 | ✅ `s6-stats` · `s6-total-count` · `s6-room-count` · `s6-followers` · `s6-following` | 대화수 합계(= Σ 방 대화수) · 방 수 · 팔로워/팔로잉(시트 값 표시만) |
 | ✅ `s6-wallet` · `s6-missions` | 보유 재화(→P3) · 웰컴 미션(→P4) |
