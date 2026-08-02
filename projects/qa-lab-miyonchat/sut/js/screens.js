@@ -9,6 +9,7 @@ function el(tag, attrs, children) {
     else if (k === "html") node.innerHTML = attrs[k];
     else if (k === "onclick") node.addEventListener("click", attrs[k]);
     else if (k === "onchange") node.addEventListener("change", attrs[k]);
+    else if (k === "onkeydown") node.addEventListener("keydown", attrs[k]);
     else node.setAttribute(k, attrs[k]);
   }
   (children || []).forEach((c) => c && node.appendChild(c));
@@ -25,10 +26,38 @@ function toast(message) {
   setTimeout(() => t.remove(), 3000);
 }
 
-/* S1 로그인 — 진입점이 아니라 보호 동작 시도 시 뜨는 화면.
+/* 로그인 모달 — 셸 안에서 막혔을 때 뜹니다. 뒤 화면은 그대로 남고, 로그인하면
+ * 막혔던 동작을 이어서 수행합니다(system-spec §1-1). */
+function renderLoginModal() {
+  return el("div", { class: "login-modal", "data-testid": "g-login-modal" }, [
+    el("div", { class: "login-box" }, [
+      el("div", { class: "panel-head" }, [
+        el("h2", { text: "로그인" }),
+        el("button", {
+          class: "panel-close", "data-testid": "g-login-close", text: "✕",
+          onclick: () => closeLogin()
+        })
+      ]),
+      el("p", {
+        class: "lede", "data-testid": "g-login-notice",
+        text: "로그인하고 이용할 수 있는 기능입니다. 로그인하면 하려던 동작을 이어서 진행합니다."
+      }),
+      el("button", {
+        class: "account", "data-testid": "g-login-a",
+        text: ACCOUNTS.a.label, onclick: () => signIn("a")
+      }),
+      el("button", {
+        class: "account", "data-testid": "g-login-b",
+        text: ACCOUNTS.b.label, onclick: () => signIn("b")
+      })
+    ])
+  ]);
+}
+
+/* S1 로그인 — 보호 화면에 URL로 직접 들어왔을 때 뜨는 화면(뒤에 깔 화면이 없는 경우).
  * 로그인하면 원래 하려던 곳으로 이어집니다(system-spec §1-1). */
 function renderS1() {
-  const pick = (id) => { login(id); resumeIntent(); render(); };
+  const pick = (id) => signIn(id);
   return el("section", { class: "screen s1" }, [
     // 셸이 없는 화면이므로 디버그 버튼을 우상단에 단독 배치합니다(청사진 §1 T1)
     el("div", { class: "s1-debug" }, [renderDebugButton()]),
@@ -73,18 +102,51 @@ const TAB_LABELS = {
 
 /* 상단 바 — 잔액·미션은 로그인 전용 요소라 미로그인에는 노출하지 않고
  * 대신 로그인 버튼을 둡니다(system-spec §1-1). */
+/* 알림 목록 — 데이터 시트의 항목을 표시만 합니다. 발생 로직은 없습니다(트리 제외 사유) */
+function renderNotiList() {
+  const rows = VN.sheet.notifications;
+  return el("div", { class: "noti-pop", "data-testid": "g-noti-list" }, [
+    el("div", { class: "noti-head" }, [
+      el("strong", { text: "알림" }),
+      el("button", {
+        class: "panel-close", "data-testid": "g-noti-close", text: "✕",
+        onclick: () => { VN.notiOpen = false; render(); }
+      })
+    ]),
+    rows.length
+      ? el("ul", { class: "noti-items" }, rows.map((n) =>
+          el("li", { class: "noti-item", "data-testid": "g-noti-" + n.id }, [
+            el("p", { class: "noti-text", text: n.text }),
+            el("p", { class: "noti-day", text: n.day })
+          ])))
+      : el("p", {
+          class: "empty", "data-testid": "g-noti-empty", text: "새 알림이 없습니다."
+        })
+  ]);
+}
+
 function renderTopBar() {
   const acc = currentAccount();
+  // 입력 중인 값은 상태에 담지 않습니다 — 확정된 검색어(VN.search)만 결과를 만듭니다
+  const search = el("input", {
+    class: "search", "data-testid": "g-search", type: "text",
+    placeholder: "캐릭터 검색", value: VN.search || "",
+    onkeydown: (e) => { if (e.key === "Enter") runSearch(e.target.value); }
+  });
   const items = [
     el("button", {
       class: "logo", "data-testid": "g-logo", text: "MiyonChat",
       onclick: () => goHome()
     }),
-    el("input", {
-      class: "search", "data-testid": "g-search", type: "text",
-      placeholder: "캐릭터 검색"
+    search,
+    el("button", {
+      class: "icon", "data-testid": "g-search-submit", text: "검색",
+      onclick: () => runSearch(search.value)
     }),
-    el("button", { class: "icon", "data-testid": "g-noti", text: "알림" }),
+    el("button", {
+      class: "icon", "data-testid": "g-noti", text: "알림",
+      onclick: () => toggleNoti()
+    }),
     renderDebugButton()          // 테스트 설비 — 로그인 여부와 무관하게 항상 노출
   ];
   if (isLoggedIn()) {
@@ -103,9 +165,10 @@ function renderTopBar() {
   } else {
     items.push(el("button", {
       class: "icon", "data-testid": "g-login", text: "로그인",
-      onclick: () => { go("s1"); }
+      onclick: () => openLogin()
     }));
   }
+  if (VN.notiOpen) items.push(renderNotiList());
   return el("header", { class: "topbar", "data-testid": "g-topbar" }, items);
 }
 
@@ -373,6 +436,26 @@ function renderS2Detail(c) {
   ]);
 }
 
+/* 검색 결과 — 상단 바에서 친 키워드의 결과는 홈이 받아 그립니다 (청사진 §1 전역 셸) */
+function renderS2Search() {
+  const list = searchList();
+  return el("div", {}, [
+    el("div", { class: "search-info" }, [
+      el("p", {
+        "data-testid": "s2-search-info",
+        text: "\"" + VN.search + "\" 검색 결과 " + list.length + "건"
+      }),
+      el("button", {
+        class: "f", "data-testid": "s2-search-clear", text: "검색 해제",
+        onclick: () => clearSearch()
+      })
+    ]),
+    s2Section("s2-search-list", "검색 결과", list, {
+      empty: "검색 결과가 없습니다. 다른 키워드로 찾아 주세요."
+    })
+  ]);
+}
+
 function renderS2() {
   const names = ["추천", "랭킹", "신작"].concat(VN.sheet.categories.map((g) => g.name));
   const chips = el("div", { class: "chips", "data-testid": "s2-chips" }, names.map((n) =>
@@ -383,7 +466,10 @@ function renderS2() {
     })));
 
   let body;
-  if (!visibleCharacters().length) {
+  if (VN.search) {
+    // 검색 중에는 칩 화면 대신 결과가 자리를 차지합니다 — 칩은 그대로 두어 빠져나올 길을 남깁니다
+    body = renderS2Search();
+  } else if (!visibleCharacters().length) {
     body = el("p", {
       class: "empty", "data-testid": "s2-empty",
       text: "표시할 캐릭터가 없습니다."

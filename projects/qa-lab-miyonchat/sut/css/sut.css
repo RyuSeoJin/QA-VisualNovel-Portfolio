@@ -52,6 +52,19 @@ button { font-family: inherit; cursor: pointer; }
 .avatar.lg { width: 40px; height: 40px; font-size: 16px; }
 .topbar .pname { font-size: 12px; }
 
+/* 알림 목록 — 상단 바(sticky라 위치 기준이 됩니다)에 매달립니다 */
+.noti-pop {
+  position: absolute; top: 100%; right: 14px; z-index: 30;
+  width: min(300px, 88vw); max-height: 60vh; overflow-y: auto;
+  background: #1c1c24; border: 1px solid #3b3b47; border-radius: 8px; padding: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+}
+.noti-head { display: flex; align-items: center; justify-content: space-between; }
+.noti-items { list-style: none; margin: 10px 0 0; padding: 0; }
+.noti-item { padding: 8px 0; border-top: 1px solid #2c2c34; }
+.noti-text { margin: 0; font-size: 13px; }
+.noti-day { margin: 3px 0 0; font-size: 11px; color: #6b6b76; }
+
 /* ── 전역 패널 (P3·P4) ─────────────────────── */
 .panel-wrap {
   position: fixed; inset: 0; background: rgba(0, 0, 0, .55);
@@ -162,6 +175,12 @@ button { font-family: inherit; cursor: pointer; }
 }
 .empty { color: #8b8b96; font-size: 13px; padding: 12px 0; }
 
+.search-info {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 14px;
+}
+.search-info p { margin: 0; font-size: 13px; }
+
 /* 카드 상세 — 전역 패널과 같은 틀을 씁니다 */
 .d-line { margin: 16px 0 0; font-size: 13px; color: #8b8b96; }
 .d-tags { margin: 6px 0 0; font-size: 12px; color: #a5b4fc; }
@@ -193,6 +212,24 @@ button { font-family: inherit; cursor: pointer; }
 .stub .stub-tag {
   display: inline-block; padding: 3px 8px; border-radius: 4px;
   background: #3b2b2b; color: #f0a3a3; font-size: 12px;
+}
+
+/* ── 로그인 모달 ───────────────────────────── */
+/* 만료 모달(z-index 50)보다 아래입니다 — 세션이 만료된 상태에서 보호 동작을 시도하면
+   만료 안내를 먼저 확인해야 합니다 */
+.login-modal {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .6);
+  display: flex; align-items: center; justify-content: center; z-index: 45;
+}
+.login-box {
+  width: min(340px, 90vw);
+  background: #1c1c24; border: 1px solid #3b3b47; border-radius: 10px; padding: 18px;
+}
+.login-box .lede { color: #8b8b96; font-size: 13px; line-height: 1.6; margin: 6px 0 18px; }
+.login-box .account {
+  display: block; width: 100%; margin-bottom: 8px; padding: 12px;
+  background: #24242e; border: 1px solid #3b3b47; border-radius: 8px;
+  color: inherit; font-size: 14px;
 }
 
 /* ── 만료 모달 ─────────────────────────────── */

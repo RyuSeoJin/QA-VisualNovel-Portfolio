@@ -16,34 +16,60 @@ let lastScreen = null;
 
 function go(screen) {
   if (PROTECTED.includes(screen) && !isLoggedIn()) {
-    pendingIntent = { screen: screen };
-    VN.screen = "s1";
-  } else {
-    VN.screen = screen;
+    // 셸이 떠 있는 중이라 화면을 갈아 끼우지 않고 모달만 얹습니다 (system-spec §1-1)
+    requireLogin("screen:" + screen, () => go(screen));
+    return;
   }
+  VN.screen = screen;
   render();
 }
 
-/* 보호 동작 게이트 — 화면 이동이 아닌 동작(좋아요·수령 등)에 씁니다.
- * 통과하지 못하면 S1으로 보내고 동작은 수행하지 않습니다. */
-function requireLogin(action) {
+/* 보호 동작 게이트 — 통과하지 못하면 동작을 수행하지 않고 로그인 모달을 띄웁니다.
+ * `run`은 로그인 후 이어서 수행할 동작입니다. 막을 때는 아무것도 하지 않고,
+ * 풀리면 그때 수행합니다 (system-spec §1-1). */
+function requireLogin(action, run) {
   if (isLoggedIn()) return true;
-  pendingIntent = { screen: VN.screen, action: action || null };
-  VN.screen = "s1";
+  pendingIntent = { screen: VN.screen, action: action || null, run: run || null };
+  VN.loginOpen = true;
   render();
   return false;
 }
 
-/* 로그인 성공 후 원래 의도로 복귀 */
-function resumeIntent() {
-  const next = pendingIntent && pendingIntent.screen;
+/* 로그아웃·만료 확인처럼 의도가 무의미해지는 지점에서 걷습니다 — state.js가 부릅니다 */
+function clearPendingIntent() {
   pendingIntent = null;
-  VN.screen = next && next !== "s1" ? next : "s2";
+}
+
+/* 상단 바 로그인 버튼 — 막힌 동작이 없는 그냥 로그인이라 이어받을 것이 없습니다 */
+function openLogin() {
+  if (isLoggedIn()) return;
+  pendingIntent = null;
+  VN.loginOpen = true;
+  render();
+}
+
+function closeLogin() {
+  VN.loginOpen = false;
+  pendingIntent = null;
+  render();
+}
+
+/* 로그인 성공 — S1 화면과 로그인 모달이 같은 경로를 씁니다.
+ * 화면은 막히기 전 자리로 되돌리고, 막혔던 동작이 있으면 이어서 수행합니다. */
+function signIn(accountId) {
+  login(accountId);
+  const intent = pendingIntent;
+  pendingIntent = null;
+  VN.loginOpen = false;
+  const back = intent && intent.screen ? intent.screen : VN.screen;
+  VN.screen = back && back !== "s1" ? back : "s2";
+  if (intent && intent.run) intent.run();    // 이어받은 동작이 화면까지 그립니다
+  else render();
 }
 
 /* 전역 패널 — 보호 동작이므로 미로그인이면 열리지 않고 로그인으로 유도합니다 */
 function openPanel(name) {
-  if (!requireLogin("panel:" + name)) return;
+  if (!requireLogin("panel:" + name, () => openPanel(name))) return;
   VN.panel = name;
   render();
 }
@@ -57,6 +83,7 @@ function closePanel() {
 function goHome() {
   const already = VN.screen === "s2";
   VN.detailId = null;        // 상세는 목록 위에 열린 것이라 홈으로 오면 걷습니다
+  VN.search = "";            // 검색 결과도 마찬가지로 걷고 활성 칩 화면으로 돌아옵니다
   go("s2");
   if (already) window.scrollTo(0, 0);
 }
@@ -68,7 +95,31 @@ function selectChip(name) {
     VN.homeChip = name;
     VN.catTag = null;
   }
+  VN.search = "";            // 칩을 고르면 검색 결과에서 목록으로 돌아옵니다
   VN.detailId = null;
+  render();
+}
+
+/* 키워드 검색 — 공개 범위라 미로그인도 씁니다 (system-spec §1-1).
+ * 결과는 홈이 그리므로 다른 화면에서 검색하면 홈으로 옮겨 갑니다. */
+function runSearch(text) {
+  VN.search = (text || "").trim();
+  VN.detailId = null;
+  VN.notiOpen = false;
+  if (VN.screen !== "s2") go("s2");
+  else render();
+}
+
+function clearSearch() {
+  VN.search = "";
+  render();
+}
+
+/* 알림 목록 — 계정에 매인 데이터라 보호 동작으로 둡니다.
+ * 미로그인이 누르면 열지 않고 로그인으로 유도합니다(T1의 알림 발송과 같은 게이트). */
+function toggleNoti() {
+  if (!VN.notiOpen && !requireLogin("noti", () => toggleNoti())) return;
+  VN.notiOpen = !VN.notiOpen;
   render();
 }
 
@@ -85,7 +136,7 @@ function closeDetail() {
 
 /* 좋아요·스크랩은 보호 동작입니다 — 미로그인이면 토글하지 않고 로그인으로 유도합니다 */
 function toggleCardFlag(kind, id) {
-  if (!requireLogin(kind + ":" + id)) return;
+  if (!requireLogin(kind + ":" + id, () => toggleCardFlag(kind, id))) return;
   const acc = currentAccount();
   const list = kind === "like" ? acc.likes : acc.scraps;
   const at = list.indexOf(id);
@@ -95,12 +146,11 @@ function toggleCardFlag(kind, id) {
 }
 
 /* 시나리오 선택 시작 — 대화 개시는 페르소나 설정(S3)을 거칩니다(청사진 §1 화면 맵).
- * 미로그인이면 시작점을 남기지 않고 가드가 S1으로 보냅니다. 고른 시작점은 S4 슬라이스가 읽습니다. */
+ * 미로그인이면 시작점을 남기지 않고 모달을 띄웠다가, 로그인하면 여기서부터 다시 탑니다.
+ * 고른 시작점은 S4 슬라이스가 읽습니다. */
 function startConversation(charId, scenarioId) {
-  if (!isLoggedIn()) {
-    go("s3");
-    return;
-  }
+  const resume = () => startConversation(charId, scenarioId);
+  if (!requireLogin("start:" + charId + ":" + scenarioId, resume)) return;
   VN.pendingStart = { charId: charId, scenarioId: scenarioId };
   go("s3");
 }
@@ -141,6 +191,9 @@ function render() {
   const p = renderPanel();
   if (p) root.appendChild(p);
 
+  // 로그인 모달은 화면 위에 얹힙니다 — 뒤 화면이 그대로 남아야 돌아올 자리가 보입니다
+  if (VN.loginOpen && VN.screen !== "s1") root.appendChild(renderLoginModal());
+
   if (VN.session === SESSION.EXPIRED) {
     root.appendChild(renderExpiredModal());
   }
@@ -156,7 +209,11 @@ function boot() {
 
   const screen = params.get("screen");
   VN.screen = screen || "s2";                      // 진입점은 홈
-  if (PROTECTED.includes(VN.screen) && !isLoggedIn()) VN.screen = "s1";
+  if (PROTECTED.includes(VN.screen) && !isLoggedIn()) {
+    // 뒤에 깔 화면이 없는 유일한 경우라 모달이 아니라 로그인 화면으로 받습니다
+    pendingIntent = { screen: VN.screen, action: "screen:" + VN.screen, run: null };
+    VN.screen = "s1";
+  }
 
   render();
   paintConsole();

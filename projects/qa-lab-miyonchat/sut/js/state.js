@@ -51,6 +51,9 @@ const VN = {
   catSort: "chat",      // 카테고리 전체 목록 정렬 — chat(대화순) / new(최신순)
   detailId: null,       // 열려 있는 카드 상세의 캐릭터 id
   detailScenario: null, // 카드 상세에서 고른 시나리오 id
+  search: "",           // 확정된 검색어 — 결과는 홈에 표시합니다 (청사진 §1 전역 셸)
+  notiOpen: false,      // 상단 바 알림 목록 펼침
+  loginOpen: false,     // 로그인 모달 — 셸 안에서 막혔을 때만 (system-spec §1-1)
   pendingStart: null,   // 시나리오 선택 시작의 시작점 — S4 슬라이스가 읽습니다
   seed: 1,
   inject: null
@@ -98,8 +101,13 @@ function login(accountId) {
   VN.session = SESSION.ACTIVE;
 }
 
-/* 홈 화면의 보기 상태를 처음으로 되돌립니다 — 로그아웃·초기화가 함께 씁니다 */
-function resetHomeView() {
+/* 화면의 보기 상태를 처음으로 되돌립니다 — 로그아웃·초기화가 함께 씁니다.
+ * 검색어와 알림 펼침도 앞 계정의 흔적이므로 여기서 걷습니다. */
+function resetViewState() {
+  VN.search = "";
+  VN.notiOpen = false;
+  VN.loginOpen = false;
+  clearPendingIntent();      // 앞 계정에서 막혔던 의도를 다음 계정이 이어받으면 안 됩니다
   VN.homeChip = "추천";
   VN.rankPeriod = "daily";
   VN.rankSort = "usage";
@@ -117,7 +125,7 @@ function logout() {
   VN.session = SESSION.GUEST;
   VN.screen = "s2";          // 미로그인 상태의 홈으로 복귀
   VN.panel = null;
-  resetHomeView();
+  resetViewState();
 }
 
 /* 이용수 집계 — 유저×캐릭터×날짜 중복 제거 (system-spec §8-2) */
@@ -296,6 +304,16 @@ function categoryList(category) {
   return sortChars(base, (c) => usageCount(c.id, null));   // 대화순 = 누적 이용수
 }
 
+/* 키워드 검색 — 제목(캐릭터 이름) 부분일치 (system-spec §8-7).
+ * 선택 기준이 따로 없는 목록이라 순서는 체인의 첫 고리인 월간 이용수가 잡습니다(§8-4). */
+function searchList() {
+  const key = (VN.search || "").trim().toLowerCase();
+  if (!key) return [];
+  return sortChars(
+    visibleCharacters().filter((c) => c.name.toLowerCase().indexOf(key) >= 0),
+    monthUsage);
+}
+
 function findCharacter(id) {
   return VN.sheet.characters.find((c) => c.id === id) || null;
 }
@@ -316,6 +334,11 @@ window.__VN__ = {
       rankSort: VN.rankSort,
       catTag: VN.catTag,
       catSort: VN.catSort,
+      search: VN.search,
+      notiOpen: VN.notiOpen,
+      loginOpen: VN.loginOpen,
+      // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
+      pendingAction: pendingIntent ? pendingIntent.action : null,
       detailId: VN.detailId,
       pendingStart: VN.pendingStart,
       seed: VN.seed,
@@ -353,7 +376,7 @@ window.__VN__ = {
     VN.sheet = deepCopy(VN_DATA);
     VN.screen = "s2";
     VN.panel = null;
-    resetHomeView();
+    resetViewState();
     VN.inject = null;
     consoleOpen = false;
     render();
