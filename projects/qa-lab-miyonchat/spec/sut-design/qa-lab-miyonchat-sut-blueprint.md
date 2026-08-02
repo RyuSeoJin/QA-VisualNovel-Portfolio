@@ -130,12 +130,19 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `g-toast` | 안내 토스트 (3초) |
 | ✅ `s1-account-a` / `s1-account-b` | 계정 선택 버튼 |
 | ✅ `s1-notice` · `s1-back-home` | 로그인 필요 안내 · 둘러보기로 복귀 |
-| `s2-chip-{이름}` · `s2-rank-period-{구간}` · `s2-rank-sort-{기준}` | 홈 필터 칩 · 랭킹 필터·정렬 |
-| `s2-card-{id}` / `s2-card-{id}-blur` / `-like` / `-scrap` | 캐릭터 카드 / 블러 표식 / 토글 |
+| ✅ `s2-screen` · `s2-chips` · `s2-chip-{이름}` | 홈 화면 · 칩 줄 · 필터 칩(`추천` `랭킹` `신작` + 카테고리 이름) |
+| ✅ `s2-sec-carousel` · `s2-sec-recent` · `s2-sec-rising` · `s2-sec-hot` | 추천 탭의 섹션 — 캐러셀 · 최근 대화 · 떠오르는 신작 · 지금 뜨거운 |
+| ✅ `s2-rank-period-{구간}` · `s2-rank-sort-{기준}` | 랭킹 기간(`daily` `weekly` `monthly`) · 기준(`usage` `likes` `score` `reviews`) |
+| ✅ `s2-rank-list` · `s2-rank-help` · `s2-rank-help-body` | 랭킹 목록 · ⓘ 도움말 버튼 · 펼친 규칙 요약 |
+| ✅ `s2-new-list` | 신작 탭 목록 |
+| ✅ `s2-cat-new` · `s2-cat-tag-{태그}` · `s2-cat-sort-{기준}` · `s2-cat-list` | 카테고리 인기 신작 · 취향 태그 칩 · 정렬(`chat` `new`) · 전체 목록 |
+| ✅ `s2-empty` · `{목록}-empty` | 모수가 빈 상태 · 목록별 0건 안내(예 `s2-cat-list-empty`) |
+| ✅ `s2-card-{id}` / `s2-card-{id}-blur` / `-like` / `-scrap` | 캐릭터 카드 / 블러 표식 / 토글 |
+| ✅ `s2-detail` · `s2-detail-close` · `s2-detail-locked` | 카드 상세 · 닫기 · 언세이프 열람 제한 안내 |
+| ✅ `s2-detail-tags` · `s2-detail-first` · `s2-detail-scenario` · `s2-detail-start` | 태그 · 첫 메시지 전문 · 시나리오 선택 · 시작 |
 | `s3-name` · `s3-desc` · `s3-save` | 페르소나 폼 |
 | `s4-input` · `s4-send` · `s4-choice-{n}` | 입력창·전송·고정 선택지 |
 | `s4-msg-{n}` + `-edit` / `-delete` / `-regen` / `-branch` | 메시지와 메시지 액션 |
-| `s2-cat-tag-{태그}` · `s2-cat-sort-{기준}` | 카테고리 취향 태그 칩 · 전체 목록 정렬 |
 | `s5-room-{id}` / `-count` | 채팅 탭 방 목록 / 방별 대화수 |
 | `s6-logout` · `s6-activity-like` · `s6-activity-scrap` · `s6-safety-toggle` | MY 로그아웃·활동 목록·세이프티 필터 |
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
@@ -156,7 +163,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `t1-adult-on` / `t1-adult-off` · `t1-adult-state` | 성인 인증 토글 · 현재 상태 문구 |
 | ✅ `t1-baseday` · `t1-baseday-apply` | 기준일 입력 · 적용 |
 | ✅ `t1-char-table` · `t1-char-add` · `t1-char-clear` · `t1-char-apply` | 캐릭터 지표 표 · 생성 · 비우기 · 표 전체 적용 |
-| ✅ `t1-row-{id}-category` / `-tags` / `-adult` / `-likes` / `-reviews` / `-score` / `-daily` / `-weekly` / `-monthly` | 표의 행별 셀 |
+| ✅ `t1-row-{id}-category` / `-tags` / `-created` / `-adult` / `-likes` / `-reviews` / `-score` / `-daily` / `-weekly` / `-monthly` | 표의 행별 셀 |
 | ✅ `t1-tag-guide` | 쓸 수 있는 태그 안내 |
 | ✅ `t1-noti-send` · `t1-noti-clear` | 알림 발송 · 비우기 |
 | ✅ `t1-followers` · `t1-following` · `t1-account-apply` · `t1-account-state` | 계정 속성 입력 · 적용 · 로그인 상태 배지 |
@@ -257,7 +264,7 @@ JSON 편집은 폼으로 만들 수 없는 이상 데이터(형식 위반·극�
 | 조작 | 형태 | 무엇을 검증하기 위한 것인가 |
 |---|---|---|
 | 캐릭터 1개 생성 | 버튼 — 이름·소개·카테고리·태그를 임의로 채웁니다 | 목록 증가, 신작 정렬, 빈 상태 해제 |
-| 캐릭터별 지표 수정 | **표 형태** — 행=캐릭터, 열=카테고리(선택)·태그(쉼표 구분)·19세 이상(체크)·좋아요 수·리뷰 수·리뷰 점수·이용수(일간·주간·월간). 셀에서 바로 고치고 한 번에 적용 | 랭킹 정렬, 리뷰 최소 표본 경계, 기간 필터, 동률 체인, 카테고리 필터, 언세이프 게이팅 |
+| 캐릭터별 지표 수정 | **표 형태** — 행=캐릭터, 열=카테고리(선택)·태그(쉼표 구분)·생성일·19세 이상(체크)·좋아요 수·리뷰 수·리뷰 점수·이용수(일간·주간·월간). 셀에서 바로 고치고 한 번에 적용 | 랭킹 정렬, 리뷰 최소 표본 경계, 기간 필터, 동률 체인, 카테고리 필터, 언세이프 게이팅, **신작 창 경계**(생성일을 기준일에서 밀어내면 신작 섹션에서 빠짐) |
 | 캐릭터 전체 비우기 | 버튼 | 빈 상태 문구 |
 | 알림 1건 발송 | 버튼 | 알림 목록 표시 반영 |
 | 계정 속성 | 팔로워·팔로잉 입력 | MY 표시 반영 |

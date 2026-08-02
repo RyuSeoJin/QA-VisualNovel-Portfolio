@@ -43,6 +43,15 @@ const VN = {
   screen: "s1",
   panel: null,          // 전역 패널 — P3 재화 / P4 간편 프로필
   homeChip: "추천",     // 홈 필터 칩 — 홈 재선택 시 유지 (system-spec §8-5)
+  /* 홈 화면 안의 필터 상태 — 칩을 옮겨도 유지되어야 "돌아왔을 때 그대로인가"를 볼 수 있습니다 */
+  rankPeriod: "daily",  // 랭킹 기간 — daily / weekly / monthly
+  rankSort: "usage",    // 랭킹 기준 — usage(기본) / likes / score / reviews
+  rankHelp: false,      // 랭킹 ⓘ 도움말 펼침
+  catTag: null,         // 카테고리 취향 태그 — null이면 태그 필터 없음
+  catSort: "chat",      // 카테고리 전체 목록 정렬 — chat(대화순) / new(최신순)
+  detailId: null,       // 열려 있는 카드 상세의 캐릭터 id
+  detailScenario: null, // 카드 상세에서 고른 시나리오 id
+  pendingStart: null,   // 시나리오 선택 시작의 시작점 — S4 슬라이스가 읽습니다
   seed: 1,
   inject: null
 };
@@ -89,13 +98,26 @@ function login(accountId) {
   VN.session = SESSION.ACTIVE;
 }
 
+/* 홈 화면의 보기 상태를 처음으로 되돌립니다 — 로그아웃·초기화가 함께 씁니다 */
+function resetHomeView() {
+  VN.homeChip = "추천";
+  VN.rankPeriod = "daily";
+  VN.rankSort = "usage";
+  VN.rankHelp = false;
+  VN.catTag = null;
+  VN.catSort = "chat";
+  VN.detailId = null;
+  VN.detailScenario = null;
+  VN.pendingStart = null;
+}
+
 function logout() {
   // 앞 계정의 데이터가 화면·저장소 어디에도 남지 않아야 합니다
   VN.accountId = null;
   VN.session = SESSION.GUEST;
   VN.screen = "s2";          // 미로그인 상태의 홈으로 복귀
   VN.panel = null;
-  VN.homeChip = "추천";
+  resetHomeView();
 }
 
 /* 이용수 집계 — 유저×캐릭터×날짜 중복 제거 (system-spec §8-2) */
@@ -121,6 +143,163 @@ function recentDays(n) {
   return out;
 }
 
+/* ── 홈 목록의 모수·정렬·게이팅 ─────────────────────────────
+ * 목록에 무엇이 몇 번째로 놓이는가가 탐색 영역의 기대값이라, 선정과 정렬을 화면 코드에
+ * 두지 않고 여기 모읍니다. 화면은 여기서 받은 순서를 그대로 그립니다.
+ */
+
+/* 게이팅 상태 5종 (system-spec §1-1) — 세션이 만료되면 계정이 남아 있어도 미로그인으로 읽습니다 */
+function gateState() {
+  if (!isLoggedIn()) return "guest";
+  if (ACCOUNTS[VN.accountId].minor) return "minor";
+  return currentAccount().adultVerified ? "adult" : "unverified";
+}
+
+function canViewUnsafe() {
+  return gateState() === "adult";
+}
+
+/* 막힌 이유는 상태마다 다릅니다 — 미로그인·미인증은 풀 수단이 있고 미성년은 없습니다 */
+const GATE_NOTICE = {
+  guest: "로그인하고 본인인증을 하면 볼 수 있습니다.",
+  unverified: "본인인증을 하면 볼 수 있습니다.",
+  minor: "미성년 계정은 열람할 수 없습니다. 해제 수단이 없습니다."
+};
+
+/* 정렬에 쓰는 좋아요 수 = 시트 기본값 + 계정의 토글 반영 (system-spec §8-7) */
+function likeCount(c) {
+  const acc = currentAccount();
+  return c.likes + (acc && acc.likes.indexOf(c.id) >= 0 ? 1 : 0);
+}
+
+function isLiked(id) {
+  const acc = currentAccount();
+  return !!(acc && acc.likes.indexOf(id) >= 0);
+}
+
+function isScrapped(id) {
+  const acc = currentAccount();
+  return !!(acc && acc.scraps.indexOf(id) >= 0);
+}
+
+/* 날짜를 비교 가능한 수로 — 실시계를 쓰지 않으므로 문자열에서 바로 뽑습니다 */
+function dayNum(day) {
+  return Number(String(day || "").replace(/-/g, "")) || 0;
+}
+
+/* 홈에 노출되는 모수 — 세이프티 필터가 켜져 있으면 언세이프를 목록에서 아예 뺍니다.
+ * 게이팅과는 층이 다릅니다: 필터는 숨기고(존재도 안 보임), 게이팅은 가린 채 남깁니다 */
+function visibleCharacters() {
+  const acc = currentAccount();
+  const hide = !!(acc && acc.safetyFilter);
+  return VN.sheet.characters.filter((c) => !(hide && c.safe === false));
+}
+
+function weekUsage(c) {
+  return usageCount(c.id, recentDays(7));
+}
+
+function monthUsage(c) {
+  return usageCount(c.id, recentDays(30));
+}
+
+/* 동률 체인 — 선택 기준 → 이용수 → 좋아요 수 → 캐릭터 ID (system-spec §8-4).
+ * 두 번째 고리의 이용수는 월간(최근 30일)입니다. 창이 닫혀 있어 오래된 이벤트가 순서에
+ * 영원히 남지 않습니다 — 누적값을 쓰면 옛 인기가 계속 순위를 붙잡습니다. */
+function sortChars(list, keyFn) {
+  return list.slice().sort((a, b) =>
+    keyFn(b) - keyFn(a) ||
+    monthUsage(b) - monthUsage(a) ||
+    likeCount(b) - likeCount(a) ||
+    (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/* 신작 = 생성일이 기준일 포함 최근 60일 안 (system-spec §8-5) */
+const NEW_WINDOW_DAYS = 60;
+
+function isRising(c) {
+  return recentDays(NEW_WINDOW_DAYS).indexOf(c.createdDay) >= 0;
+}
+
+const RANK_PERIOD_DAYS = { daily: 1, weekly: 7, monthly: 30 };
+
+/* 리뷰 점수 순의 최소 표본 (system-spec §8-3) */
+const REVIEW_MIN_SAMPLE = 50;
+
+/* 랭킹 목록 — 기간은 이용수 기준에만 걸리고, 좋아요·리뷰는 누적값입니다 (system-spec §8-3) */
+const RANK_PERIOD_LABEL = { daily: "일간", weekly: "주간", monthly: "월간" };
+
+function rankList() {
+  const period = recentDays(RANK_PERIOD_DAYS[VN.rankPeriod] || 1);
+  const base = visibleCharacters();
+  if (VN.rankSort === "likes") return sortChars(base, likeCount);
+  if (VN.rankSort === "reviews") return sortChars(base, (c) => c.reviews);
+  if (VN.rankSort === "score") {
+    // 리뷰 표본이 적은 캐릭터의 만점은 순위의 뜻을 지우므로 최소 표본 미만은 제외합니다
+    return sortChars(base.filter((c) => c.reviews >= REVIEW_MIN_SAMPLE), (c) => c.score);
+  }
+  // 이용수 기준 — 집계 0건은 노출하지 않습니다 (system-spec §8-2)
+  const counted = base.filter((c) => usageCount(c.id, period) > 0);
+  return sortChars(counted, (c) => usageCount(c.id, period));
+}
+
+/* 랭킹 카드에 함께 보이는 값 — 무엇으로 줄을 세웠는지 화면에서 읽혀야 합니다 */
+function rankMetric(c) {
+  const period = recentDays(RANK_PERIOD_DAYS[VN.rankPeriod] || 1);
+  if (VN.rankSort === "likes") return "좋아요 " + likeCount(c);
+  if (VN.rankSort === "reviews") return "리뷰 " + c.reviews + "개";
+  if (VN.rankSort === "score") return "평점 " + c.score.toFixed(1) + " (리뷰 " + c.reviews + ")";
+  return RANK_PERIOD_LABEL[VN.rankPeriod] + " 이용수 " + usageCount(c.id, period);
+}
+
+/* 추천 탭의 섹션들 (system-spec §8-5) */
+const CAROUSEL_MAX = 7;
+const SECTION_TOP = 5;
+
+/* 선택 기준이 따로 없는 목록이라 체인의 첫 고리인 월간 이용수가 1차 키가 됩니다 */
+function carouselList() {
+  return sortChars(visibleCharacters(), monthUsage).slice(0, CAROUSEL_MAX);
+}
+
+/* 떠오르는 신작 — 두 창이 서로 다른 일을 합니다.
+ * 월간은 모수를 거르고(이용자가 아예 없는 캐릭터 제외), 주간은 순서를 만듭니다. */
+function risingList(category) {
+  const base = visibleCharacters().filter((c) =>
+    isRising(c) && monthUsage(c) > 0 && (!category || c.category === category));
+  return sortChars(base, weekUsage).slice(0, SECTION_TOP);
+}
+
+/* 지금 뜨거운 — 주간 이용수가 0이면 섹션의 뜻과 어긋나므로 모수에서 뺍니다 */
+function hotList() {
+  return sortChars(visibleCharacters().filter((c) => weekUsage(c) > 0), weekUsage)
+    .slice(0, SECTION_TOP);
+}
+
+/* 최근 대화한 캐릭터 — 대화 이력이 없으면 섹션 자체를 노출하지 않습니다 */
+function recentTalkedList() {
+  const acc = currentAccount();
+  if (!acc) return [];
+  const ids = acc.rooms.map((r) => r.charId);
+  return visibleCharacters().filter((c) => ids.indexOf(c.id) >= 0);
+}
+
+/* 신작 탭 — 생성일 최신순 */
+function newestList() {
+  return sortChars(visibleCharacters(), (c) => dayNum(c.createdDay));
+}
+
+/* 카테고리 전체 목록 — 카테고리와 태그의 AND 필터 (system-spec §8-6) */
+function categoryList(category) {
+  let base = visibleCharacters().filter((c) => c.category === category);
+  if (VN.catTag) base = base.filter((c) => (c.tags || []).indexOf(VN.catTag) >= 0);
+  if (VN.catSort === "new") return sortChars(base, (c) => dayNum(c.createdDay));
+  return sortChars(base, (c) => usageCount(c.id, null));   // 대화순 = 누적 이용수
+}
+
+function findCharacter(id) {
+  return VN.sheet.characters.find((c) => c.id === id) || null;
+}
+
 /* ── SUT 테스트 인터페이스 ─────────────────────────────────
  * 요소 셀렉터(data-testid) · 상태 조회/제어 · 실행 조건 파라미터 · 데이터 주입
  * 네 갈래 중 뒤의 셋이 여기 있습니다 (청사진 §3).
@@ -133,6 +312,12 @@ window.__VN__ = {
       accountId: VN.accountId,
       screen: VN.screen,
       homeChip: VN.homeChip,
+      rankPeriod: VN.rankPeriod,
+      rankSort: VN.rankSort,
+      catTag: VN.catTag,
+      catSort: VN.catSort,
+      detailId: VN.detailId,
+      pendingStart: VN.pendingStart,
       seed: VN.seed,
       inject: VN.inject,
       account: currentAccount(),
@@ -168,7 +353,7 @@ window.__VN__ = {
     VN.sheet = deepCopy(VN_DATA);
     VN.screen = "s2";
     VN.panel = null;
-    VN.homeChip = "추천";
+    resetHomeView();
     VN.inject = null;
     consoleOpen = false;
     render();

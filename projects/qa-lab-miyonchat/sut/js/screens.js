@@ -8,6 +8,7 @@ function el(tag, attrs, children) {
     if (k === "text") node.textContent = attrs[k];
     else if (k === "html") node.innerHTML = attrs[k];
     else if (k === "onclick") node.addEventListener("click", attrs[k]);
+    else if (k === "onchange") node.addEventListener("change", attrs[k]);
     else node.setAttribute(k, attrs[k]);
   }
   (children || []).forEach((c) => c && node.appendChild(c));
@@ -185,6 +186,218 @@ function renderP4() {
 function renderPanel() {
   if (VN.panel === "p4") return renderP4();
   return null;
+}
+
+/* ── S2 홈 ─────────────────────────────────────────────────
+ * 목록에 무엇이 몇 번째로 놓이는가가 이 화면의 기대값입니다. 선정·정렬은 state.js가 맡고
+ * 여기서는 받은 순서를 그대로 그립니다 — 화면 코드에서 순서를 손보면 기대값이 두 곳으로 갈립니다.
+ */
+
+/* 캐릭터 카드 — 언세이프는 가린 채 목록에 남깁니다.
+ * 존재까지 지우는 것은 게이팅이 아니라 세이프티 필터입니다(system-spec §9). */
+function renderCard(c, meta, rank) {
+  const locked = c.safe === false && !canViewUnsafe();
+  const kids = [];
+  if (rank) kids.push(el("span", { class: "card-rank", text: String(rank) }));
+  kids.push(el("div", { class: "card-in" }, [
+    el("p", { class: "card-name", text: c.name }),
+    el("p", { class: "card-line", text: c.tagline }),
+    // 기본 메타는 월간 이용수 — 동률 체인이 쓰는 값이라 순서가 왜 그런지 화면에서 읽힙니다
+    el("p", { class: "card-meta", text: meta ||
+      "♥ " + likeCount(c) + " · 리뷰 " + c.reviews + " · 월 이용수 " + monthUsage(c) })
+  ]));
+  if (locked) {
+    kids.push(el("span", {
+      class: "card-lock", "data-testid": "s2-card-" + c.id + "-blur", text: "19+"
+    }));
+  }
+  return el("button", {
+    class: "card" + (locked ? " locked" : ""),
+    "data-testid": "s2-card-" + c.id,
+    onclick: () => openDetail(c.id)
+  }, kids);
+}
+
+/* 섹션 하나 — 목록이 비면 그 섹션 자리에 안내 문구가 대신 놓입니다 */
+function s2Section(testid, title, list, opts) {
+  opts = opts || {};
+  const body = list.length
+    ? el("div", { class: "cards" + (opts.carousel ? " carousel" : "") },
+        list.map((c, i) => renderCard(c, opts.metric ? opts.metric(c) : null,
+          opts.rank ? i + 1 : 0)))
+    : el("p", {
+        class: "empty", "data-testid": testid + "-empty",
+        text: opts.empty || "표시할 캐릭터가 없습니다."
+      });
+  return el("div", { class: "sec", "data-testid": testid }, [
+    el("h3", { class: "sec-title", text: title }), body
+  ]);
+}
+
+function renderS2Recommend() {
+  const kids = [s2Section("s2-sec-carousel", "추천", carouselList(), { carousel: true })];
+  // 최근 대화한 캐릭터는 대화 이력이 있을 때만 자리를 차지합니다 (system-spec §8-5)
+  const recent = recentTalkedList();
+  if (recent.length) kids.push(s2Section("s2-sec-recent", "최근 대화한 캐릭터", recent));
+  kids.push(s2Section("s2-sec-rising", "떠오르는 신작", risingList(null)));
+  kids.push(s2Section("s2-sec-hot", "지금 뜨거운", hotList()));
+  return el("div", {}, kids);
+}
+
+const RANK_PERIODS = [["일간", "daily"], ["주간", "weekly"], ["월간", "monthly"]];
+const RANK_SORTS = [["이용수", "usage"], ["좋아요 순", "likes"],
+  ["리뷰 점수 순", "score"], ["리뷰 많은 순", "reviews"]];
+
+/* 필터 줄 — 어느 값이 켜져 있는지가 화면에서 읽혀야 기간 전환이 눈으로 검증됩니다 */
+function filterRow(prefix, options, current, onPick) {
+  return el("div", { class: "filters" }, options.map(([label, key]) =>
+    el("button", {
+      class: "f" + (current === key ? " on" : ""),
+      "data-testid": prefix + key, text: label,
+      onclick: () => onPick(key)
+    })));
+}
+
+function renderS2Rank() {
+  const help = el("button", {
+    class: "help", "data-testid": "s2-rank-help", text: "ⓘ 랭킹 규칙",
+    onclick: () => { VN.rankHelp = !VN.rankHelp; render(); }
+  });
+  const helpBody = VN.rankHelp ? el("p", {
+    class: "help-body", "data-testid": "s2-rank-help-body",
+    text: "기간 필터는 이용수 기준에만 적용되고 좋아요·리뷰는 누적값입니다. "
+      + "리뷰 점수 순은 리뷰 " + REVIEW_MIN_SAMPLE + "개 이상만 순위에 포함하며, "
+      + "선택한 기간의 이용수가 0건인 캐릭터는 이용수 랭킹에 노출하지 않습니다. "
+      + "동률은 월간 이용수 → 좋아요 수 → 캐릭터 ID 순으로 가릅니다."
+  }) : null;
+  return el("div", {}, [
+    filterRow("s2-rank-period-", RANK_PERIODS, VN.rankPeriod,
+      (k) => { VN.rankPeriod = k; render(); }),
+    filterRow("s2-rank-sort-", RANK_SORTS, VN.rankSort,
+      (k) => { VN.rankSort = k; render(); }),
+    el("div", { class: "helpline" }, [help]), helpBody,
+    s2Section("s2-rank-list", "랭킹", rankList(), {
+      rank: true, metric: rankMetric,
+      empty: "이 조건에 해당하는 캐릭터가 없습니다."
+    })
+  ]);
+}
+
+function renderS2New() {
+  return s2Section("s2-new-list", "신작", newestList(),
+    { metric: (c) => "생성일 " + c.createdDay });
+}
+
+/* 카테고리 칩 화면 — 인기 신작 → 취향 태그 → 전체 목록 공통 템플릿 (청사진 §1 S2) */
+function renderS2Category(name) {
+  const group = VN.sheet.categories.find((g) => g.name === name);
+  const tags = group ? group.tags : [];
+  return el("div", {}, [
+    s2Section("s2-cat-new", name + " 인기 신작", risingList(name)),
+    el("h3", { class: "sec-title", text: "취향 태그" }),
+    el("div", { class: "filters" }, tags.map((t) =>
+      el("button", {
+        class: "f" + (VN.catTag === t ? " on" : ""),
+        "data-testid": "s2-cat-tag-" + t, text: "#" + t,
+        // 누른 태그를 다시 누르면 해제됩니다 — 필터를 풀 다른 수단이 없으면 갇힙니다
+        onclick: () => { VN.catTag = VN.catTag === t ? null : t; render(); }
+      }))),
+    filterRow("s2-cat-sort-", [["대화순", "chat"], ["최신순", "new"]], VN.catSort,
+      (k) => { VN.catSort = k; render(); }),
+    s2Section("s2-cat-list", name + " 전체", categoryList(name), {
+      // 대화순의 기준은 누적 이용수입니다 (system-spec §8-6)
+      metric: (c) => VN.catSort === "new" ? "생성일 " + c.createdDay
+        : "누적 이용수 " + usageCount(c.id, null),
+      empty: "선택한 조건에 해당하는 캐릭터가 없습니다."
+    })
+  ]);
+}
+
+/* 카드 상세 — 언세이프는 내용을 열지 않고 막힌 이유만 보여 줍니다 (system-spec §9) */
+function renderS2Detail(c) {
+  const locked = c.safe === false && !canViewUnsafe();
+  const kids = [el("div", { class: "panel-head" }, [
+    el("h2", { text: locked ? "열람 제한" : c.name }),
+    el("button", {
+      class: "panel-close", "data-testid": "s2-detail-close", text: "✕",
+      onclick: () => closeDetail()
+    })
+  ])];
+
+  if (locked) {
+    kids.push(el("p", {
+      class: "lock-notice", "data-testid": "s2-detail-locked",
+      text: "19세 이상 콘텐츠입니다. " + GATE_NOTICE[gateState()]
+    }));
+  } else {
+    const scenarios = c.scenarios || [];
+    const sel = el("select", {
+      class: "d-sel", "data-testid": "s2-detail-scenario",
+      onchange: (e) => { VN.detailScenario = e.target.value; }
+    }, scenarios.map((s) => el("option", { value: s.id, text: s.label })));
+    sel.value = VN.detailScenario || (scenarios[0] ? scenarios[0].id : "");
+
+    kids.push(el("p", { class: "d-line", text: c.tagline }));
+    kids.push(el("p", {
+      class: "d-tags", "data-testid": "s2-detail-tags",
+      text: (c.tags || []).map((t) => "#" + t).join(" ")
+    }));
+    kids.push(el("p", {
+      class: "d-first", "data-testid": "s2-detail-first",
+      text: c.firstMessage || "첫 메시지가 등록되지 않은 캐릭터입니다."
+    }));
+    kids.push(el("div", { class: "d-toggles" }, [
+      el("button", {
+        class: "tog" + (isLiked(c.id) ? " on" : ""),
+        "data-testid": "s2-card-" + c.id + "-like",
+        text: isLiked(c.id) ? "♥ 좋아요 취소" : "♡ 좋아요",
+        onclick: () => toggleCardFlag("like", c.id)
+      }),
+      el("button", {
+        class: "tog" + (isScrapped(c.id) ? " on" : ""),
+        "data-testid": "s2-card-" + c.id + "-scrap",
+        text: isScrapped(c.id) ? "★ 스크랩 취소" : "☆ 스크랩",
+        onclick: () => toggleCardFlag("scrap", c.id)
+      })
+    ]));
+    kids.push(el("div", { class: "d-start" }, [
+      sel,
+      el("button", {
+        class: "start", "data-testid": "s2-detail-start", text: "이 시나리오로 시작",
+        onclick: () => startConversation(c.id, sel.value)
+      })
+    ]));
+  }
+  return el("div", { class: "panel-wrap", "data-testid": "s2-detail" }, [
+    el("div", { class: "panel" }, kids)
+  ]);
+}
+
+function renderS2() {
+  const names = ["추천", "랭킹", "신작"].concat(VN.sheet.categories.map((g) => g.name));
+  const chips = el("div", { class: "chips", "data-testid": "s2-chips" }, names.map((n) =>
+    el("button", {
+      class: "chip" + (VN.homeChip === n ? " on" : ""),
+      "data-testid": "s2-chip-" + n, text: n,
+      onclick: () => selectChip(n)
+    })));
+
+  let body;
+  if (!visibleCharacters().length) {
+    body = el("p", {
+      class: "empty", "data-testid": "s2-empty",
+      text: "표시할 캐릭터가 없습니다."
+    });
+  } else if (VN.homeChip === "랭킹") body = renderS2Rank();
+  else if (VN.homeChip === "신작") body = renderS2New();
+  else if (VN.sheet.categories.some((g) => g.name === VN.homeChip)) {
+    body = renderS2Category(VN.homeChip);
+  } else body = renderS2Recommend();
+
+  // 시트에서 사라진 캐릭터의 상세는 열어 둘 수 없으므로 목록만 남습니다
+  const target = VN.detailId ? findCharacter(VN.detailId) : null;
+  return el("section", { class: "screen s2", "data-testid": "s2-screen" },
+    [chips, body, target ? renderS2Detail(target) : null]);
 }
 
 function renderPlaceholder(key, label) {

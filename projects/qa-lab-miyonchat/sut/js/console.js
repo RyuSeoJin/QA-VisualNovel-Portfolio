@@ -84,7 +84,10 @@ function addRandomCharacter() {
     likes: Math.floor(Math.random() * 300),
     reviews: Math.floor(Math.random() * 80),
     score: Math.round((3 + Math.random() * 2) * 10) / 10,
-    createdDay: VN.sheet.baseDay
+    createdDay: VN.sheet.baseDay,
+    // 카드 상세가 읽는 값 — 생성된 캐릭터도 상세를 열 수 있어야 목록 증가를 끝까지 따라갑니다
+    firstMessage: "생성된 캐릭터의 첫 메시지입니다. 데이터 시트에서 만든 캐릭터라 내용은 고정 문구입니다.",
+    scenarios: [{ id: "sc1", label: "기본 시작점" }]
   });
   window.__VN__.setData("characters", rows);
   paintConsole();
@@ -192,7 +195,7 @@ function renderCharBlock() {
     return block("캐릭터", children);
   }
 
-  const head = el("tr", {}, ["캐릭터", "카테고리", "태그", "19세 이상"]
+  const head = el("tr", {}, ["캐릭터", "카테고리", "태그", "생성일", "19세 이상"]
     .concat(CHAR_COLS.map((c) => c[0]))
     .map((h) => el("th", { text: h })));
 
@@ -211,10 +214,16 @@ function renderCharBlock() {
       type: "text", class: "t1-celltag",
       "data-testid": "t1-row-" + c.id + "-tags", value: (c.tags || []).join(", ")
     });
+    // 생성일은 신작 창(60일) 경계를 만드는 값이라 직접 고칠 수 있어야 합니다
+    const created = el("input", {
+      type: "text", class: "t1-cellday",
+      "data-testid": "t1-row-" + c.id + "-created", value: c.createdDay || ""
+    });
     return el("tr", {}, [
       el("td", { class: "t1-cname", text: c.name + " (" + c.id + ")" }),
       el("td", {}, [cat]),
       el("td", {}, [tags]),
+      el("td", {}, [created]),
       el("td", {}, [adult]),
       cell("t1-row-" + c.id + "-likes", c.likes),
       cell("t1-row-" + c.id + "-reviews", c.reviews),
@@ -231,7 +240,8 @@ function renderCharBlock() {
     ])
   ]));
   children.push(el("p", { class: "hint",
-    text: "이용수는 이벤트를 합성해 맞춥니다 (일간 ≤ 주간 ≤ 월간) · 태그는 쉼표로 구분합니다" }));
+    text: "이용수는 이벤트를 합성해 맞춥니다 (일간 ≤ 주간 ≤ 월간) · 태그는 쉼표로 구분합니다"
+      + " · 생성일을 기준일에서 " + NEW_WINDOW_DAYS + "일보다 앞으로 옮기면 신작 섹션에서 빠집니다" }));
   children.push(el("p", { class: "hint", "data-testid": "t1-tag-guide",
     text: "쓸 수 있는 태그 — " + VN.sheet.categories
       .map((g) => g.name + "(" + g.tags.join("·") + ")").join(" / ") }));
@@ -252,7 +262,14 @@ function renderCharBlock() {
         const box = document.querySelector('[data-testid="t1-row-' + c.id + '-adult"]');
         const catSel = document.querySelector('[data-testid="t1-row-' + c.id + '-category"]');
         const tagIn = document.querySelector('[data-testid="t1-row-' + c.id + '-tags"]');
+        const dayIn = document.querySelector('[data-testid="t1-row-' + c.id + '-created"]');
+        const day = dayIn ? dayIn.value.trim() : "";
+        if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+          alert(c.name + " (" + c.id + "): 생성일은 YYYY-MM-DD 형식으로 적습니다.");
+          return;
+        }
         next.push(Object.assign({}, c, {
+          createdDay: day || c.createdDay,
           category: catSel ? catSel.value : c.category,
           tags: tagIn
             ? tagIn.value.split(",").map((s) => s.trim().replace(/^#/, "")).filter(Boolean)

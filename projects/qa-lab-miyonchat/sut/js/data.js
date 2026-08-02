@@ -14,33 +14,62 @@
  * 어느 빌드에서 재현했는지 화면(푸터)에서 바로 확인할 수 있어야 합니다.
  *   RC1 = 첫 슬라이스 개발 빌드 (miyonchat-1 재현)
  *   RC2 = miyonchat-1 수정 반영 — 전역 셸 · S1 · 라우팅 가드 · P4 · T1 디버그 콘솔
+ *   RC3 = S2 홈 — 필터 칩 · 추천/랭킹/신작/카테고리 · 캐릭터 카드·상세 · 언세이프 게이팅
  */
-const SUT_BUILD = "PC웹_Ver1.0_Dev_RC2";
+const SUT_BUILD = "PC웹_Ver1.0_Dev_RC3";
 
 const VN_DATA = {
   /* 기준일 — 이 값이 SUT의 "오늘"입니다 */
   baseDay: "2026-08-02",
 
-  /* 캐릭터 속성 — 리뷰 수·좋아요 수·태그·세이프 플래그 */
+  /* 캐릭터 속성 — 리뷰 수·좋아요 수·태그·세이프 플래그
+   *
+   * firstMessage·scenarios는 카드 상세가 읽는 값입니다. 시나리오 id는 mock 응답 세트의
+   * scenarioId와 같은 좌표이며(mock-llm-spec §2), 대화 개시는 S4 슬라이스에서 붙입니다. */
   characters: [
     { id: "c1", name: "하루", tagline: "옆자리 소꿉친구", category: "로맨스",
       tags: ["소꿉친구", "후회"], safe: true, likes: 320, reviews: 84, score: 4.6,
-      createdDay: "2026-07-30" },
+      createdDay: "2026-07-30",
+      firstMessage: "너 오늘도 우산 안 가져왔지. 됐고 이리 와, 어차피 가는 길 같잖아. …그렇게 놀란 얼굴 할 것까진 없고.",
+      scenarios: [{ id: "sc1", label: "비 오는 하굣길" }, { id: "sc2", label: "둘만 남은 교실" }] },
     { id: "c2", name: "레온", tagline: "회귀한 기사단장", category: "판타지",
       tags: ["회귀", "능력"], safe: true, likes: 512, reviews: 120, score: 4.4,
-      createdDay: "2026-07-28" },
+      createdDay: "2026-07-28",
+      firstMessage: "세 번째다. 같은 날, 같은 자리에서 당신을 만나는 건. 이번에는 반드시 살려 보내겠다.",
+      scenarios: [{ id: "sc1", label: "회귀 첫날" }, { id: "sc2", label: "왕도 탈출" }] },
     { id: "c3", name: "미나", tagline: "야근 동료", category: "일상",
       tags: ["직장", "힐링"], safe: true, likes: 180, reviews: 41, score: 4.9,
-      createdDay: "2026-08-01" },
+      createdDay: "2026-08-01",
+      firstMessage: "먼저 가도 된다니까 왜 남았어요. …커피 두 잔 뽑아 왔어요. 하나는 그쪽 거예요.",
+      scenarios: [{ id: "sc1", label: "야근 끝 편의점" }, { id: "sc2", label: "주말 출근" }] },
     { id: "c4", name: "카일", tagline: "계약 연애 상대", category: "로맨스",
       tags: ["계약연애", "집착"], safe: false, likes: 640, reviews: 210, score: 4.2,
-      createdDay: "2026-07-25" },
+      createdDay: "2026-07-25",
+      firstMessage: "계약서 3조, 기억하지. 사람들 앞에서는 연인처럼 굴 것. …지금 여기, 보는 눈이 꽤 많은데.",
+      scenarios: [{ id: "sc1", label: "계약 첫날" }, { id: "sc2", label: "들킬 뻔한 밤" }] },
     { id: "c5", name: "세라", tagline: "이세계 동행자", category: "판타지",
       tags: ["이세계", "빙의"], safe: true, likes: 96, reviews: 12, score: 5.0,
-      createdDay: "2026-08-02" },
+      createdDay: "2026-08-02",
+      firstMessage: "네가 떨어진 곳은 지도에 없는 숲이야. 따라와. 혼자 두면 해 지기 전에 죽어.",
+      scenarios: [{ id: "sc1", label: "숲의 첫 밤" }, { id: "sc2", label: "국경 시장" }] },
     { id: "c6", name: "도윤", tagline: "같은 반 짝꿍", category: "일상",
       tags: ["학원물", "동거"], safe: true, likes: 74, reviews: 3, score: 5.0,
-      createdDay: "2026-07-31" }
+      createdDay: "2026-07-31",
+      firstMessage: "야, 필기 좀 보여줘. …됐고 그냥 옆에 앉아. 같이 보면 되잖아.",
+      scenarios: [{ id: "sc1", label: "시험 전날" }, { id: "sc2", label: "체육대회" }] },
+    /* 아래 둘은 생성일이 신작 창(60일)보다 오래된 캐릭터입니다. 시트가 전부 최근 생성이면
+     * 「떠오르는 신작」과 「지금 뜨거운」의 목록이 겹쳐 선정식 차이가 화면에 드러나지 않습니다.
+     * c7은 이용수가 있어 뜨거운에만 오르고, c8은 월간 이용수가 없어 어느 섹션에도 오르지 않습니다. */
+    { id: "c7", name: "은결", tagline: "졸업한 학생회장", category: "로맨스",
+      tags: ["후회", "집착"], safe: true, likes: 400, reviews: 150, score: 4.7,
+      createdDay: "2026-05-20",
+      firstMessage: "졸업식 이후로 처음이네. 그때 못 한 말이 있어서, 계속 여기 서 있었어.",
+      scenarios: [{ id: "sc1", label: "졸업식 그날" }, { id: "sc2", label: "3년 뒤 재회" }] },
+    { id: "c8", name: "라율", tagline: "폐관한 서점 주인", category: "일상",
+      tags: ["힐링", "직장"], safe: true, likes: 20, reviews: 60, score: 3.8,
+      createdDay: "2026-04-10",
+      firstMessage: "오늘로 문을 닫습니다. …마지막 손님이 당신이라 다행이네요.",
+      scenarios: [{ id: "sc1", label: "폐점 전날" }, { id: "sc2", label: "다시 연 서점" }] }
   ],
 
   /* 이용수 이벤트 — 유저×캐릭터×날짜. 같은 조합은 중복이어도 1로 셉니다 */
@@ -52,7 +81,10 @@ const VN_DATA = {
     { user: "u2", charId: "c2", day: "2026-07-30" },
     { user: "u3", charId: "c4", day: "2026-08-02" },
     { user: "u4", charId: "c4", day: "2026-07-29" },
-    { user: "u1", charId: "c3", day: "2026-07-20" }
+    { user: "u1", charId: "c3", day: "2026-07-20" },
+    { user: "u5", charId: "c7", day: "2026-08-02" },
+    { user: "u6", charId: "c7", day: "2026-08-02" },
+    { user: "u5", charId: "c7", day: "2026-08-01" }
   ],
 
   /* 계정 속성 — 팔로워·팔로잉. 표시만 하고 발생 로직은 없습니다 */

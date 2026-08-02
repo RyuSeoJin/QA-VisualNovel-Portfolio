@@ -56,14 +56,59 @@ function closePanel() {
 /* 홈 재선택 — 활성 칩을 유지한 채 최상단으로 (system-spec §8-5) */
 function goHome() {
   const already = VN.screen === "s2";
+  VN.detailId = null;        // 상세는 목록 위에 열린 것이라 홈으로 오면 걷습니다
   go("s2");
   if (already) window.scrollTo(0, 0);
+}
+
+/* 홈 필터 칩 — 칩을 옮기면 앞 칩에서 걸어 둔 태그 필터는 따라오지 않습니다.
+ * 카테고리마다 태그 목록이 달라 그대로 두면 결과 0건의 원인이 화면에서 읽히지 않습니다. */
+function selectChip(name) {
+  if (VN.homeChip !== name) {
+    VN.homeChip = name;
+    VN.catTag = null;
+  }
+  VN.detailId = null;
+  render();
+}
+
+function openDetail(id) {
+  VN.detailId = id;
+  VN.detailScenario = null;
+  render();
+}
+
+function closeDetail() {
+  VN.detailId = null;
+  render();
+}
+
+/* 좋아요·스크랩은 보호 동작입니다 — 미로그인이면 토글하지 않고 로그인으로 유도합니다 */
+function toggleCardFlag(kind, id) {
+  if (!requireLogin(kind + ":" + id)) return;
+  const acc = currentAccount();
+  const list = kind === "like" ? acc.likes : acc.scraps;
+  const at = list.indexOf(id);
+  if (at >= 0) list.splice(at, 1);
+  else list.push(id);
+  render();
+}
+
+/* 시나리오 선택 시작 — 대화 개시는 페르소나 설정(S3)을 거칩니다(청사진 §1 화면 맵).
+ * 미로그인이면 시작점을 남기지 않고 가드가 S1으로 보냅니다. 고른 시작점은 S4 슬라이스가 읽습니다. */
+function startConversation(charId, scenarioId) {
+  if (!isLoggedIn()) {
+    go("s3");
+    return;
+  }
+  VN.pendingStart = { charId: charId, scenarioId: scenarioId };
+  go("s3");
 }
 
 function screenBody() {
   switch (VN.screen) {
     case "s1": return renderS1();
-    case "s2": return renderPlaceholder("s2", "홈");
+    case "s2": return renderS2();
     case "s5": return renderPlaceholder("s5", "채팅");
     case "s6": return renderPlaceholder("s6", "MY");
     case "s7": return renderStub("s7", "커뮤니티는 전시용 정적 화면입니다. 소셜 기능은 별도 앱 규모라 구현 범위에서 제외했습니다.");
