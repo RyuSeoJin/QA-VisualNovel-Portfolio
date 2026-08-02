@@ -33,10 +33,10 @@
     "우선순위": ["High", "Medium", "Low"],
     "빈도": ["Always", "Often", "Sometimes", "Once"],
     "버전(영향/수정 공용)": [
-      "PC웹_Ver1.0_DEV",
-      "PC웹_Ver1.0_RC1",
-      "PC웹_Ver1.0_RC2",
-      "PC웹_Ver1.0_RC3"
+      "PC웹_Ver1.0_Dev_RC1",
+      "PC웹_Ver1.0_Dev_RC2",
+      "PC웹_Ver1.0_Dev_RC3",
+      "PC웹_Ver1.0_RT1_RC1"
     ],
     "해결책": [
       "Fixed", "Won't Do", "Won't Fix", "Duplicate",
@@ -57,7 +57,7 @@
     ],
     "보고자": ["정준호"],
     "담당자": ["Claude Opus 5"],
-    "스프린트": ["PC웹_Ver1.0_개발", "PC웹_Ver1.0_QA01차"]
+    "스프린트": ["PC웹_Ver1.0_Dev", "PC웹_Ver1.0_RT1"]
   },
 
   "vt_note": {
