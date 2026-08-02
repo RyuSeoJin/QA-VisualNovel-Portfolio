@@ -186,6 +186,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s6-activity-{like\|scrap}` · `-{id}` · `-empty` | 활동 목록 — 항목을 고르면 캐릭터 페이지로 |
 | ✅ `s6-stubs` · `s6-stub-{library\|notice\|faq\|ask\|settings}` | 제외 영역 진입점 — 누르면 사유를 알립니다 |
 | ✅ `s6-logout` | 로그아웃 |
+| ✅ `s7-stub` · `s8-stub` (+ `-reason` · `-node`) | 제외 화면 — 사유와 **트리 제외 영역의 항목명**. 트리가 제외 사유의 정본임을 화면에서 읽히게 합니다 |
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
 | ✅ `p2-event` | 지금 장면과 구간(`첫날 밤 (21~33턴)`) — 간략화가 언제 오는지를 읽는 자리 |
 | ✅ `p2-context` | 단기 맥락 창 안내 — 창 길이와 지금 창에 든 구간(`19~28턴`) |
@@ -248,7 +249,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | 파라미터 | 동작 |
 |---|---|
 | `?seed={n}` | mock 응답 경로 고정 — 같은 시드·같은 입력이면 항상 같은 응답. 세트 정의는 mock-llm-spec |
-| `?inject={결함}` | 결함 주입 — `persona-drift` · `save-leak` · `ghost-memory` · `gate-bypass`. 주입 지점·기대 탐지 TC는 fault-injection |
+| ✅ `?inject={결함}` | 결함 주입 — `persona-drift` · `save-leak` · `ghost-memory` · `gate-bypass`. 주입 지점·기대 탐지 TC는 fault-injection. **URL로만 켭니다** — T1에 두지 않는 이유는 fault-injection §1 |
 
 ### 3-4. 데이터 주입 — 데이터 시트
 

@@ -180,6 +180,8 @@ function gateState() {
 }
 
 function canViewUnsafe() {
+  // [주입] gate-bypass — 게이팅 계층이 뚫려 미인증·미성년에게도 언세이프가 열립니다
+  if (injected("gate-bypass")) return true;
   return gateState() === "adult";
 }
 
@@ -660,6 +662,18 @@ function branchRoom(room, turn) {
   });
 }
 
+/* ── 결함 주입 (fault-injection) ───────────────────────────
+ *
+ * `?inject={키}`로 켜는 **일부러 만든 고장**입니다. 목적은 "내 테스트가 이 결함을 실제로
+ * 잡는다"는 탐지력 증명이며, 매트릭스에서 **대각선만 FAIL**이 되어야 읽힙니다.
+ *
+ * 그래서 주입 지점을 **한 곳씩만** 잡습니다 — 넓게 걸면 다른 영역의 TC까지 깨져 표가
+ * 증거로서의 값어치를 잃습니다. 화면에는 주입 상태를 표시하지 않습니다(탐지는 테스트의 몫).
+ */
+function injected(key) {
+  return VN.inject === key;
+}
+
 /* ── 세이프티 (system-spec §9-1) ───────────────────────────
  *
  * 판정은 **추상 토큰으로만** 합니다. 자연어 패턴은 어디까지가 위반인지 경계가 흔들려
@@ -884,6 +898,9 @@ function deleteMemory(room, id) {
  * 재등장 차단), 그런 후보는 쓰지 않고 다음 후보로 넘깁니다. 난수를 쓰지 않으므로
  * 어느 후보로 넘어가는지도 정해져 있습니다. */
 function candidateRefsAlive(room, cand) {
+  // [주입] ghost-memory — 판정이 늘 「살아 있다」로 답해 지운 기억을 언급하는 응답이
+  // 그대로 나갑니다. 목록에서는 사라졌는데 대화에는 다시 나오는 것이 증상입니다
+  if (injected("ghost-memory")) return true;
   const refs = (cand && cand.memoryRefs) || [];
   return refs.every((id) => !!findMemory(room, id));
 }
@@ -928,24 +945,27 @@ function slotSummary(room) {
 function saveSlot(room, n) {
   if (!room) return null;
   room.slots = room.slots || {};
+  // [주입] save-leak — 깊은 복사 대신 참조를 공유합니다. 저장한 뒤 대화를 이어가면
+  // 스냅샷의 메시지·기억까지 함께 변합니다(저장 전후 오염)
+  const copy = injected("save-leak") ? (v) => v : deepCopy;
   room.slots[n] = {
     slot: n,
     savedAtDay: VN.sheet.baseDay,          // 가상 시계의 오늘 — 실시각을 쓰지 않습니다
     summary: slotSummary(room),
     room: {
-      messages: deepCopy(room.messages),
+      messages: copy(room.messages),
       affection: room.affection,
       // 재계산의 기준점도 함께 담습니다 — 로드는 이 값으로 복원됩니다(§5-1)
       affectionBase: room.affectionBase || 0,
       affectionBaseTurn: room.affectionBaseTurn || 0,
       temperature: stateValue(room, "temp"),
       nickname: stateValue(room, "nickname"),
-      profile: deepCopy(room.profile),
-      memories: deepCopy(room.memories || []),        // 표시 확인용 사본
+      profile: copy(room.profile),
+      memories: copy(room.memories || []),            // 표시 확인용 사본
       // 복원의 근거는 유저가 정한 값들입니다 — 목록 자체는 기록에서 다시 세웁니다
-      pins: deepCopy(room.pins || {}),
-      forgotten: deepCopy(room.forgotten || []),
-      overrides: deepCopy(room.overrides || {}),
+      pins: copy(room.pins || {}),
+      forgotten: copy(room.forgotten || []),
+      overrides: copy(room.overrides || {}),
       seedPath: { seed: VN.seed, turn: room.turn }
     }
   };
@@ -1039,6 +1059,13 @@ function fillSlots(text, room) {
   const p = room.profile || {};
   const c = findCharacter(room.charId);
   const nick = stateValue(room, "nickname") || p.name || "당신";
+  // [주입] persona-drift — 치환을 무시하고 기본 호칭으로 답합니다 (fault-injection §2)
+  if (injected("persona-drift")) {
+    return String(text)
+      .replace(/\{userName\}/g, "당신")
+      .replace(/\{nickname\}/g, "당신")
+      .replace(/\{charName\}/g, c ? c.name : "");
+  }
   return String(text)
     .replace(/\{userName\}/g, p.name || "당신")
     .replace(/\{nickname\}/g, nick)

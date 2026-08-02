@@ -217,11 +217,16 @@ function renderFooter() {
 }
 
 /* 아직 구현하지 않은 탭 — 스텁 표기 규약(검증 범위 제외 + 사유 + 트리 링크) */
-function renderStub(key, reason) {
+/* 스텁 — 제외 영역임을 화면에서 읽히게 둡니다.
+ * 사유만 적으면 "왜 안 만들었나"가 판단으로 보이므로, **트리의 어느 항목인지**를 함께
+ * 내어 제외가 기획 정본에 기록된 결정임을 드러냅니다(트리 제외 영역이 정본입니다). */
+function renderStub(key, reason, node) {
   return el("section", { class: "screen stub", "data-testid": key + "-stub" }, [
     el("h2", { text: TAB_LABELS[key] ? TAB_LABELS[key][0] : key }),
     el("p", { class: "stub-tag", text: "검증 범위 제외" }),
-    el("p", { text: reason })
+    el("p", { "data-testid": key + "-stub-reason", text: reason }),
+    el("p", { class: "hint", "data-testid": key + "-stub-node",
+      text: "기능 골격 트리 · 제외 영역 「" + node + "」 — 트리가 제외 사유의 정본입니다." })
   ]);
 }
 
@@ -1343,6 +1348,14 @@ function renderS5() {
  */
 function renderS6() {
   const acc = currentAccount();
+  // 정상 경로에서는 라우팅 가드가 막아 여기까지 오지 않습니다. 가드가 뚫린 상태
+  // (gate-bypass 주입)에서도 화면이 깨지지 않아야 주입이 다른 영역까지 흔들지 않습니다
+  if (!acc) {
+    return el("section", { class: "screen s6", "data-testid": "s6-screen" }, [
+      el("h2", { class: "screen-title", text: "MY" }),
+      el("p", { class: "empty", "data-testid": "s6-noaccount", text: "로그인이 필요합니다." })
+    ]);
+  }
   const rooms = acc.rooms;
   const total = rooms.reduce((n, r) => n + roomMessageCount(r), 0);
   const stats = VN.sheet.accountStats || { followers: 0, following: 0 };

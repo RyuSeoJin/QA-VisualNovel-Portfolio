@@ -16,7 +16,8 @@ let pendingIntent = null;
 let lastScreen = null;
 
 function go(screen) {
-  if (PROTECTED.includes(screen) && !isLoggedIn()) {
+  // [주입] gate-bypass — 라우팅 가드가 뚫려 미로그인으로도 보호 화면에 들어갑니다
+  if (PROTECTED.includes(screen) && !isLoggedIn() && !injected("gate-bypass")) {
     // 셸이 떠 있는 중이라 화면을 갈아 끼우지 않고 모달만 얹습니다 (system-spec §1-1)
     requireLogin("screen:" + screen, () => go(screen));
     return;
@@ -686,8 +687,12 @@ function screenBody() {
     case "s4": return renderS4();
     case "s5": return renderS5();
     case "s6": return renderS6();
-    case "s7": return renderStub("s7", "커뮤니티는 전시용 정적 화면입니다. 소셜 기능은 별도 앱 규모라 구현 범위에서 제외했습니다.");
-    case "s8": return renderStub("s8", "캐릭터 저작은 검증 내용이 페르소나 폼과 중복되어 구현 범위에서 제외했습니다.");
+    case "s7": return renderStub("s7",
+      "커뮤니티는 전시용 정적 화면입니다. 소셜 기능은 별도 앱 규모라 구현 범위에서 제외했습니다.",
+      "커뮤니티");
+    case "s8": return renderStub("s8",
+      "캐릭터 저작은 검증 내용이 페르소나 폼과 중복되어 구현 범위에서 제외했습니다.",
+      "캐릭터 저작");
     default: return renderS1();
   }
 }
@@ -741,7 +746,7 @@ function boot() {
 
   const screen = params.get("screen");
   VN.screen = screen || "s2";                      // 진입점은 홈
-  if (PROTECTED.includes(VN.screen) && !isLoggedIn()) {
+  if (PROTECTED.includes(VN.screen) && !isLoggedIn() && !injected("gate-bypass")) {
     // 뒤에 깔 화면이 없는 유일한 경우라 모달이 아니라 로그인 화면으로 받습니다
     pendingIntent = { screen: VN.screen, action: "screen:" + VN.screen, run: null };
     VN.screen = "s1";
