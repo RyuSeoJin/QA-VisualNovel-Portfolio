@@ -23,72 +23,108 @@
  *   RC8 = T1 초안 구조(저장·재확인·닫기) · 다음 응답 생성 실패 스위치
  *   RC9 = 재화 연동 — 전송 차감 · 잔액 0 차단 · 생성 실패 미차감 · P3 충전 mock
  *   RC10 = 재화 마무리 — 미션 수령(데일리·웰컴) · 내역 필터
+ *   RC11 = 캐릭터 페이지 2층 구조 — 작품(제목·보조 설명·스토리) + 캐릭터, 카드 재구성
  */
-const SUT_BUILD = "PC웹_Ver1.0_Dev_RC10";
+const SUT_BUILD = "PC웹_Ver1.0_Dev_RC11";
 
 const VN_DATA = {
   /* 기준일 — 이 값이 SUT의 "오늘"입니다 */
   baseDay: "2026-08-02",
 
-  /* 캐릭터 속성 — 리뷰 수·좋아요 수·태그·세이프 플래그·제작자·업데이트 정보
+  /* 캐릭터 속성 — 페이지(작품) 층과 캐릭터 층이 나뉩니다 (system-spec §8-8)
+   *
+   *   pageTitle / pageSubtitle / pageStory   제작자가 만든 작품 정보 — 카드와 페이지 상단
+   *   name / tagline / charDesc              그 작품 안의 캐릭터
+   *   creator·likes·reviews·score·이용수      목록 정렬과 현황에 쓰는 지표
    *
    * firstMessage·startSituation은 캐릭터 페이지가 읽는 값입니다. 시작 상황은 제작자가 정한
-   * 것이라 캐릭터당 하나이고 유저가 고르지 않으며(system-spec §8-8), 그 id가 mock 세트의
-   * scenarioId 좌표입니다(mock-llm-spec §2). */
+   * 것이라 캐릭터당 하나이고 유저가 고르지 않으며(§8-8), 그 id가 mock 세트의 scenarioId
+   * 좌표입니다(mock-llm-spec §2). */
   characters: [
     { id: "c1", name: "하루", tagline: "옆자리 소꿉친구", category: "로맨스",
+      pageTitle: "비 오는 날의 우산", pageSubtitle: "같은 우산 아래 열 걸음.",
+      pageStory: "십 년을 같은 동네에서 자랐고 지금은 옆자리에 앉습니다. 오늘도 우산을 잊은 당신에게 그가 우산을 기울입니다. 말하지 못한 것이 쌓인 채 하굣길만 자꾸 짧아집니다.",
+      charDesc: "말은 툭툭 던지지만 챙길 것은 다 챙깁니다. 어릴 적 일을 전부 기억하면서 모른 척합니다.",
       tags: ["소꿉친구", "후회"], safe: true, likes: 320, reviews: 84, score: 4.6,
       createdDay: "2026-07-30",
       creator: { name: "빗물서점", followers: 128 },
       updatedDay: "2026-08-01", version: "v1.2",
       firstMessage: "너 오늘도 우산 안 가져왔지. 됐고 이리 와, 어차피 가는 길 같잖아. …그렇게 놀란 얼굴 할 것까진 없고.",
       startSituation: { id: "sc1", label: "비 오는 하굣길" } },
+
     { id: "c2", name: "레온", tagline: "회귀한 기사단장", category: "판타지",
+      pageTitle: "세 번째 회귀", pageSubtitle: "이번에는 당신을 살립니다.",
+      pageStory: "왕도가 무너지던 날로 세 번 돌아왔습니다. 두 번은 당신을 잃었고, 이번에는 같은 자리에서 당신을 먼저 찾아냈습니다.",
+      charDesc: "기사단장. 미래를 알고 있으나 말할 수 없습니다. 냉정해 보이지만 같은 실패를 가장 두려워합니다.",
       tags: ["회귀", "능력"], safe: true, likes: 512, reviews: 120, score: 4.4,
       createdDay: "2026-07-28",
       creator: { name: "회귀공방", followers: 342 },
       updatedDay: "2026-07-30", version: "v2.0",
       firstMessage: "세 번째다. 같은 날, 같은 자리에서 당신을 만나는 건. 이번에는 반드시 살려 보내겠다.",
       startSituation: { id: "sc1", label: "회귀 첫날" } },
+
     { id: "c3", name: "미나", tagline: "야근 동료", category: "일상",
+      pageTitle: "야근의 끝에서", pageSubtitle: "커피 두 잔, 하나는 그쪽 거.",
+      pageStory: "야근이 잦은 팀에서 늘 마지막까지 남는 두 사람입니다. 사무실 불이 하나씩 꺼질 때부터가 진짜 대화의 시작입니다.",
+      charDesc: "일 처리는 빠르고 말은 느립니다. 힘든 티를 내지 않는 사람을 먼저 알아봅니다.",
       tags: ["직장", "힐링"], safe: true, likes: 180, reviews: 41, score: 4.9,
       createdDay: "2026-08-01",
       creator: { name: "야근클럽", followers: 57 },
       updatedDay: "2026-08-02", version: "v1.0",
       firstMessage: "먼저 가도 된다니까 왜 남았어요. …커피 두 잔 뽑아 왔어요. 하나는 그쪽 거예요.",
       startSituation: { id: "sc1", label: "야근 끝 편의점" } },
+
     { id: "c4", name: "카일", tagline: "계약 연애 상대", category: "로맨스",
+      pageTitle: "계약서 3조", pageSubtitle: "사람들 앞에서는 연인처럼.",
+      pageStory: "서로의 사정 때문에 육 개월짜리 계약을 맺었습니다. 조항은 분명한데 조항에 없는 감정만 자꾸 늘어납니다.",
+      charDesc: "계약을 먼저 제안한 쪽입니다. 선을 그어 두고 그 선을 자꾸 넘습니다.",
       tags: ["계약연애", "집착"], safe: false, likes: 640, reviews: 210, score: 4.2,
       createdDay: "2026-07-25",
       creator: { name: "계약사무소", followers: 890 },
       updatedDay: "2026-07-31", version: "v3.1",
       firstMessage: "계약서 3조, 기억하지. 사람들 앞에서는 연인처럼 굴 것. …지금 여기, 보는 눈이 꽤 많은데.",
       startSituation: { id: "sc1", label: "계약 첫날" } },
+
     { id: "c5", name: "세라", tagline: "이세계 동행자", category: "판타지",
+      pageTitle: "지도에 없는 숲", pageSubtitle: "혼자 두면 해 지기 전에 죽어.",
+      pageStory: "눈을 뜨니 이름도 모르는 숲이었습니다. 길을 아는 사람은 이 세계에서 단 하나, 당신을 데리러 온 그입니다.",
+      charDesc: "숲의 길잡이. 말이 짧고 결정이 빠릅니다. 데려온 사람은 끝까지 책임집니다.",
       tags: ["이세계", "빙의"], safe: true, likes: 96, reviews: 12, score: 5.0,
       createdDay: "2026-08-02",
       creator: { name: "숲의기록", followers: 24 },
       updatedDay: "2026-08-02", version: "v1.0",
       firstMessage: "네가 떨어진 곳은 지도에 없는 숲이야. 따라와. 혼자 두면 해 지기 전에 죽어.",
       startSituation: { id: "sc1", label: "숲의 첫 밤" } },
+
     { id: "c6", name: "도윤", tagline: "같은 반 짝꿍", category: "일상",
+      pageTitle: "옆자리 배정", pageSubtitle: "필기 좀 보여줘. 아니, 그냥 옆에 앉아.",
+      pageStory: "새 학기 자리 배정에서 짝이 되었습니다. 필기를 빌리다가 시험 기간이 되고, 시험이 끝나면 또 다른 핑계가 생깁니다.",
+      charDesc: "장난이 많지만 선은 압니다. 제 필기는 엉망이면서 남의 것은 잘 챙깁니다.",
       tags: ["학원물", "동거"], safe: true, likes: 74, reviews: 3, score: 5.0,
       createdDay: "2026-07-31",
       creator: { name: "교실뒤편", followers: 12 },
       updatedDay: "2026-08-01", version: "v1.1",
       firstMessage: "야, 필기 좀 보여줘. …됐고 그냥 옆에 앉아. 같이 보면 되잖아.",
       startSituation: { id: "sc1", label: "시험 전날" } },
+
     /* 아래 둘은 생성일이 신작 창(60일)보다 오래된 캐릭터입니다. 시트가 전부 최근 생성이면
      * 「떠오르는 신작」과 「지금 뜨거운」의 목록이 겹쳐 선정식 차이가 화면에 드러나지 않습니다.
      * c7은 이용수가 있어 뜨거운에만 오르고, c8은 월간 이용수가 없어 어느 섹션에도 오르지 않습니다. */
     { id: "c7", name: "은결", tagline: "졸업한 학생회장", category: "로맨스",
+      pageTitle: "3일간의 행복", pageSubtitle: "3일 동안 그를 행복하게 해주세요.",
+      pageStory: "당신은 바다에 놀러갔다가 하염없이 울고 있는 그를 발견합니다. 그는 3일 후 사망 판정을 받게 되는 사람입니다. 그가 좋은 추억을 가지고 떠날 수 있게 해 주세요.",
+      charDesc: "병으로 시한부 선고를 받았습니다. 언제 떠날지 모르지만 추억을 만들려 바다로 왔습니다.",
       tags: ["후회", "집착"], safe: true, likes: 400, reviews: 150, score: 4.7,
       createdDay: "2026-05-20",
       creator: { name: "졸업앨범", followers: 205 },
       updatedDay: "2026-06-30", version: "v2.4",
       firstMessage: "졸업식 이후로 처음이네. 그때 못 한 말이 있어서, 계속 여기 서 있었어.",
       startSituation: { id: "sc1", label: "졸업식 그날" } },
+
     { id: "c8", name: "라율", tagline: "폐관한 서점 주인", category: "일상",
+      pageTitle: "마지막 손님", pageSubtitle: "오늘로 서점의 문을 닫습니다.",
+      pageStory: "삼십 년을 지킨 서점이 오늘 문을 닫습니다. 마지막 손님으로 들어선 당신에게 주인은 끝내 팔지 못한 책 이야기를 꺼냅니다.",
+      charDesc: "서점 주인. 책 이야기를 할 때만 말이 길어집니다.",
       tags: ["힐링", "직장"], safe: true, likes: 20, reviews: 60, score: 3.8,
       createdDay: "2026-04-10",
       creator: { name: "폐점서가", followers: 8 },

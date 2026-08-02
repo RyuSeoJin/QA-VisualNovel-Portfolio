@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>qa-lab-miyonchat 기능 골격 v1.5</title>
+<title>qa-lab-miyonchat 기능 골격 v1.6</title>
 <!-- ============================================================
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
@@ -178,13 +178,13 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="wrap">
 
 <header class="doc-header">
-  <h1>qa-lab-miyonchat 기능 골격 v1.5</h1>
+  <h1>qa-lab-miyonchat 기능 골격 v1.6</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
-    <span class="badge">골격 버전 <b>v1.5</b></span>
+    <span class="badge">골격 버전 <b>v1.6</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
-    <span class="badge">기준일 <b>2026-08-02</b></span>
+    <span class="badge">기준일 <b>2026-08-03</b></span>
   </div>
   <nav class="toc">
     <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#relations">TC 관계도</a><a href="#unknown">미확인 목록</a>
@@ -241,7 +241,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <ul>
 <li><span class="depth-tag">D3</span><span class="node">로고 홈 이동</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">어느 화면에서든 홈 복귀, 홈에서는 최상단 스크롤</span>
 </li>
-<li><span class="depth-tag">D3</span><span class="node">키워드 검색</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">제목 부분일치, 결과 0건 안내</span>
+<li><span class="depth-tag">D3</span><span class="node">키워드 검색</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">페이지 제목·태그 부분일치, 결과 0건 안내(제작자 검색은 소셜 제외 영역이라 뺌)</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">알림 목록 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">데이터 시트의 알림 항목이 목록에 반영(발생 로직 없음, 표시 반영만 검증)</span>
 </li></ul></li>
@@ -285,7 +285,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </li></ul></li></ul></li>
 <li><span class="depth-tag">D2</span><span class="node">캐릭터 페이지</span>
 <ul>
-<li><span class="depth-tag">D3</span><span class="node">페이지 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">카드를 고르면 캐릭터 페이지로 이동, 첫 메시지 전문 미리보기·태그 표시</span>
+<li><span class="depth-tag">D3</span><span class="node">페이지 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">카드를 고르면 캐릭터 페이지로 이동. 작품 층(제목·보조 설명·스토리)과 캐릭터 층(이름·한 줄 설명·상세 설명)이 나뉘어 표시되고 첫 메시지 전문·태그가 붙음</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">제작자 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">제작자명과 팔로우 수를 시트 값으로 표시만(팔로우 동작은 소셜 제외 영역)</span>
 </li>
@@ -468,7 +468,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.5 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.6 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div>

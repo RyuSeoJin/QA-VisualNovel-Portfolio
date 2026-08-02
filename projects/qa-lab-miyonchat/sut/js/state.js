@@ -59,6 +59,7 @@ const VN = {
   failNext: false,      // T1의 1회성 스위치 — 다음 전송 한 번을 생성 실패로 (청사진 §4-2)
   noFund: false,        // 재화 부족 안내 화면 (system-spec §3)
   ledgerFilter: "all",  // 재화 내역 필터 — all / gain / spend
+  showMetrics: false,   // 카드 지표 표시 — T1에서 켜는 검증용 표시 (청사진 §4-2)
   seed: 1,
   inject: null
 };
@@ -313,6 +314,10 @@ function categoryList(category) {
  * 방 밖에서 이 값을 참조하지 않아야 격리 검증이 성립합니다.
  */
 
+/* 캐릭터 페이지 글자수 상한 (system-spec §8-8) — 제작자가 넣는 값이라 T1 입력에서 지킵니다 */
+const PAGE_TITLE_MAX = 20;
+const PAGE_SUB_MAX = 30;
+
 /* 자유 입력 상한 (system-spec §5) */
 const CHAT_INPUT_MAX = 500;
 
@@ -533,14 +538,18 @@ function fillSlots(text, room) {
     .replace(/\{charName\}/g, c ? c.name : "");
 }
 
-/* 키워드 검색 — 제목(캐릭터 이름) 부분일치 (system-spec §8-7).
+/* 키워드 검색 — **페이지 제목과 태그**의 부분일치 (system-spec §8-7).
+ * 제작자 검색은 소셜 제외 영역이라 넣지 않습니다.
  * 선택 기준이 따로 없는 목록이라 순서는 체인의 첫 고리인 월간 이용수가 잡습니다(§8-4). */
 function searchList() {
   const key = (VN.search || "").trim().toLowerCase();
   if (!key) return [];
-  return sortChars(
-    visibleCharacters().filter((c) => c.name.toLowerCase().indexOf(key) >= 0),
-    monthUsage);
+  const hit = (c) => {
+    const title = (c.pageTitle || "").toLowerCase();
+    if (title.indexOf(key) >= 0) return true;
+    return (c.tags || []).some((t) => t.toLowerCase().indexOf(key) >= 0);
+  };
+  return sortChars(visibleCharacters().filter(hit), monthUsage);
 }
 
 function findCharacter(id) {
@@ -568,6 +577,7 @@ window.__VN__ = {
       loginOpen: VN.loginOpen,
       failNext: VN.failNext,
       noFund: VN.noFund,
+      showMetrics: VN.showMetrics,
       // 막혀서 미뤄 둔 동작 — 로그인 후 이어서 수행됩니다
       pendingAction: pendingIntent ? pendingIntent.action : null,
       pageCharId: VN.pageCharId,
@@ -622,6 +632,7 @@ window.__VN__ = {
     VN.failNext = false;
     VN.noFund = false;
     VN.ledgerFilter = "all";
+    VN.showMetrics = false;
     VN.inject = null;
     consoleOpen = false;
     render();

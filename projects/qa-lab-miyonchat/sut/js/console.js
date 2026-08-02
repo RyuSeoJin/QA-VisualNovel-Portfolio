@@ -77,7 +77,8 @@ function snapshotDraft() {
     usage: usage,
     accountStats: deepCopy(VN.sheet.accountStats),
     notifications: deepCopy(VN.sheet.notifications),
-    failNext: !!VN.failNext
+    failNext: !!VN.failNext,
+    showMetrics: !!VN.showMetrics
   };
 }
 
@@ -112,7 +113,8 @@ function describeChanges() {
   if (added.length) out.push("캐릭터 추가 — " + added.map((c) => c.name + "(" + c.id + ")").join(", "));
   if (removed.length) out.push("캐릭터 삭제 — " + removed.map((c) => c.name + "(" + c.id + ")").join(", "));
 
-  const FIELDS = [["category", "카테고리"], ["createdDay", "생성일"], ["likes", "좋아요"],
+  const FIELDS = [["pageTitle", "페이지 제목"], ["pageSubtitle", "보조 설명"],
+    ["category", "카테고리"], ["createdDay", "생성일"], ["likes", "좋아요"],
     ["reviews", "리뷰 수"], ["score", "점수"]];
   draft.characters.forEach((c) => {
     const b = before.find((x) => x.id === c.id);
@@ -151,6 +153,10 @@ function describeChanges() {
     if (acc0.wallet.paid !== draft.wallet.paid) {
       out.push("크리스탈 — " + acc0.wallet.paid + " → " + draft.wallet.paid);
     }
+  }
+  if (!!VN.showMetrics !== !!draft.showMetrics) {
+    out.push("카드 지표 표시 — " + (VN.showMetrics ? "켜짐" : "꺼짐")
+      + " → " + (draft.showMetrics ? "켜짐" : "꺼짐"));
   }
   if (!!VN.failNext !== !!draft.failNext) {
     out.push("다음 응답 생성 실패 — " + (VN.failNext ? "켜짐" : "꺼짐")
@@ -217,6 +223,7 @@ function commitDraft() {
     acc.wallet.paid = draft.wallet.paid;
   }
   VN.failNext = !!draft.failNext;
+  VN.showMetrics = !!draft.showMetrics;
 
   draft = snapshotDraft();      // 저장 뒤에는 초안과 실제가 같아집니다
   confirmOpen = false;
@@ -262,6 +269,10 @@ function addRandomCharacter() {
     id: id,
     name: pick(NAME_POOL),
     tagline: pick(LINE_POOL),
+    pageTitle: "생성된 작품 " + id,
+    pageSubtitle: "데이터 시트에서 만든 작품입니다.",
+    pageStory: "테스트용으로 생성한 작품이라 줄거리는 고정 문구입니다.",
+    charDesc: "테스트용으로 생성한 캐릭터입니다.",
     category: cat.name,
     tags: [pick(cat.tags), pick(cat.tags)].filter((v, i, a) => a.indexOf(v) === i),
     safe: true,
@@ -354,7 +365,7 @@ function renderCharBlock() {
     return block("캐릭터", children);
   }
 
-  const head = el("tr", {}, ["캐릭터", "mock", "카테고리", "태그", "생성일", "19세 이상"]
+  const head = el("tr", {}, ["캐릭터", "페이지 제목", "보조 설명", "mock", "카테고리", "태그", "생성일", "19세 이상"]
     .concat(CHAR_COLS.map((c) => c[0])).concat(USAGE_COLS.map((c) => c[0]))
     .map((h) => el("th", { text: h })));
 
@@ -390,8 +401,26 @@ function renderCharBlock() {
     // 결함으로 오인합니다 (mock-llm-spec §2-1)
     const dedicated = hasDedicatedMock(c.id);
     const u = draft.usage[c.id] || (draft.usage[c.id] = { daily: 0, weekly: 0, monthly: 0 });
+    const title = el("input", {
+      type: "text", class: "t1-celltitle", maxlength: String(PAGE_TITLE_MAX),
+      "data-testid": "t1-row-" + c.id + "-title", value: c.pageTitle || "",
+      oninput: (e) => {
+        if (e.target.value.length > PAGE_TITLE_MAX) e.target.value = e.target.value.slice(0, PAGE_TITLE_MAX);
+        c.pageTitle = e.target.value; touchDraft();
+      }
+    });
+    const sub = el("input", {
+      type: "text", class: "t1-cellsub", maxlength: String(PAGE_SUB_MAX),
+      "data-testid": "t1-row-" + c.id + "-subtitle", value: c.pageSubtitle || "",
+      oninput: (e) => {
+        if (e.target.value.length > PAGE_SUB_MAX) e.target.value = e.target.value.slice(0, PAGE_SUB_MAX);
+        c.pageSubtitle = e.target.value; touchDraft();
+      }
+    });
     return el("tr", {}, [
       el("td", { class: "t1-cname", text: c.name + " (" + c.id + ")" }),
+      el("td", {}, [title]),
+      el("td", {}, [sub]),
       el("td", {}, [el("span", {
         class: "t1-badge" + (dedicated ? " on" : ""),
         "data-testid": "t1-row-" + c.id + "-mock",
@@ -519,6 +548,18 @@ function renderConsole() {
   }
   const wallet = block("재화 (계정 스코프)", walletKids, walletBadge);
 
+  // 카드에서 정렬 근거를 확인할 때만 켭니다 — 평소 화면은 서비스 그대로 둡니다
+  const metrics = block("카드 지표 표시", [
+    el("p", { class: "hint",
+      text: "켜면 목록 카드에 좋아요·리뷰·이용수(랭킹에서는 정렬 기준값)가 한 줄 붙습니다." }),
+    el("button", {
+      class: draft.showMetrics ? "primary" : "",
+      "data-testid": "t1-show-metrics",
+      text: draft.showMetrics ? "카드 지표 — 켜짐" : "카드 지표 — 꺼짐",
+      onclick: () => { draft.showMetrics = !draft.showMetrics; paintConsole(); }
+    })
+  ]);
+
   const noti = block("알림", [
     el("button", {
       "data-testid": "t1-noti-send", text: "+ 알림 1건 발송",
@@ -615,7 +656,7 @@ function renderConsole() {
     el("aside", { class: "t1-console", "data-testid": "t1-console" }, [
       el("h2", { text: "디버그 설정" }),
       el("div", { class: "t1-body", "data-testid": "t1-body" }, [
-        notice, switcher, adult, baseDay, wallet, failSwitch,
+        notice, switcher, adult, baseDay, wallet, failSwitch, metrics,
         renderCharBlock(), noti, account, raw, reset
       ]),
       foot

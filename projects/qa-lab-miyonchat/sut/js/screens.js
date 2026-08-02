@@ -359,13 +359,19 @@ function renderCard(c, meta, rank) {
   const locked = c.safe === false && !canViewUnsafe();
   const kids = [];
   if (rank) kids.push(el("span", { class: "card-rank", text: String(rank) }));
-  kids.push(el("div", { class: "card-in" }, [
-    el("p", { class: "card-name", text: c.name }),
-    el("p", { class: "card-line", text: c.tagline }),
-    // 기본 메타는 월간 이용수 — 동률 체인이 쓰는 값이라 순서가 왜 그런지 화면에서 읽힙니다
-    el("p", { class: "card-meta", text: meta ||
-      "♥ " + likeCount(c) + " · 리뷰 " + c.reviews + " · 월 이용수 " + monthUsage(c) })
-  ]));
+  const inner = [
+    // 이미지 자리 — 그림을 넣지 않는 SUT라 이름 텍스트로 대신합니다
+    el("div", { class: "card-thumb", "data-testid": "s2-card-" + c.id + "-thumb", text: c.name }),
+    el("p", { class: "card-name", text: c.pageTitle || c.name }),
+    el("p", { class: "card-line", text: c.pageSubtitle || c.tagline }),
+    el("p", { class: "card-by", text: c.creator ? c.creator.name : "" })
+  ];
+  // 지표는 평소 숨기고 T1에서 켤 때만 붙입니다 — 정렬 근거를 확인할 때 씁니다
+  if (VN.showMetrics) {
+    inner.push(el("p", { class: "card-meta", "data-testid": "s2-card-" + c.id + "-metric",
+      text: meta || "♥ " + likeCount(c) + " · 리뷰 " + c.reviews + " · 월 이용수 " + monthUsage(c) }));
+  }
+  kids.push(el("div", { class: "card-in" }, inner));
   if (locked) {
     kids.push(el("span", {
       class: "card-lock", "data-testid": "s2-card-" + c.id + "-blur", text: "19+"
@@ -589,7 +595,7 @@ function renderS3() {
   const kids = [
     el("div", { class: "s3-head" }, [
       el("button", { class: "chat-back", "data-testid": "s3-back", text: "‹ 뒤로", onclick: () => goHome() }),
-      el("h2", { class: "screen-title", "data-testid": "s3-name", text: c.name })
+      el("h2", { class: "screen-title", "data-testid": "s3-page-title", text: c.pageTitle || c.name })
     ])
   ];
 
@@ -607,12 +613,20 @@ function renderS3() {
     return el("section", { class: "screen s3", "data-testid": "s3-screen" }, kids);
   }
 
-  kids.push(el("p", { class: "lede-sm", "data-testid": "s3-tagline", text: c.tagline }));
-  kids.push(el("p", { class: "d-tags", "data-testid": "s3-tags",
-    text: (c.tags || []).map((t) => "#" + t).join(" ") }));
+  // 페이지(작품) 층 — 제목·보조 설명·스토리
+  kids.push(el("p", { class: "lede-sm", "data-testid": "s3-page-subtitle", text: c.pageSubtitle || "" }));
   kids.push(el("p", { class: "s3-creator", "data-testid": "s3-creator",
     text: "제작 " + (c.creator ? c.creator.name : "-") + " · 팔로워 "
       + (c.creator ? c.creator.followers : 0) }));
+  kids.push(el("p", { class: "s3-story", "data-testid": "s3-story", text: c.pageStory || "" }));
+
+  // 캐릭터 층 — 이름·한 줄 설명·상세 설명
+  kids.push(el("h3", { class: "sec-title", text: "캐릭터" }));
+  kids.push(el("p", { class: "s3-charname", "data-testid": "s3-name", text: c.name }));
+  kids.push(el("p", { class: "lede-sm", "data-testid": "s3-tagline", text: c.tagline }));
+  kids.push(el("p", { class: "s3-chardesc", "data-testid": "s3-char-desc", text: c.charDesc || "" }));
+  kids.push(el("p", { class: "d-tags", "data-testid": "s3-tags",
+    text: (c.tags || []).map((t) => "#" + t).join(" ") }));
   kids.push(el("div", { class: "stat-row", "data-testid": "s3-stats" }, [
     statLine("이용수", usageCount(c.id, null), "s3-stat-usage"),
     statLine("좋아요", likeCount(c), "s3-stat-likes"),
