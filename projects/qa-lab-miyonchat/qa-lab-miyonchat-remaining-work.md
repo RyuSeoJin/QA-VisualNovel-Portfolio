@@ -5,13 +5,14 @@ change-log가 담당합니다. 갱신일: 2026-08-02 (design 명세 확정 직�
 
 ## 다음 작업 큐
 
-1. **TC 설계·산출** (playbook STEP 6)
-   - 선행 완료(2026-08-02): 스크립트 3자 동기화 · `tc-input-master.json` 생성 · 이슈 관리 시트 편입
-   - **대상 플랫폼 확정: Web 단독** (2026-08-02 사용자 확정) → tc-input의 `platforms`를 `["Web"]`로. 마스터 기본값(Web/And/iOS)은 그대로 두고 프로젝트에서만 조정
-   - 선행 완료(2026-08-02): `test-case/…-tc-input-v1.0.json` 생성(플랫폼 Web·목록 값·vt_note 덮어쓰기 반영, `tcs`만 비어 있음) · 케이스 전개 축 판정(청사진 §4-1)
+1. **SUT 구현** (`sut/`) — 2026-08-02 순서 변경으로 TC 설계보다 앞으로 옴
+   - 청사진 준수, **data-testid 전체 목록을 청사진 §3-1에 확정 등재**, 스모크의 STUB를 실제 SUT로 교체(test_smoke.py [주의] 참조)
+   - 지켜야 할 조건: ① 코드가 명세와 어긋나면 명세를 먼저 고치고 스펙 변경으로 기록 ② 기능 트리 노드 구현 외 작업 금지 ③ data-testid 명명 규칙은 코드 첫 줄 전에 확정
+   - 진행 단위: 화면 단위로 끊음 (전역 셸+S1 → S2 → S3·S4 → 패널 → 스텁)
+2. **TC 설계·산출** (playbook STEP 6) — 구현 후 수행
+   - 선행 완료(2026-08-02): 스크립트 3자 동기화 · `tc-input-master.json` · 이슈 관리 시트 편입 · **플랫폼 Web 단독 확정** · `test-case/…-tc-input-v1.0.json` 생성(목록 값·vt_note 반영, `tcs`만 비어 있음) · 케이스 전개 축 판정(청사진 §4-1)
    - 남은 것: `tcs` 배열 작성 → xlsx 생성 → Excel 오픈 검증
-   - 산출: `…-tc-input-v1.0.json` → xlsx(기준 골격 v1.1은 `tree_version`으로 자동 기입)
-2. **SUT 구현** (`sut/`) — 청사진 준수, data-testid 전체 목록을 청사진에 확정 등재, 스모크의 STUB를 실제 SUT로 교체(test_smoke.py [주의] 참조)
+   - 기대값은 트리·design/에서만 가져오고, Test-Step은 구현으로 확정된 화면 용어로 씁니다
 3. **자동화** — conftest(reset)·thresholds·영역별 테스트 파일 → 결정적·금칙 격리부터 → 결함 주입 매트릭스(대각선만 FAIL) → 리포트(+"SUT 한계와 검증 범위")
 4. **CI·묶기** — 워크플로(경로 필터, deploy-pages 금지), 추적 매트릭스, 프로젝트 허브·용어집 생성, README 실행 GIF, 저작권 게이트 → push
 
