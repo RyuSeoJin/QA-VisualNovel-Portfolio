@@ -225,6 +225,17 @@ function renderStub(key, reason) {
   ]);
 }
 
+/* 미션 한 줄 — 받은 뒤에는 눌리지 않는다는 것이 보여야 중복 차단이 화면에서 읽힙니다 */
+function renderMissionRow(label, testid, claimed, onClaim) {
+  const btn = el("button", {
+    class: "sub-btn", "data-testid": testid,
+    text: claimed ? "수령 완료" : "받기 (캔디 +" + MISSION_REWARD + ")",
+    onclick: onClaim
+  });
+  btn.disabled = claimed;
+  return el("div", { class: "p4-mission" }, [el("span", { text: label }), btn]);
+}
+
 /* P4 간편 프로필 — 계정 정보 + 보유 재화 + 미션 진입 (청사진 §1 P4) */
 function renderP4() {
   const acc = currentAccount();
@@ -256,7 +267,18 @@ function renderP4() {
         el("div", {}, [el("span", { text: "크리스탈(유료)" }),
           el("strong", { "data-testid": "p4-wallet-paid", text: String(acc.wallet.paid) })])
       ]),
-      el("p", { class: "todo-note", text: "미션 수령·재화 히스토리는 재화 영역 구현 단위에서 붙습니다." }),
+      el("h3", { class: "sec-title", text: "미션" }),
+      // 달성 판정 로직은 만들지 않습니다 — 사유를 화면에 적어 미구현을 결함으로 오인하지
+      // 않게 합니다 (system-spec §3)
+      el("p", { class: "hint", "data-testid": "p4-mission-note",
+        text: "달성 판정은 만들지 않았습니다. 전 항목이 수령 가능 상태이며 검증 대상은 수령·중복 차단·잔액 반영입니다." }),
+      el("div", { class: "p4-missions", "data-testid": "p4-missions" },
+        [renderMissionRow("출석 체크 (데일리)", "p4-daily-claim", dailyClaimed(),
+          () => claimMission("daily"))].concat(
+          WELCOME_MISSIONS.map((m) => renderMissionRow(m.label + " (웰컴)",
+            "p4-welcome-" + m.id + "-claim", welcomeClaimed(m.id),
+            () => claimMission("welcome", m.id))))),
+      renderLedger("p4"),
       el("button", {
         class: "p4-my", "data-testid": "p4-go-my", text: "MY 전체 보기",
         onclick: () => { closePanel(); go("s6"); }
@@ -268,9 +290,30 @@ function renderP4() {
 /* ── P3 재화/충전 ─────────────────────────
  * 잔액 2종과 내역을 지갑별로 나눠 보여 줍니다. 충전은 mock이라 성공·실패 버튼이 따로 있습니다.
  */
+/* 내역 — P3와 P4가 같은 데이터를 봅니다. 필터는 획득/소모를 가릅니다 (system-spec §3) */
+function renderLedger(prefix) {
+  const rows = ledgerRows();
+  const chip = (label, key) => el("button", {
+    class: "f" + (VN.ledgerFilter === key ? " on" : ""),
+    "data-testid": prefix + "-filter-" + key, text: label,
+    onclick: () => { VN.ledgerFilter = key; render(); }
+  });
+  return el("div", {}, [
+    el("h3", { class: "sec-title", text: "획득·소모 내역" }),
+    el("div", { class: "filters" }, [chip("전체", "all"), chip("획득", "gain"), chip("소모", "spend")]),
+    rows.length
+      ? el("ul", { class: "p3-ledger", "data-testid": prefix + "-ledger" }, rows.map((r) =>
+          el("li", { class: "p3-row", "data-testid": prefix + "-row-" + r.id }, [
+            el("span", { text: (r.wallet === "free" ? "캔디" : "크리스탈") + " " + r.reason }),
+            el("strong", { class: r.amount < 0 ? "minus" : "plus",
+              text: (r.amount > 0 ? "+" : "") + r.amount })
+          ])))
+      : el("p", { class: "empty", "data-testid": prefix + "-ledger-empty", text: "내역이 없습니다." })
+  ]);
+}
+
 function renderP3() {
   const acc = currentAccount();
-  const rows = acc.ledger.slice().reverse();
   return el("div", { class: "panel-wrap", "data-testid": "p3-panel" }, [
     el("div", { class: "panel" }, [
       el("div", { class: "panel-head" }, [
@@ -293,15 +336,7 @@ function renderP3() {
         el("button", { class: "sub-btn", "data-testid": "p3-charge-fail",
           text: "충전 실패", onclick: () => chargeMock(false) })
       ]),
-      el("h3", { class: "sec-title", text: "획득·소모 내역" }),
-      rows.length
-        ? el("ul", { class: "p3-ledger", "data-testid": "p3-ledger" }, rows.map((r) =>
-            el("li", { class: "p3-row", "data-testid": "p3-row-" + r.id }, [
-              el("span", { text: (r.wallet === "free" ? "캔디" : "크리스탈") + " " + r.reason }),
-              el("strong", { class: r.amount < 0 ? "minus" : "plus",
-                text: (r.amount > 0 ? "+" : "") + r.amount })
-            ])))
-        : el("p", { class: "empty", "data-testid": "p3-ledger-empty", text: "내역이 없습니다." })
+      renderLedger("p3")
     ])
   ]);
 }

@@ -297,6 +297,14 @@ function streamMessage(room, msg) {
 }
 
 /* mock 결제 — 성공 콜백은 잔액에 반영하고, 실패 콜백은 잔액을 건드리지 않습니다 (system-spec §3) */
+/* 미션 수령 — 중복 수령은 막고 사유를 알립니다 (system-spec §3) */
+function claimMission(kind, id) {
+  const r = kind === "daily" ? claimDaily() : claimWelcome(id);
+  if (!r.ok) { toast(r.reason); return; }
+  toast("캔디 " + MISSION_REWARD + "개를 받았습니다.");
+  render();
+}
+
 /* 재화 부족 안내 — 전송이 막힌 이유를 화면으로 알립니다 (system-spec §3) */
 function closeNoFund() {
   VN.noFund = false;

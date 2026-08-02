@@ -58,6 +58,7 @@ const VN = {
   pendingStart: null,   // 시나리오 선택 시작의 시작점 — S4 슬라이스가 읽습니다
   failNext: false,      // T1의 1회성 스위치 — 다음 전송 한 번을 생성 실패로 (청사진 §4-2)
   noFund: false,        // 재화 부족 안내 화면 (system-spec §3)
+  ledgerFilter: "all",  // 재화 내역 필터 — all / gain / spend
   seed: 1,
   inject: null
 };
@@ -346,6 +347,61 @@ function spend(acc, cost, reason) {
   return { free: free, paid: paid, rows: rows };
 }
 
+/* ── 미션 (system-spec §3) ─────────────────────────────────
+ * 달성 판정 로직은 만들지 않습니다 — 전 항목이 수령 가능 상태로 노출되며, 검증 대상은
+ * 수령·중복 차단·잔액 반영입니다. 미구현 사유는 화면에 적습니다.
+ */
+const MISSION_REWARD = 50;      // 데일리·웰컴 모두 캔디 50
+
+const WELCOME_MISSIONS = [
+  { id: "join", label: "가입 환영" },
+  { id: "firstchat", label: "첫 대화" },
+  { id: "persona", label: "페르소나 등록" }
+];
+
+function dailyClaimed() {
+  const acc = currentAccount();
+  // 기준일별로 기록합니다 — 기준일을 옮기면 다시 받을 수 있고, 그 자체가 검증 대상입니다
+  return !!(acc && acc.missions.daily[VN.sheet.baseDay]);
+}
+
+function welcomeClaimed(id) {
+  const acc = currentAccount();
+  return !!(acc && acc.missions.welcome[id]);
+}
+
+function claimDaily() {
+  const acc = currentAccount();
+  if (!acc) return { ok: false, reason: "미로그인 상태입니다." };
+  if (dailyClaimed()) return { ok: false, reason: "오늘은 이미 받았습니다." };
+  acc.missions.daily[VN.sheet.baseDay] = true;
+  acc.wallet.free += MISSION_REWARD;
+  ledgerAdd(acc, "free", MISSION_REWARD, "데일리 미션 · 출석 체크");
+  return { ok: true };
+}
+
+function claimWelcome(id) {
+  const acc = currentAccount();
+  if (!acc) return { ok: false, reason: "미로그인 상태입니다." };
+  if (welcomeClaimed(id)) return { ok: false, reason: "이미 받은 미션입니다." };
+  const m = WELCOME_MISSIONS.find((x) => x.id === id);
+  if (!m) return { ok: false, reason: "없는 미션입니다." };
+  acc.missions.welcome[id] = true;
+  acc.wallet.free += MISSION_REWARD;
+  ledgerAdd(acc, "free", MISSION_REWARD, "웰컴 미션 · " + m.label);
+  return { ok: true };
+}
+
+/* 내역 필터 — 획득/소모를 갈라 봅니다 (system-spec §3) */
+function ledgerRows() {
+  const acc = currentAccount();
+  if (!acc) return [];
+  const rows = acc.ledger.slice().reverse();
+  if (VN.ledgerFilter === "gain") return rows.filter((r) => r.amount > 0);
+  if (VN.ledgerFilter === "spend") return rows.filter((r) => r.amount < 0);
+  return rows;
+}
+
 /* 차감 취소 — 실패한 전송은 재화를 소모하지 않으므로 내역에도 남기지 않습니다.
  * 잔액만 되돌리고 기록을 남기면 "소모했다"로 읽혀 명세와 어긋납니다. */
 function refund(acc, spent) {
@@ -565,6 +621,7 @@ window.__VN__ = {
     resetViewState();
     VN.failNext = false;
     VN.noFund = false;
+    VN.ledgerFilter = "all";
     VN.inject = null;
     consoleOpen = false;
     render();

@@ -115,7 +115,7 @@ T1 디버그 콘솔 — 상단 바 [디버그] 버튼 (모달 + 딤). S1에서�
 
 ### 3-1. 요소 셀렉터 — data-testid 명명 규칙
 
-`{화면}-{요소}[-{인덱스|수식어}]`, 전부 kebab-case. 화면 접두는 s1~s8 · p1~p4 ·
+`{화면}-{요소}[-{인덱스|수식어}]`, 전부 kebab-case. 화면 접두는 s1~s8 · p1~p5 ·
 g(전역 셸) · t1(테스트 콘솔).
 
 **표는 두 부분입니다.** ✅ 표시는 구현이 끝나 실제로 존재하는 것이고, 나머지는 앞으로 만들 때
@@ -162,11 +162,12 @@ g(전역 셸) · t1(테스트 콘솔).
 | `p1-slot-{n}-save` / `-load` | 세이브 슬롯 |
 | `p2-stage` · `p2-pin-{항목}` · `p2-memory-{n}-delete` | 현재 상태·핀·기억 삭제 |
 | ✅ `p3-panel` · `p3-close` · `p3-wallet-free` · `p3-wallet-paid` · `p3-help` | 재화 패널 · 닫기 · 잔액 2종 · 요율 안내 |
-| ✅ `p3-charge-ok` · `p3-charge-fail` · `p3-ledger` · `p3-row-{id}` · `p3-ledger-empty` | 충전 mock 성공/실패 · 내역 목록·항목·빈 상태 |
+| ✅ `p3-charge-ok` · `p3-charge-fail` | 충전 mock 성공/실패 |
+| ✅ `p3-ledger` · `p4-ledger` (+ `-row-{id}` · `-ledger-empty` · `-filter-{구분}`) | 내역 목록·항목·빈 상태·필터(`all`·`gain`·`spend`). P3와 P4가 같은 데이터를 같은 뷰로 봅니다 |
 | ✅ `p4-panel` · `p4-close` | 간편 프로필 패널 · 닫기 |
 | ✅ `p4-name` · `p4-adult` | 계정 표시명 · 인증 상태 |
 | ✅ `p4-wallet-free` · `p4-wallet-paid` · `p4-go-my` | 보유 재화 2종 · MY 전체 보기 |
-| `p4-daily-claim` · `p4-welcome-{id}-claim` | 미션 수령 |
+| ✅ `p4-missions` · `p4-mission-note` · `p4-daily-claim` · `p4-welcome-{id}-claim` | 미션 목록 · 미구현 사유 문구 · 데일리·웰컴 수령(받은 뒤 비활성) |
 
 **T1 디버그 콘솔** — 트리 밖 테스트 설비라 접두를 `t1`로 따로 둡니다.
 
