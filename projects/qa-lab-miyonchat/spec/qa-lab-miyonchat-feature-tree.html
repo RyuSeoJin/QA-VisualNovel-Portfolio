@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>qa-lab-miyonchat 기능 골격 v1.3</title>
+<title>qa-lab-miyonchat 기능 골격 v1.4</title>
 <!-- ============================================================
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
@@ -178,11 +178,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="wrap">
 
 <header class="doc-header">
-  <h1>qa-lab-miyonchat 기능 골격 v1.3</h1>
+  <h1>qa-lab-miyonchat 기능 골격 v1.4</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
-    <span class="badge">골격 버전 <b>v1.3</b></span>
+    <span class="badge">골격 버전 <b>v1.4</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
     <span class="badge">기준일 <b>2026-08-02</b></span>
   </div>
@@ -193,9 +193,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
 <h2 id="stats">개요</h2>
 <div class="stats">
-  <div class="stat"><div class="num">69</div><div class="lbl">구현 노드 (검증 대상)</div></div>
-  <div class="stat"><div class="num">7 / 8</div><div class="lbl">보류 / 제외</div></div>
-  <div class="stat"><div class="num"><em>0</em></div><div class="lbl">미확인(?) 항목</div></div>
+  <div class="stat"><div class="num">83</div><div class="lbl">구현 노드 (검증 대상)</div></div>
+  <div class="stat"><div class="num">6 / 8</div><div class="lbl">보류 / 제외</div></div>
+  <div class="stat"><div class="num"><em>3</em></div><div class="lbl">미확인(?) 항목</div></div>
   <div class="stat"><div class="num">78%</div><div class="lbl">결정적 비율</div></div>
 </div>
 
@@ -283,31 +283,55 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </li>
 <li><span class="depth-tag">D4</span><span class="node">카테고리 전체 정렬</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">대화순/최신순 전환</span>
 </li></ul></li></ul></li>
-<li><span class="depth-tag">D2</span><span class="node">캐릭터 카드/상세</span>
+<li><span class="depth-tag">D2</span><span class="node">캐릭터 페이지</span>
 <ul>
-<li><span class="depth-tag">D3</span><span class="node">카드 상세 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">첫 메시지 전문 미리보기·태그 표시</span>
+<li><span class="depth-tag">D3</span><span class="node">페이지 진입</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">카드를 고르면 캐릭터 페이지로 이동, 첫 메시지 전문 미리보기·태그 표시</span>
 </li>
-<li><span class="depth-tag">D3</span><span class="node">시나리오 선택 시작</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">시나리오 드롭다운 선택 → 해당 시작점으로 대화 개시</span>
+<li><span class="depth-tag">D3</span><span class="node">제작자 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">제작자명과 팔로우 수를 시트 값으로 표시만(팔로우 동작은 소셜 제외 영역)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">페이지 현황 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이용수·좋아요 수·팔로우 수가 시트·계정 상태와 일치</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">출시일·최종 업데이트 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">업데이트 버전 표기 포함(버전 형식은 design)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">그 외 작품 추천</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">같은 제작자·연관 캐릭터 캐러셀(선정식은 design)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">시나리오 선택 시작</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">시나리오 드롭다운 선택 → 해당 시작점으로 대화 개시 ※ 유저 선택 여부 재논의 중(2026-08-02)</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">좋아요 토글</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">토글 상태 유지, MY 활동 목록·랭킹 좋아요 정렬에 반영</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">스크랩 토글</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">토글 상태 유지, MY 활동 목록에 반영</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">하단 고정 버튼 분기</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">그 캐릭터와의 대화방이 없으면 「프로필 선택+대화 시작」, 있으면 「대화방 목록+새 대화 시작」으로 구성이 갈림</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">대화방 목록·이어하기</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">캐릭터별 대화방을 진행 상태와 함께 표시, 선택 시 그 방으로 재진입</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">대화방 한도 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">캐릭터당 한도(값은 design)를 넘겨 새 방·분기를 만들 수 없고, 삭제 여부를 물어 슬롯을 비운 뒤에만 진행</span>
 </li></ul></li></ul></li>
 <li><span class="depth-tag">D1</span><span class="node">유저 페르소나</span> <span class="chip chip-ok">구현</span>
 <ul>
 <li><span class="depth-tag">D2</span><span class="node">프로필 폼</span>
 <ul>
-<li><span class="depth-tag">D3</span><span class="node">글자수 경계</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이름·자유 설명의 상한 경계(값은 design, 후보 12/1,000)</span>
+<li><span class="depth-tag">D3</span><span class="node">글자수 경계</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이름·자유 설명의 상한 경계(값은 design)</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">빈 값 검증</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">필수값 없으면 저장 비활성</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">Label 입력</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">프로필의 용도를 적는 짧은 표기, 상한 경계(값은 design)</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">랜덤 완성</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">버튼 한 번으로 폼이 채워지고, 채워진 값도 상한·필수값 규칙을 그대로 따름</span>
+</li></ul></li>
+<li><span class="depth-tag">D2</span><span class="node">복수 프로필 운용</span>
+<ul>
+<li><span class="depth-tag">D3</span><span class="node">프로필 추가·개수 한도</span> <span class="chip chip-det">결정적</span> <span class="chip chip-mid">Medium</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">프로필을 여러 개 만들 수 있고 한도(값은 design)를 넘기면 추가가 막힘</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">대화 시작 시 프로필 선택</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">새 대화를 열 때 프로필을 고르고, 고른 프로필이 그 방에 고정됨</span>
+</li>
+<li><span class="depth-tag">D3</span><span class="node">프로필 간 격리</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">한 방의 프로필 값이 다른 방의 응답·표시에 섞이지 않음</span>
 </li></ul></li>
 <li><span class="depth-tag">D2</span><span class="node">응답 내 페르소나 준수</span> <span class="chip chip-prob">확률적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이름·호칭 반영률 계측, 유저 대사 무단 대필(침범) 검출 포함</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">설명란 프롬프트 주입 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">자유 텍스트에 지시문 삽입 시 게이팅 계층이 차단</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">온보딩 장르 선택</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">선호 장르 → 추천 반영</span>
-</li>
-<li><span class="depth-tag">D2</span><span class="node">복수 프로필 운용</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-part">보류</span> <span class="note">전환·대표 지정·방별 적용</span>
 </li></ul></li>
 <li><span class="depth-tag">D1</span><span class="node">재화</span> <span class="chip chip-ok">구현</span>
 <ul>
@@ -369,7 +393,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </li>
 <li><span class="depth-tag">D2</span><span class="node">AI 응답 재생성</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">이전 응답의 상태 변화 취소·재계산, 버려진 버전은 맥락에서 격리</span>
 </li>
-<li><span class="depth-tag">D2</span><span class="node">분기 생성</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">타임머신형: 원본 방 보존+상태 복사한 새 방, 이후 상호 독립</span>
+<li><span class="depth-tag">D2</span><span class="node">분기 생성</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">타임머신형: 원본 방 보존+상태 복사한 새 방, 이후 상호 독립. 진입은 세이브 로드의 「새 방으로」 갈래이며 대화방 한도를 함께 받음</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">대화수 표시 정합</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">방 카드 대화수(유저+AI 턴 합산, 연출 턴 제외, 첫 메시지 포함)와 MY 합계 표시가 내부 상태와 일치, 갱신 즉시 반영</span>
 </li>
@@ -384,6 +408,10 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <li><span class="depth-tag">D2</span><span class="node">슬롯 저장·복원</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">로드 시 호감도·단계·대화 위치가 저장 시점 그대로(슬롯 수는 design)</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">슬롯 간 격리</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">다른 슬롯의 값 혼입 없음</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">로드 갈래 선택</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">로드할 때 현재 방에 덮어쓸지 새 방으로 갈라질지 고르며, 새 방 갈래가 곧 분기 생성</span>
+</li>
+<li><span class="depth-tag">D2</span><span class="node">덮어쓰기 복원</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">덮어쓰면 저장 시점 이후의 대화·상태 변화가 남지 않음</span>
 </li></ul></li>
 <li><span class="depth-tag">D1</span><span class="node">메모리/컨텍스트</span> <span class="chip chip-ok">구현</span>
 <ul>
@@ -428,10 +456,20 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="callout">TC 설계 전입니다 — 케이스 사이의 선행 관계는 test-case/ 산출 후 이 섹션에서 재생성됩니다.</div>
 
 <h2 id="unknown">미확인 목록</h2>
-<div class="callout">현재 미확인 항목이 없습니다 — 전 항목이 design/에서 확정되었습니다. 값의 정본은 design/이며, 트리 노드는 값을 담지 않고 위임합니다.</div>
+<div class="callout warn">아래 항목은 design/에서 확정되기 전까지 기대값이 성립하지 않습니다. 그래서 이 목록이 곧 명세 작성의 작업 목록입니다.</div>
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>노드 경로</th><th>미확인 값</th><th>확정처</th></tr></thead>
+  <tbody>
+    <tr><td>유저 페르소나 &gt; 프로필 추가·개수 한도</td><td>프로필 개수 상한</td><td>design (후보: 플레이툰 실측 100 — SUT는 경계 검증 비용을 보고 정함)</td></tr>
+    <tr><td>탐색 &gt; 출시일·최종 업데이트 표시</td><td>업데이트 버전 표기 형식</td><td>design</td></tr>
+    <tr><td>탐색 &gt; 그 외 작품 추천</td><td>선정식(같은 제작자·연관 기준)</td><td>design</td></tr>
+  </tbody>
+</table>
+</div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.3 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.4 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div>
