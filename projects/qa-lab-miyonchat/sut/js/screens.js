@@ -55,7 +55,7 @@ function renderLoginModal() {
   ]);
 }
 
-/* S1 로그인 — 보호 화면에 URL로 직접 들어왔을 때 뜨는 화면(뒤에 깔 화면이 없는 경우).
+/* S1 로그인 — 로그인 필요 화면에 URL로 직접 들어왔을 때 뜨는 화면(뒤에 깔 화면이 없는 경우).
  * 로그인하면 원래 하려던 곳으로 이어집니다(system-spec §1-1). */
 function renderS1() {
   const pick = (id) => signIn(id);
@@ -742,7 +742,7 @@ function renderS2() {
 
 /* ── S3 캐릭터 페이지 ──────────────────────
  * 카드를 누르면 열리는 화면이며 대화는 여기서만 시작합니다(system-spec §8-8).
- * 공개 범위라 미로그인도 둘러볼 수 있고, 대화 시작·좋아요만 보호 동작입니다.
+ * 미로그인 열람 범위라 미로그인도 둘러볼 수 있고, 대화 시작·좋아요만 로그인 필요 동작입니다.
  */
 function statLine(label, value, testid) {
   return el("div", { class: "stat-item" }, [

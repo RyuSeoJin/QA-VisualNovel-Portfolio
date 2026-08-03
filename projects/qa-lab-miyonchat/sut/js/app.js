@@ -1,13 +1,13 @@
 /* 부트스트랩 + 라우팅
  *
- * 진입점은 홈(S2)입니다. 미로그인으로도 공개 범위를 둘러볼 수 있고, 보호 화면·보호 동작을
+ * 진입점은 홈(S2)입니다. 미로그인으로도 미로그인 열람 범위를 둘러볼 수 있고, 로그인 필요 화면·로그인 필요 동작을
  * 시도할 때만 S1으로 유도합니다. 로그인하면 원래 하려던 곳으로 이어집니다 (system-spec §1-1).
  */
 
-/* 공개 — 미로그인도 볼 수 있는 화면 */
-/* 캐릭터 페이지(S3)도 공개입니다 — 미로그인도 소개를 볼 수 있고, 대화 시작만 보호 동작입니다 */
+/* 미로그인 열람 — 로그인 없이 볼 수 있는 화면 */
+/* 캐릭터 페이지(S3)도 미로그인 열람입니다 — 미로그인도 소개를 볼 수 있고, 대화 시작만 로그인 필요 동작입니다 */
 const PUBLIC = ["s2", "s3", "s7"];
-/* 보호 — 로그인해야 들어갈 수 있는 화면. URL 직접 진입도 같은 검사를 거칩니다 */
+/* 로그인 필요 — 로그인해야 들어갈 수 있는 화면. URL 직접 진입도 같은 검사를 거칩니다 */
 const PROTECTED = ["s4", "s5", "s6", "s8"];
 
 /* 로그인 후 돌아갈 곳. 차단된 시도를 기억해 두었다가 이어줍니다 */
@@ -16,7 +16,7 @@ let pendingIntent = null;
 let lastScreen = null;
 
 function go(screen) {
-  // [주입] gate-bypass — 라우팅 가드가 뚫려 미로그인으로도 보호 화면에 들어갑니다
+  // [주입] gate-bypass — 라우팅 가드가 뚫려 미로그인으로도 로그인 필요 화면에 들어갑니다
   if (PROTECTED.includes(screen) && !isLoggedIn() && !injected("gate-bypass")) {
     // 셸이 떠 있는 중이라 화면을 갈아 끼우지 않고 모달만 얹습니다 (system-spec §1-1)
     requireLogin("screen:" + screen, () => go(screen));
@@ -26,7 +26,7 @@ function go(screen) {
   render();
 }
 
-/* 보호 동작 게이트 — 통과하지 못하면 동작을 수행하지 않고 로그인 모달을 띄웁니다.
+/* 로그인 필요 동작 게이트 — 통과하지 못하면 동작을 수행하지 않고 로그인 모달을 띄웁니다.
  * `run`은 로그인 후 이어서 수행할 동작입니다. 막을 때는 아무것도 하지 않고,
  * 풀리면 그때 수행합니다 (system-spec §1-1). */
 function requireLogin(action, run) {
@@ -69,7 +69,7 @@ function signIn(accountId) {
   else render();
 }
 
-/* 전역 패널 — 보호 동작이므로 미로그인이면 열리지 않고 로그인으로 유도합니다 */
+/* 전역 패널 — 로그인 필요 동작이므로 미로그인이면 열리지 않고 로그인으로 유도합니다 */
 function openPanel(name) {
   if (!requireLogin("panel:" + name, () => openPanel(name))) return;
   VN.panel = name;
@@ -100,7 +100,7 @@ function selectChip(name) {
   render();
 }
 
-/* 키워드 검색 — 공개 범위라 미로그인도 씁니다 (system-spec §1-1).
+/* 키워드 검색 — 미로그인 열람 범위라 미로그인도 씁니다 (system-spec §1-1).
  * 결과는 홈이 그리므로 다른 화면에서 검색하면 홈으로 옮겨 갑니다. */
 function runSearch(text) {
   VN.search = (text || "").trim();
@@ -114,7 +114,7 @@ function clearSearch() {
   render();
 }
 
-/* 알림 목록 — 계정에 매인 데이터라 보호 동작으로 둡니다.
+/* 알림 목록 — 계정에 매인 데이터라 로그인 필요 동작으로 둡니다.
  * 미로그인이 누르면 열지 않고 로그인으로 유도합니다(T1의 알림 발송과 같은 게이트). */
 function toggleNoti() {
   if (!VN.notiOpen && !requireLogin("noti", () => toggleNoti())) return;
@@ -168,7 +168,7 @@ function fillRandomProfile() {
   put("p5-label", "기본 모드");
 }
 
-/* 대화 시작 — 보호 동작입니다. 프로필이 없으면 먼저 만들게 하고,
+/* 대화 시작 — 로그인 필요 동작입니다. 프로필이 없으면 먼저 만들게 하고,
  * 대화방이 한도까지 찼으면 아무 방도 만들지 않고 삭제를 묻습니다(system-spec §6). */
 function startChat(charId) {
   if (!requireLogin("start:" + charId, () => startChat(charId))) return;
@@ -215,7 +215,7 @@ function toggleSafetyFilter() {
   render();
 }
 
-/* 좋아요·스크랩은 보호 동작입니다 — 미로그인이면 토글하지 않고 로그인으로 유도합니다 */
+/* 좋아요·스크랩은 로그인 필요 동작입니다 — 미로그인이면 토글하지 않고 로그인으로 유도합니다 */
 function toggleCardFlag(kind, id) {
   if (!requireLogin(kind + ":" + id, () => toggleCardFlag(kind, id))) return;
   const acc = currentAccount();

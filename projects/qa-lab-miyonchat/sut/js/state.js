@@ -87,7 +87,7 @@ function isLoggedIn() {
   return VN.session === SESSION.ACTIVE && VN.accountId !== null;
 }
 
-/* 보호 동작 차단 — 만료 상태에서는 전송·저장·수령이 모두 막힙니다 */
+/* 로그인 필요 동작 차단 — 만료 상태에서는 전송·저장·수령이 모두 막힙니다 */
 function canAct() {
   return isLoggedIn();
 }
