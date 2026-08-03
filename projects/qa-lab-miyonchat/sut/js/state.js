@@ -9,10 +9,15 @@
 
 /* 계정 정의 — 미성년 여부만 계정의 고정 속성입니다.
  * 성인 인증은 켜고 끌 수 있는 상태이므로 계정 스코프(adultVerified)에 둡니다.
- * 계정 B는 미성년이라 인증 자체가 불가능합니다 (system-spec §1-1). */
+ * 미성년 계정은 인증 자체가 불가능합니다 (system-spec §1-1).
+ *
+ * 라벨에 「계정 A/B」를 쓰지 않습니다 — 저장소 안에서만 통하는 이름이라 화면만 본 사람은
+ * 어느 쪽이 무엇인지 알 수 없습니다(tc-sheet-format.md §내부 식별자를 쓰지 않습니다).
+ * 「성인 인증 계정」이 아니라 「성인 계정」인 이유는, 인증은 켜고 끌 수 있는 상태라
+ * 해제해 두면 라벨이 거짓이 되기 때문입니다. 라벨은 바뀌지 않는 속성만 말합니다 */
 const ACCOUNTS = {
-  a: { id: "a", label: "계정 A (성인)", minor: false },
-  b: { id: "b", label: "계정 B (미성년)", minor: true }
+  a: { id: "a", label: "성인 계정", minor: false },
+  b: { id: "b", label: "미성년 계정", minor: true }
 };
 
 const SESSION = { GUEST: "guest", ACTIVE: "active", EXPIRED: "expired" };
