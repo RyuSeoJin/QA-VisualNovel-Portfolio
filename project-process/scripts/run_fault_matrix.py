@@ -216,7 +216,8 @@ def main():
     body = render(baseline, results, failed, faults, areas, problems)
 
     md_path = os.path.join(args.out, "fault-matrix.md")
-    with open(md_path, "w", encoding="utf-8") as f:
+    # newline 고정 — 위와 같은 이유(플랫폼 줄바꿈 차이가 CI의 낡음 검사에서 거짓 실패가 됨)
+    with open(md_path, "w", encoding="utf-8", newline="\n") as f:
         f.write("# 결함 주입 매트릭스\n\n")
         f.write("행=주입 결함 · 열=영역. **대각선만 FAIL이 정상**입니다.\n\n")
         f.write(body + "\n")
