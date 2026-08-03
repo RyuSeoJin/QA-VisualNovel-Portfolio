@@ -50,7 +50,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from parse_feature_tree import parse  # noqa: E402
 
-TESTID_RE = re.compile(r"`([a-z][a-z0-9]*-[a-z0-9-]+)`")
+# 자리표시자를 포함해 잡는다 — `s2-card-{id}` · `s2-rank-period-{구간}`처럼 중괄호와 한글이
+# 들어간 표기가 등재 표의 정상 형태다. 중괄호를 빼면 그 행이 통째로 안 잡혀 접두를 잃는다
+TESTID_RE = re.compile(r"`([a-z][a-z0-9]*-[a-z0-9가-힣{}|\\-]+|-[a-z][a-z0-9-]*)`")
 
 
 def tree_leaves(md_path):
@@ -69,22 +71,51 @@ def tree_leaves(md_path):
             if n["scope"] == "구현" and id(n) not in has_child], data["version"]
 
 
+TESTID_SECTION = "### 3-1."
+
+
 def blueprint_testids(md_path):
     """§3-1 등재 표의 testid — `{n}`·`{id}` 같은 자리표시자가 든 것은 접두로 맞춘다.
 
-    문서 전체의 백틱을 긁으면 문서명(`fault-injection` 등)이 testid로 오염되므로,
-    등재 표의 행(`| ✅`로 시작)만 읽는다 — 그 표가 testid 등재의 정본 형식이다.
+    **§3-1 절 안만 읽는다.** 문서 전체를 훑으면 다른 절의 백틱이 함께 잡힌다 — §3-3의
+    `?inject={결함}` 행에 나열된 결함 이름(`save-leak` 등)은 URL 파라미터 **값**이지
+    화면 요소가 아닌데, 그것까지 세면 등재 수(분모)가 부풀고 「검증하지 않기로 판단했다」는
+    기록이 없던 판단을 만들어 낸다. 결함 주입의 검증은 자동화의 주입 매트릭스가 맡는다.
     """
     with open(md_path, encoding="utf-8") as f:
-        lines = [l for l in f.read().splitlines() if l.lstrip().startswith("| ✅")]
+        lines, inside = [], False
+        for l in f.read().splitlines():
+            if l.startswith("### "):
+                inside = l.startswith(TESTID_SECTION)
+            elif inside and l.lstrip().startswith("| ✅"):
+                lines.append(l)
     exact, prefixes = set(), set()
-    for raw in TESTID_RE.findall("\n".join(lines)):
-        if "{" in raw:
-            prefixes.add(raw.split("{")[0])
-        else:
-            exact.add(raw)
-    # 표의 `-suffix` 축약형(예: `-title`)은 앞 항목의 접두를 잇는 표기라 여기서 제외한다
-    return {t for t in exact if not t.startswith("-")}, prefixes
+    for line in lines:
+        bases = []
+        for raw in TESTID_RE.findall(line):
+            if raw.startswith("-"):
+                # 축약형(`-title`)은 같은 행 앞 항목의 이름을 잇는 표기다 — 펴서 등재한다.
+                # 펴지 않으면 실재하는 id가 「청사진에 없음」으로 잡혀 오타 검사가 헛돈다
+                for b in bases:
+                    exact.add(b + raw)
+                continue
+            raw = raw.replace("\\", "")          # 표의 파이프 이스케이프
+            m = re.search(r"\{([^}]*)\}", raw)
+            if m and "|" in m.group(1):
+                # 선택지 표기(`p2-{temp|nickname}-row`)는 실제 이름 여럿을 줄인 것이라 편다.
+                # 뒤의 `-row`는 그 행이 나열하는 접미 중 첫 번째이므로, 편 이름 전체를
+                # 등재하면서 **어간**(`p2-temp`)을 다음 접미가 붙을 자리로 남긴다
+                head, tail = raw[:m.start()], raw[m.end():]
+                stems = [head + alt for alt in m.group(1).split("|")]
+                exact.update(s + tail for s in stems)
+                bases = stems
+            elif m:
+                prefixes.add(raw.split("{")[0])
+                bases = []           # 자유 자리표시자는 이을 이름이 되지 못한다
+            else:
+                exact.add(raw)
+                bases = [raw]
+    return exact, prefixes
 
 
 def main():
@@ -101,13 +132,17 @@ def main():
     leaves, tree_version = tree_leaves(args.tree)
     testids, id_prefixes = blueprint_testids(args.blueprint)
 
-    waived, waiver_reason = set(), {}
+    waived, waived_prefix = set(), []
     if args.waiver and os.path.exists(args.waiver):
         for w in json.load(open(args.waiver, encoding="utf-8")).get("waivers", []):
             if not w.get("reason"):
                 continue        # 사유 없는 제외는 인정하지 않는다
-            waived.add(w["target"])
-            waiver_reason[w["target"]] = w["reason"]
+            t = w["target"]
+            # 끝의 *는 접두 제외 — 디버그 콘솔처럼 묶음 전체가 검증 대상이 아닐 때 쓴다
+            (waived_prefix.append(t[:-1]) if t.endswith("*") else waived.add(t))
+
+    def is_waived(name):
+        return name in waived or any(name.startswith(pre) for pre in waived_prefix)
 
     # ── covers·상태 수집 — 상태는 케이스가 밟는 상태 목록(쉼표 복수, 생략 시 성인 인증)
     STATE_DEFAULT = "성인 인증"
@@ -137,7 +172,7 @@ def main():
         return False
 
     missed_leaves = [l for l in leaves
-                     if not covered(l) and " > ".join(l["path"]) not in waived]
+                     if not covered(l) and not is_waived(" > ".join(l["path"]))]
 
     # ── ③ 상태 축 — [상태:] 선언 잎은 선언된 상태마다 최소 한 케이스
     def path_match(full, p):
@@ -151,11 +186,11 @@ def main():
         for s in [x.strip() for x in l["states"].split("·") if x.strip()]:
             hit = any(s in states and any(path_match(full, p) for p in cov_paths)
                       for _, cov_paths, states in tc_states)
-            if not hit and f"{full} × {s}" not in waived:
+            if not hit and not is_waived(f"{full} × {s}"):
                 missed_states.append(f"{full} × {s}")
 
     # ── ② 구현 축
-    missed_ids = sorted(t for t in testids if t not in ids and t not in waived)
+    missed_ids = sorted(t for t in testids if t not in ids and not is_waived(t))
 
     # ── 좌표가 실재하는지 (오타 잡기)
     leaf_full = {" > ".join(l["path"]) for l in leaves}
@@ -167,8 +202,8 @@ def main():
     print(f"트리 {tree_version} · 구현 잎 {len(leaves)} · testid {len(testids)} · TC {len(tcs)}")
     print(f"덮인 잎 {len(leaves) - len(missed_leaves)}/{len(leaves)} · "
           f"덮인 testid {len(testids) - len(missed_ids)}/{len(testids)}")
-    if waived:
-        print(f"제외 {len(waived)}건 (사유 있음)")
+    if waived or waived_prefix:
+        print(f"제외 {len(waived) + len(waived_prefix)}건 (사유 있음)")
 
     bad = False
     for title, rows in (("좌표가 없는 TC", no_covers),
