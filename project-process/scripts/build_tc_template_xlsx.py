@@ -60,14 +60,30 @@ statusChangedDay}]} 이며 키 순서는 ISSUE_KEYS가 정본입니다.
                                              #   기본값은 rules/verification-types.md,
                                              #   프로젝트가 design/에서 다르게 정했을 때만 씁니다
   "issue_samples": [[...20개 값...]],         # 이슈 시트 예시 행 (선택)
+  "area_codes": {                             # TC ID의 영역코드 매핑 (선택)
+    "앱 진입/세션": {"code": "ENT", "en": "Entry & Session"}
+    #   키는 기능 트리 1-Depth 영역명이며 이슈 시트 「레이블」과 같은 값을 씁니다.
+    #   영문 표기를 함께 담아야 나중에 무엇의 약자인지 복원됩니다 → 명세서 시트 §5-1로 나갑니다
+  },
   "tcs": [
     ["TC-XXX-001",["1-Depth","2-Depth","3-Depth"],"케이스",
-     "사전조건","1. 절차\\n2. 절차","기대결과 문장. 여러 문장 가능.",
+     "사전조건","1. 절차\\n2. 절차",
+     [["1번 스텝의 기대결과"],["2번 스텝의 기대결과","같은 스텝의 두 번째 판정"]],
      "결정적|확률적|루브릭|금칙","자동화 전용|공통|사람 전용","High|Medium|Low",
      "선행 TC ID 또는 -","대상 서비스","Note(수행 안내)"]
     # 8번째 값(실행 주체)은 2026-08-03 신설이며 생략하면 「공통」으로 읽습니다(11필드 호환)
   ]
 }
+
+기대결과는 스텝별 배열로 적습니다 (2026-08-03 개정)
+---------------------------------------------------
+  기대결과를 **스텝마다 묶은 배열**로 주면 어느 판정이 어느 동작에 붙는지를 입력이 직접
+  말하므로, 스텝 하나에 판정이 여럿이면 그 스텝의 행이 그만큼 늘고 TN·Test-Step·Note가
+  그 범위로 병합됩니다. 중간 스텝이든 마지막 스텝이든 똑같이 동작합니다.
+
+  옛 형식(문장을 이어 쓴 문자열 하나)도 그대로 읽습니다. 다만 그 형식에는 판정의 소속 정보가
+  없어서 스텝 수와 문장 수가 같을 때만 순서대로 짝지을 수 있고, 다르면 전부 마지막 스텝에
+  실립니다. 새로 쓰는 케이스는 배열로 적습니다.
 
 뎁스 열은 쓰는 만큼만 만듭니다 (2026-08-03 개정)
 ------------------------------------------------
@@ -341,6 +357,28 @@ def normalize_tc(row):
             "par": par, "target": target, "note": note}
 
 
+def expected_by_step(steps, exp):
+    """스텝마다의 기대결과 묶음을 만든다 — 반환은 (스텝 목록, 스텝별 기대결과 목록).
+
+    기대결과가 **배열**이면 어느 판정이 어느 동작에 붙는지를 입력이 직접 말한 것이라 그 구조를
+    그대로 씁니다. 그래서 중간 스텝에도 판정을 여럿 달 수 있습니다(2026-08-03 신설).
+
+    문자열이면 옛 형식입니다. 스텝과 문장을 순서대로 짝짓되, 개수가 다르면 어느 문장이 어느
+    스텝의 것인지 알 길이 없으므로 전부 마지막 스텝에 싣습니다 — 옛 입력의 동작을 그대로
+    둡니다. 새로 쓰는 케이스는 배열로 적습니다.
+    """
+    stepl = split_steps(steps)
+    if isinstance(exp, list):
+        groups = [[to_expected(e) for e in (g if isinstance(g, list) else [g])]
+                  for g in exp]
+        groups += [[] for _ in range(len(stepl) - len(groups))]
+        return stepl, groups[:len(stepl)]
+    expl = split_expected(exp)
+    if len(expl) == len(stepl):
+        return stepl, [[e] for e in expl]
+    return stepl, [[] for _ in stepl[:-1]] + [expl]
+
+
 def depth_layout(tcs):
     """실제로 쓰인 뎁스 열의 수 — 경로 최대 길이 + 케이스명 한 칸.
 
@@ -537,46 +575,35 @@ def main():
             # 경로 + 케이스명을 뎁스 열에 깔고, 남는 칸은 비운다
             cells = (tc["path"] + [case])[:ND]
             cells += [""] * (ND - len(cells))
-            stepl = split_steps(tc["steps"])
-            expl = split_expected(tc["exp"])
-            aligned = len(expl) == len(stepl)
+            stepl, groups = expected_by_step(tc["steps"], tc["exp"])
             first = row
             blocks = []   # 스텝별 (시작행, 끝행) — 병합 범위 계산용
             for i, st in enumerate(stepl, start=1):
-                is_last = i == len(stepl)
+                # 판정 수만큼 행을 펼칩니다. 기대결과가 없는 스텝도 행 하나는 세웁니다
+                exps = groups[i - 1] or [""]
                 bstart = row
-                ws[f"B{row}"] = f"=ROW()-{DATA_ROW - 1}"
-                for ci, v in enumerate(cells):
-                    ws[f"{DEPTH_COLS[ci]}{row}"] = v
-                ws[f"{PRE}{row}"] = tc["pre"] if i == 1 else ""
-                ws[f"{TN_COL}{row}"] = i
-                ws[f"{STEP}{row}"] = to_step(st)
-                ws[f"{EXPECT}{row}"] = (expl[i - 1] if aligned
-                                        else (expl[0] if (is_last and expl) else ""))
-                # 케이스 단위 값은 행마다 반복 — 행 단위 집계와 필터가 성립하려면 값이
-                # 모든 행에 있어야 합니다(병합하면 필터에 첫 행만 걸립니다)
-                ws[f"{PRIO_COL}{row}"] = prio
-                ws[f"{EXEC_COL}{row}"] = tc["exec"]
-                ws[f"{TCID_COL}{row}"] = tid
-                ws[f"{VT_COL}{row}"] = vt
-                if i == 1 and note:
-                    # Note는 사람이 읽을 안내만 담는다 — 함께 볼 것 / 수행 방법 / 조건 만드는 법.
-                    # 케이스 메타(TC ID·검증유형)는 2026-08-03 개정으로 각자 열을 갖는다
-                    ws[f"{NOTE}{row}"] = note
-                row += 1
-                if is_last and not aligned:
-                    # 기대결과 추가 행 — No·Depth·Priority는 행마다 기재(행 단위 집계·필터의 전제),
-                    # TN·Test-Step은 비워 두고 아래에서 스텝 범위로 병합
-                    for extra in expl[1:]:
-                        ws[f"B{row}"] = f"=ROW()-{DATA_ROW - 1}"
-                        for ci, v in enumerate(cells):
-                            ws[f"{DEPTH_COLS[ci]}{row}"] = v
-                        ws[f"{EXPECT}{row}"] = extra
-                        ws[f"{PRIO_COL}{row}"] = prio
-                        ws[f"{EXEC_COL}{row}"] = tc["exec"]
-                        ws[f"{TCID_COL}{row}"] = tid
-                        ws[f"{VT_COL}{row}"] = vt
-                        row += 1
+                for j, ex_text in enumerate(exps):
+                    ws[f"B{row}"] = f"=ROW()-{DATA_ROW - 1}"
+                    for ci, v in enumerate(cells):
+                        ws[f"{DEPTH_COLS[ci]}{row}"] = v
+                    # TN·Test-Step·Note는 스텝의 첫 행만 갖고 나머지 행은 비웁니다 —
+                    # 아래에서 스텝 범위로 병합되며, 반복 기재하면 독립 동작으로 오독됩니다
+                    if j == 0:
+                        ws[f"{PRE}{row}"] = tc["pre"] if i == 1 else ""
+                        ws[f"{TN_COL}{row}"] = i
+                        ws[f"{STEP}{row}"] = to_step(st)
+                        if i == 1 and note:
+                            # Note는 사람이 읽을 안내만 담는다 — 함께 볼 것 / 수행 방법 /
+                            # 조건 만드는 법. 케이스 메타(TC ID·검증유형)는 각자 열을 갖는다
+                            ws[f"{NOTE}{row}"] = note
+                    ws[f"{EXPECT}{row}"] = ex_text
+                    # 케이스 단위 값은 행마다 반복 — 행 단위 집계와 필터가 성립하려면 값이
+                    # 모든 행에 있어야 합니다(병합하면 필터에 첫 행만 걸립니다)
+                    ws[f"{PRIO_COL}{row}"] = prio
+                    ws[f"{EXEC_COL}{row}"] = tc["exec"]
+                    ws[f"{TCID_COL}{row}"] = tid
+                    ws[f"{VT_COL}{row}"] = vt
+                    row += 1
                 blocks.append((bstart, row - 1))
             for r in range(first, row):
                 for col in ALL_COLS:
@@ -826,14 +853,39 @@ def main():
         paint_status(s4, ref, LISTS[list_name], size=11)
 
     # ══ 명세서 ═══════════════════════════════════════════════
-    build_spec_sheet(wb)
+    build_spec_sheet(wb, CFG.get("area_codes"))
 
     wb.save(args.output)
     print(f"saved {args.output} | TC {len(TCS)} | rows {last_row - 10} | "
           f"platforms {PLATFORMS} | tree {TREE_VERSION}")
 
 
-def build_spec_sheet(wb):
+def area_code_rows(area_codes):
+    """§5-1 영역코드 매핑 — 입력의 area_codes를 표로 편다.
+
+    코드만 있으면 나중에 읽는 사람이 무엇의 약자인지 복원할 수 없으므로, 영역명(키)과
+    영문 표기(약자의 출처)를 함께 싣는다. 정의가 없는 프로젝트는 절을 통째로 생략한다.
+    """
+    if not area_codes:
+        return []
+    rows = [
+        ("gap",),
+        ("section", "5-1. 영역코드 매핑"),
+        ("note", "키는 기능 트리 1-Depth 영역명이며, 이슈 관리 시트 「레이블」 목록과 같은 값을 "
+                 "씁니다. 코드는 영문 표기의 앞 세 글자이고, 한 영역에 하나씩만 둡니다. "
+                 "정본은 TC 설계 입력(tc-input json)의 area_codes입니다."),
+        ("head", "영역 (기능 트리 1-Depth)", "코드", "영문 표기", "TC ID 예"),
+    ]
+    for name, v in area_codes.items():
+        if name.startswith("_"):
+            continue
+        code = v.get("code", "") if isinstance(v, dict) else str(v)
+        en = v.get("en", "") if isinstance(v, dict) else ""
+        rows.append(("row", name, code, en, f"TC-{code}-001"))
+    return rows
+
+
+def build_spec_sheet(wb, area_codes=None):
     ws = wb.create_sheet("명세서")
     ws.sheet_view.showGridLines = False
 
@@ -924,10 +976,12 @@ def build_spec_sheet(wb):
         H("항목", "규칙"),
         R("형식", "TC-{영역코드}-{번호 3자리} — 예: TC-ENT-001"),
         R("번호", "영역 안에서만 증가합니다. 다른 영역에 케이스가 추가돼도 기존 ID가 흔들리지 않습니다"),
-        R("영역코드", "기능 트리 1-Depth당 하나. 매핑표는 프로젝트 시트에서 정의합니다 (예: 앱 진입=ENT)"),
+        R("영역코드", "기능 트리 1-Depth당 하나. 프로젝트별 매핑표는 아래 §5-1이며, 정의가 "
+                  "없는 프로젝트에서는 그 절이 나오지 않습니다"),
         R("기재 위치", "Note의 첫 토큰(케이스 메타의 맨 앞). 자동화 케이스명·추적 매트릭스·"
           "이슈 연결이 이 ID를 참조합니다. Comment는 설계 시점에 비어 있는 실행 기록 칸이므로 "
           "설계 데이터를 두지 않습니다"),
+        *area_code_rows(area_codes),
         ("gap",),
         ("section", "6. 플랫폼 열 규칙"),
         H("항목", "규칙"),
