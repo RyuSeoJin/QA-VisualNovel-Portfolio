@@ -90,6 +90,44 @@ def gate(sut):
 
 
 @pytest.fixture
+def room(sut):
+    """대화방을 열어 그 방을 준다 — 대화방 계열 케이스의 공통 사전조건.
+
+    프로필은 방에 사본으로 고정되므로(system-spec §2) 방마다 다른 이름을 줄 수 있습니다.
+    """
+    def _open(profile_name="자동화", char_id="c1"):
+        return sut.evaluate("""([name, cid]) => {
+            const p = addProfile({ name: name });
+            const r = openRoom(cid, p || { name: name });
+            VN.screen = 's4';
+            window.__VN__.refresh();
+            return r;
+        }""", [profile_name, char_id])
+    return _open
+
+
+@pytest.fixture
+def send(sut):
+    """한 턴 보내고 **표시가 끝날 때까지** 기다린다 (§3 대기 규칙).
+
+    고정 시간으로 기다리지 않습니다 — 스트리밍 연출의 길이는 응답 문자 수에 달렸고, 브라우저가
+    타이머를 늦추면 그 길이가 환경마다 달라집니다. 표시 중 상태가 풀리는 것을 조건으로 삼습니다.
+    """
+    def _send(text="자동화 입력", choice=None):
+        if choice is None:
+            sut.evaluate("(t) => sendMessage(t)", text)
+        else:
+            sut.evaluate("(i) => { const b = document.querySelector"
+                         "('[data-testid=\"s4-choice-' + i + '\"]'); if (b) b.click(); }", choice)
+        # 표시 중 표식이 사라지는 것을 기다립니다 — 화면에서 읽히는 조건이라 내부 변수에
+        # 기대지 않습니다(§3). 연출이 짧아 표식이 뜨기 전에 끝나도 그대로 통과합니다
+        sut.wait_for_selector('[data-testid="s4-streaming"]', state="detached",
+                              timeout=RUN["wait_timeout_ms"])
+        sut.evaluate("() => window.__VN__.refresh()")
+    return _send
+
+
+@pytest.fixture
 def wait_gone(sut):
     """표식이 사라질 때까지 기다린다 — 고정 대기 금지 규칙의 기본 수단(§3).
 

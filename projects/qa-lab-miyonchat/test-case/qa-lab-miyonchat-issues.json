@@ -1,8 +1,6 @@
 {
   "_설명": "이슈 기록의 정본입니다. TC 설계 원본(tc-input)과 파일을 나눈 이유는 크기가 아니라 생명주기입니다 — TC 세트는 v1.0으로 확정되면 고정되지만 이슈는 실행하면서 계속 늘고 상태가 바뀌므로, 한 파일에 두면 이슈 갱신 때마다 설계 원본이 변경되어 확정 시점이 흐려집니다. 파일명에 버전을 두지 않는 것도 같은 이유이며, 어느 빌드에서 발견됐는지는 affectedVersion이 말합니다. 시트 생성: build_tc_template_xlsx.py … --issues 이 파일",
-
   "_버전_규칙": "{테스트환경}_{개발목표버전}_{스프린트}_{확인버전}. 확인버전(RC)은 검증 대상 빌드가 바뀔 때마다 올립니다 — 화면 슬라이스가 끝났을 때든 결함 수정이 반영됐을 때든. 스프린트 칸에는 확인버전을 뺀 앞 세 토막을 적어 사이클과 빌드를 구분합니다. 현재 빌드는 SUT 푸터에 표시됩니다. RC1=첫 슬라이스 개발 빌드(결함 있음), RC2=수정 반영 빌드.",
-
   "issues": [
     {
       "project": "miyonchat",
@@ -24,7 +22,69 @@
       "sprint": "PC웹_Ver1.0_Dev",
       "createdDay": "2026-08-02",
       "updatedDay": "2026-08-02",
-      "statusChangedDay": "2026-08-02"
+      "statusChangedDay": "2026-08-02",
+      "detections": [
+        {
+          "tcId": "-",
+          "rc": "PC웹_Ver1.0_Dev_RC1"
+        }
+      ]
+    },
+    {
+      "project": "miyonchat",
+      "no": "miyonchat-2",
+      "status": "Resolved",
+      "summary": "세션 만료 상태에서 브라우저 새로고침 시, 만료가 풀리고 로그인 상태로 되살아남",
+      "description": "Pre-condition: 계정 A로 로그인한 상태\nReproduce Step: 디버그 콘솔 > 상태 스위처 [세션 만료] > [저장] > 브라우저 새로고침(F5)\nActual Result: 로그인 상태(active)로 복원되어 만료 안내가 사라지고 로그인 필요 화면에 그대로 진입됨\nExpected Result: 만료는 로그인이 풀린 상태이므로 복원 대상이 아니며(system-spec §1-3), 새로고침 후에도 미로그인으로 남아야 함\nQA Comment: 세션 지속(RC22)을 넣으면서 expireSession()이 메모리 상태만 만료로 바꾸고 브라우저 저장소의 세션은 그대로 두어, 다음 부팅의 복원이 그 저장분을 읽어 만료를 덮어씀. 실서비스라면 만료된 세션을 새로고침만으로 되살릴 수 있는 우회 경로가 됨. TC-GAT-011(만료 상태 로그인 필요 화면 직접 진입)을 자동화하다 검출",
+      "priority": "High",
+      "frequency": "Always",
+      "affectedVersion": "PC웹_Ver1.0_Dev_RC22",
+      "fixedVersion": "PC웹_Ver1.0_Dev_RC23",
+      "resolution": "Fixed",
+      "environment": "PC웹",
+      "label": "계정/게이팅",
+      "reporter": "정준호",
+      "assignee": "Claude Opus 5",
+      "watcher": "",
+      "attachment": "",
+      "sprint": "PC웹_Ver1.0_Dev",
+      "createdDay": "2026-08-04",
+      "updatedDay": "2026-08-04",
+      "statusChangedDay": "2026-08-04",
+      "detections": [
+        {
+          "tcId": "TC-GAT-011",
+          "rc": "PC웹_Ver1.0_Dev_RC22"
+        }
+      ]
+    },
+    {
+      "project": "miyonchat",
+      "no": "miyonchat-3",
+      "status": "Resolved",
+      "summary": "세션 만료 상태에서 전송·저장·미션 수령이 그대로 수행됨 (차단이 안내 모달의 딤에만 의존)",
+      "description": "Pre-condition: 계정 A로 로그인해 대화방에 진입한 상태\nReproduce Step: 디버그 콘솔 > 상태 스위처 [세션 만료] > [저장] > 대화방에서 전송 시도(자동화는 sendMessage 직접 호출) > 잔액·메시지 확인\nActual Result: 전송이 수행되어 캔디 10이 차감되고 메시지가 쌓임. 슬롯 저장과 데일리 미션 수령도 성공함\nExpected Result: 만료 상태에서는 전송·저장·수령이 모두 막혀야 함(system-spec §1-1 세션 만료 행)\nQA Comment: `canAct()`가 「만료 상태에서는 전송·저장·수령이 모두 막힙니다」라는 주석과 함께 정의되어 있으나 **어디에서도 호출되지 않는 죽은 코드**였음. 실제 차단은 만료 안내 모달이 화면을 덮는 것에만 의존하고 있어, 모달이 뜨지 않는 경로가 생기면 게이트가 통째로 사라짐. sendMessage·saveSlot·claimDaily·claimWelcome 네 곳에 게이트를 넣어 동작 자체에서 막도록 수정. TC-ENT-004(만료 상태 전송 차단)를 자동화하다 검출",
+      "priority": "High",
+      "frequency": "Always",
+      "affectedVersion": "PC웹_Ver1.0_Dev_RC23",
+      "fixedVersion": "PC웹_Ver1.0_Dev_RC24",
+      "resolution": "Fixed",
+      "environment": "PC웹",
+      "label": "앱 진입/세션",
+      "reporter": "정준호",
+      "assignee": "Claude Opus 5",
+      "watcher": "",
+      "attachment": "",
+      "sprint": "PC웹_Ver1.0_Dev",
+      "createdDay": "2026-08-04",
+      "updatedDay": "2026-08-04",
+      "statusChangedDay": "2026-08-04",
+      "detections": [
+        {
+          "tcId": "TC-ENT-004",
+          "rc": "PC웹_Ver1.0_Dev_RC23"
+        }
+      ]
     }
   ]
 }

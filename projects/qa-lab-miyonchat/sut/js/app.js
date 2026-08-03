@@ -243,6 +243,10 @@ let STREAM_CHARS = 3;
 function sendMessage(text, choiceDelta) {
   const room = activeRoom();
   if (!room || room.ended || room.ending || chatStreaming) return;
+  // 만료 상태에서는 전송·저장·수령이 모두 막힙니다 (system-spec §1-1 세션 만료 행).
+  // 만료 안내 모달이 화면을 덮는 것에만 기대면, 모달이 뜨지 않는 경로가 생겼을 때
+  // 게이트가 통째로 사라집니다 — 차단은 동작 자체에 둡니다
+  if (!canAct()) return;
   const t = (text || "").trim().slice(0, CHAT_INPUT_MAX);
   if (!t) return;
 

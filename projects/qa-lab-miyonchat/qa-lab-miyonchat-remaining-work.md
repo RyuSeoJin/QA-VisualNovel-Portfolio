@@ -1,17 +1,17 @@
 # qa-lab-miyonchat — 남은 작업 (remaining-work)
 
 할 일의 정본입니다(규칙: `rules/remaining-work.md`). 완료 항목은 삭제되며, 완료 기록은
-change-log가 담당합니다. 갱신일: 2026-08-04 (세션 지속 편입 RC22 · 골격 v1.13 · TC 149건 · 자동화 착수 — ENT 8건 통과).
+change-log가 담당합니다. 갱신일: 2026-08-04 (자동화 완주 — TC 149건 전부, 154건 통과 · RC24 · 다음은 결함 주입 매트릭스).
 
 ## 지금 상태 (이어받기용 요약)
 
 | 항목 | 값 |
 |---|---|
-| SUT 빌드 | `PC웹_Ver1.0_Dev_RC22` (`sut/js/data.js`의 `SUT_BUILD`) — RC22에서 세션 지속 |
-| 캐시 무효화 번호 | `sut/index.html`의 `?v=60` |
+| SUT 빌드 | `PC웹_Ver1.0_Dev_RC24` (`sut/js/data.js`의 `SUT_BUILD`) |
+| 캐시 무효화 번호 | `sut/index.html`의 `?v=62` |
 | 골격 | **v1.13** — 세션 지속 노드 편입(86잎) |
 | git | **push 완료 · 미push 없음.** 좌표는 `git log --oneline -1`·`git status -sb`로 확인합니다 |
-| 다음 착수 지점 | **자동화 이어가기** — 설비(thresholds·gate·wait_gone)와 ENT 8건이 섰습니다. 다음은 GAT(게이팅)·DSC(탐색) 순 |
+| 다음 착수 지점 | **결함 주입 매트릭스** — 주입 4종을 하나씩 켜고 전체를 돌려 대각선만 FAIL인지 봅니다. 그다음 리포트 → CI |
 
 **세션을 새로 열었다면 이 순서로 읽습니다.** ① 이 파일 → ② `qa-lab-miyonchat-change-log.md`
 (§확정된 결정이 규칙 정본) → ③ 착수할 영역의 `spec/design/…-system-spec.md` 해당 절 →

@@ -530,6 +530,7 @@ function welcomeClaimed(id) {
 function claimDaily() {
   const acc = currentAccount();
   if (!acc) return { ok: false, reason: "미로그인 상태입니다." };
+  if (!canAct()) return { ok: false, reason: "세션이 만료되었습니다. 다시 로그인해 주세요." };
   if (dailyClaimed()) return { ok: false, reason: "오늘은 이미 받았습니다." };
   acc.missions.daily[VN.sheet.baseDay] = true;
   acc.wallet.free += MISSION_REWARD;
@@ -540,6 +541,7 @@ function claimDaily() {
 function claimWelcome(id) {
   const acc = currentAccount();
   if (!acc) return { ok: false, reason: "미로그인 상태입니다." };
+  if (!canAct()) return { ok: false, reason: "세션이 만료되었습니다. 다시 로그인해 주세요." };
   if (welcomeClaimed(id)) return { ok: false, reason: "이미 받은 미션입니다." };
   const m = WELCOME_MISSIONS.find((x) => x.id === id);
   if (!m) return { ok: false, reason: "없는 미션입니다." };
@@ -1032,6 +1034,7 @@ function slotSummary(room) {
 
 function saveSlot(room, n) {
   if (!room) return null;
+  if (!canAct()) return null;        // 만료 상태 차단 (system-spec §1-1)
   room.slots = room.slots || {};
   // [주입] save-leak — 깊은 복사 대신 참조를 공유합니다. 저장한 뒤 대화를 이어가면
   // 스냅샷의 메시지·기억까지 함께 변합니다(저장 전후 오염)
@@ -1288,7 +1291,11 @@ window.__VN__ = {
 
   /* 세션 만료 — 시간 조건을 명시적 트리거로 대체합니다. 화면은 자동 갱신하지 않습니다 */
   expireSession() {
-    if (VN.accountId) VN.session = SESSION.EXPIRED;
+    if (!VN.accountId) return;
+    VN.session = SESSION.EXPIRED;
+    // 만료는 지속과 별개입니다 — 로그인이 풀린 상태라 복원 대상이 아닙니다(system-spec §1-3).
+    // 저장분을 두면 새로고침이 만료를 되살려, 만료를 새로고침으로 우회할 수 있게 됩니다
+    clearPersisted();
   },
 
   /* 데이터 주입 — T1 데이터 시트와 같은 저장소에 씁니다. 화면은 자동 갱신하지 않습니다 */
