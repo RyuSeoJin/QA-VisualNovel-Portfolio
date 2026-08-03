@@ -59,6 +59,7 @@ def main():
     ap.add_argument("--project-dir", required=True)
     ap.add_argument("--slug", required=True)
     ap.add_argument("--css", required=True)
+    ap.add_argument("--diagrams", help="설명 다이어그램 SVG 폴더")
     ap.add_argument("-o", "--output", required=True)
     args = ap.parse_args()
     try:
@@ -112,8 +113,9 @@ def main():
                  ("결함 주입", "%d종" % len(faults))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
     w('</div><div class="toc">')
-    for aid, name in (("pipe", "파이프라인"), ("map", "문서 지도"),
-                      ("canon", "정본과 파생물"), ("rules", "이 프로젝트가 세운 규칙")):
+    for aid, name in (("pipe", "파이프라인"), ("logic", "검증 로직"),
+                      ("map", "문서 지도"), ("canon", "정본과 파생물"),
+                      ("rules", "이 프로젝트가 세운 규칙")):
         w('<a href="#%s">%s</a>' % (aid, esc(name)))
     w('</div></div>')
 
@@ -157,6 +159,33 @@ def main():
           '<a href="%s%s">%s</a></div></div>'
           % (esc(title), desc, rel, esc(link), esc(link)))
     w('</div>')
+
+    # ── 검증 로직 (설명 다이어그램)
+    # 그림 파일이 정본이고 여기서 읽어 넣는다. 사본을 손으로 맞출 일이 없으므로
+    # 「한쪽만 고쳐 두 그림이 갈라지는」 사고가 구조적으로 생기지 않는다.
+    if args.diagrams and os.path.isdir(args.diagrams):
+        w('<h2 id="logic">검증 로직</h2>')
+        w('<p>위 파이프라인이 <strong>무엇을 거치는가</strong>라면, 여기는 '
+          '<strong>무엇을 근거로 판정하는가</strong>입니다. 저장소 구조도에서 각각 '
+          '<code>spec/</code>↔<code>test-case/</code> 구간과 <code>automation/</code> '
+          '안쪽을 확대한 그림입니다.</p>')
+        for fname, title, lead in (
+            ("coverage-axes.svg", "① 커버리지 3축 — 「다 봤다」를 어떻게 판정하나",
+             "기준선 셋을 정본에서 읽어 오고, TC가 신고한 좌표와 맞춰 <strong>덮이지 않은 "
+             "것을 목록으로</strong> 냅니다. 그 목록이 빌 때까지가 TC 설계입니다."),
+            ("fault-matrix.svg", "② 결함 주입 매트릭스 — 「봤을 때 알아챈다」를 어떻게 증명하나",
+             "일부러 만든 고장을 하나씩 켜고 같은 스위트를 다시 돌려 <strong>담당 TC만 "
+             "깨지는지</strong> 봅니다. 커버리지가 증명하지 못하는 것을 이쪽이 맡습니다."),
+            ("automation-isolation.svg", "③ 자동화 실행과 격리 — 어떻게 오염 없이 도나",
+             "테스트끼리 간섭하면 통과도 실패도 근거가 되지 않습니다. 시작점을 같게 만드는 "
+             "일과 <strong>기다리는 방식</strong>이 그 근거를 지킵니다."),
+        ):
+            fp = os.path.join(args.diagrams, fname)
+            if not os.path.exists(fp):
+                continue
+            w('<h3>%s</h3><p>%s</p>' % (esc(title), lead))
+            w('<div class="card" style="padding:12px">%s</div>'
+              % io.open(fp, encoding="utf-8").read().strip())
 
     # ── 문서 지도
     w('<h2 id="map">문서 지도</h2>')

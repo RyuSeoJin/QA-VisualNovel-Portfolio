@@ -13,10 +13,10 @@
     GitHub 절대 URL로 교체, README·저장소 링크 추가.
   v1.0 (2026-07-31) 최초 수립 — 중앙 허브. 워크스페이스 문서·프로젝트
     목록만 담는다(용어집은 project-process/qa-dictionary.md).
-  기준 디자인: design-guide-master v1.0 (아래 <style>에 스냅샷 inline)
+  기준 디자인: design-guide-master v1.1 (아래 <style>에 스냅샷 inline)
   ============================================================ -->
 <style>
-/* ==== design-guide-master.css v1.0 스냅샷 ==== */
+/* ==== design-guide-master.css v1.1 스냅샷 ==== */
 :root{
   --page:#0d0d0d;--surface:#16161a;--surface-2:#1c1c21;
   --ink:#f4f4f5;--ink-2:#c3c2b7;--muted:#898781;
@@ -88,6 +88,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
   color:var(--muted);font-size:12.5px}
 /* ==== 구조도 — structure.svg 인라인 사본을 다크 테마로 덮어쓴다
    (정본은 structure.svg. 마커 사이는 scripts/inline_structure_svg.py로만 갱신) ==== */
+/* ---- 구조도·설명 다이어그램 (마스터 §13 스냅샷) ---- */
 .sd{width:100%;height:auto;display:block}
 .sd .grp-entry{fill:#131316;stroke:#3a3a3f}
 .sd .nd-entry{fill:#1c1c21;stroke:#565660}
@@ -97,11 +98,15 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 .sd .nd-form{fill:#1e1f2e;stroke:#6b74d6}
 .sd .grp-out{fill:#0f1c17;stroke:#199e70}
 .sd .nd-out{fill:#132923;stroke:#199e70}
+.sd .grp-warn{fill:#241a12;stroke:#c2410c}
+.sd .nd-warn{fill:#33241a;stroke:#c2410c}
 .sd text.t{fill:var(--ink)}
 .sd text.s{fill:var(--ink-2)}
 .sd text.lbl{fill:var(--ink-2)}
 .sd rect.pill{fill:var(--surface-2);stroke:var(--grid)}
 .sd path.arrow-gray{stroke:#8b8f98}
+.sd path.arrow-green{stroke:var(--ok)}
+.sd path.arrow-red{stroke:#fb923c}
 .sd marker#ar-gray path{fill:#8b8f98}
 </style>
 </head>
@@ -146,11 +151,14 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 마지막 묶음은 폴더 위치가 서로 다르지만 역할이 한 쌍이라 함께 묶었습니다.</p>
 <div class="card">
 <!-- STRUCTURE-SVG:START — 정본은 structure.svg. 직접 고치지 말고 inline_structure_svg.py로 주입할 것 -->
-<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 710" width="940" height="710" role="img" aria-labelledby="sdt sdd">
+<svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 790" width="940" height="790" role="img" aria-labelledby="sdt sdd">
 <title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
-<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다.</desc>
+<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다. automation 안에서는 테스트가 돌아 결과가 쌓이고, 그 결과에서 리포트가 나오며, CI가 커버리지 대조·결함 주입 매트릭스·산출물 최신 여부를 반복 확인합니다.</desc>
 <!--
   CHANGELOG
+  v1.5 (2026-08-04) automation/ 안쪽을 tests·result·report로 펼치고 CI를 추가했다.
+                    검증의 절반(테스트→결과→리포트→CI)이 그림에 통째로 없었다.
+                    세부 판정 로직은 별도 그림으로 나눈다(diagrams/).
   v1.4 (2026-07-31) 생성 도구 → automation/ 화살표 추가(껍데기·리포트 생성).
                     test-case/를 관통하지 않도록 오른쪽 여백으로 우회시켰다.
   v1.3 (2026-07-31) 현재 폴더 구조에 맞춰 재작성 — qa-dictionary 추가,
@@ -233,7 +241,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="t" x="735" y="275" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
 </g>
 
-<rect class="grp-out" x="300" y="360" width="570" height="308" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<rect class="grp-out" x="300" y="360" width="570" height="388" rx="8" fill="#eef9f4" stroke="#199e70"/>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
 <text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
 <text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/{프로젝트}/</text>
@@ -256,14 +264,32 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
 <text class="t" x="655" y="556" font-size="12" font-weight="500" fill="#1f2328">sut/</text>
 <text class="s" x="655" y="574" font-size="11.5" fill="#1f2328">테스트 대상</text>
 <text class="t" x="795" y="556" font-size="12" font-weight="500" fill="#1f2328">automation/</text>
-<text class="s" x="795" y="574" font-size="11.5" fill="#1f2328">코드 · 리포트 · 결과</text>
+<text class="s" x="795" y="574" font-size="11.5" fill="#1f2328">검증 실행</text>
 </g>
+
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70" stroke-dasharray="4 3">
+<rect x="316" y="606" width="150" height="46" rx="6"/><rect x="490" y="606" width="150" height="46" rx="6"/><rect x="664" y="606" width="150" height="46" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="391" y="624" font-size="12" font-weight="500" fill="#1f2328">tests/</text>
+<text class="s" x="391" y="642" font-size="11.5" fill="#1f2328">TC ID = 함수명</text>
+<text class="t" x="565" y="624" font-size="12" font-weight="500" fill="#1f2328">result/</text>
+<text class="s" x="565" y="642" font-size="11.5" fill="#1f2328">실행 결과 · 매트릭스</text>
+<text class="t" x="739" y="624" font-size="12" font-weight="500" fill="#1f2328">report/</text>
+<text class="s" x="739" y="642" font-size="11.5" fill="#1f2328">리포트 · 추적 매트릭스</text>
+</g>
+<path class="arrow arrow-gray" d="M470,629 H484" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M644,629 H658" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M795,586 V600 H818 V606" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M655,586 V596 H391 V600" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<rect class="pill" x="316" y="664" width="498" height="24" rx="9" fill="#f0f7fd" stroke="#3987e5"/>
+<text class="lbl" x="565" y="681" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">.github/workflows/ — 커버리지 대조 · 결함 주입 매트릭스 · 산출물 최신 확인</text>
 <rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>
 <text class="lbl" x="444" y="513" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
 <g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
-<text class="s" x="316" y="612" font-size="11.5" fill="#57606a">생성 도구는 spec/의 정본과 test-case/의 입력 json을 읽어 TC 엑셀 · 테스트 껍데기 · 리포트를 만듭니다</text>
-<text class="s" x="316" y="630" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
-<text class="s" x="316" y="648" font-size="11.5" fill="#57606a">spec/ · test-case/의 archive/는 기본 참조 금지, automation/result/history/는 열람 자유</text>
+<text class="s" x="316" y="700" font-size="11.5" fill="#57606a">생성 도구는 spec/의 정본과 test-case/의 입력 json을 읽어 TC 엑셀 · 리포트 · 추적 매트릭스를 만듭니다</text>
+<text class="s" x="316" y="718" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<text class="s" x="316" y="736" font-size="11.5" fill="#57606a">spec/ · test-case/의 archive/는 기본 참조 금지. report/ · result/는 파생물이라 손으로 고치지 않습니다</text>
 </g>
 <path class="arrow arrow-gray" d="M438,446 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M578,446 H590" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>

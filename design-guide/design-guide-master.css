@@ -2,6 +2,9 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v1.1 (2026-08-04) 구조도(.sd) 규칙을 index.html에서 옮겨 왔다 — 문서마다
+     복사해 두면 한쪽만 고쳤을 때 갈라진다. 경고 계열(grp-warn·nd-warn)과
+     화살표 색(arrow-green·arrow-red), 그림별 마커 id를 더했다.
    v1.0 (2026-07-31) 최초 수립 — rules/html-report-guide.md의
      다크 테마·인디고 포인트 체계를 마스터로 승격.
      색 토큰 / 타이포 / 레이아웃 / 카드·표·칩·콜아웃·스탯 타일 /
@@ -158,3 +161,29 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* ---------- 12. footer ---------- */
 .doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
   color:var(--muted);font-size:12.5px}
+
+/* ---------- 13. 구조도·설명 다이어그램 (SVG 인라인) ----------
+   정본은 저장소 루트 structure.svg와 diagrams/*.svg이며 색은 밝은 배경 기준으로 그린다.
+   여기서 클래스를 덮어 다크 표면에 맞춘다 — 그림 파일을 테마마다 따로 두지 않기 위해서다. */
+.sd{width:100%;height:auto;display:block}
+.sd .grp-entry{fill:#131316;stroke:#3a3a3f}
+.sd .nd-entry{fill:#1c1c21;stroke:#565660}
+.sd .grp-proc{fill:#0e1a24;stroke:#3987e5}
+.sd .nd-proc{fill:#152634;stroke:#3987e5}
+.sd .grp-form{fill:#16161f;stroke:#6b74d6}
+.sd .nd-form{fill:#1e1f2e;stroke:#6b74d6}
+.sd .grp-out{fill:#0f1c17;stroke:#199e70}
+.sd .nd-out{fill:#132923;stroke:#199e70}
+.sd .grp-warn{fill:#241a12;stroke:#c2410c}
+.sd .nd-warn{fill:#33241a;stroke:#c2410c}
+.sd text.t{fill:var(--ink)}
+.sd text.s{fill:var(--ink-2)}
+.sd text.lbl{fill:var(--ink-2)}
+.sd rect.pill{fill:var(--surface-2);stroke:var(--grid)}
+.sd path.arrow-gray{stroke:#8b8f98}
+.sd path.arrow-green{stroke:var(--ok)}
+.sd path.arrow-red{stroke:#fb923c}
+.sd marker#ar-gray path,.sd marker#cv-ar-gray path,
+.sd marker#fm-ar-gray path,.sd marker#ai-ar-gray path{fill:#8b8f98}
+.sd marker#cv-ar-green path,.sd marker#ai-ar-green path{fill:var(--ok)}
+.sd marker#cv-ar-red path,.sd marker#fm-ar-red path{fill:#fb923c}
