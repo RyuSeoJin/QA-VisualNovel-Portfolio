@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>qa-lab-miyonchat 기능 골격 v1.9</title>
+<title>qa-lab-miyonchat 기능 골격 v1.10</title>
 <!-- ============================================================
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
@@ -178,11 +178,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="wrap">
 
 <header class="doc-header">
-  <h1>qa-lab-miyonchat 기능 골격 v1.9</h1>
+  <h1>qa-lab-miyonchat 기능 골격 v1.10</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
-    <span class="badge">골격 버전 <b>v1.9</b></span>
+    <span class="badge">골격 버전 <b>v1.10</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
     <span class="badge">기준일 <b>2026-08-03</b></span>
   </div>
@@ -195,7 +195,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="stats">
   <div class="stat"><div class="num">85</div><div class="lbl">구현 노드 (검증 대상)</div></div>
   <div class="stat"><div class="num">6 / 10</div><div class="lbl">보류 / 제외</div></div>
-  <div class="stat"><div class="num"><em>2</em></div><div class="lbl">미확인(?) 항목</div></div>
+  <div class="stat"><div class="num"><em>0</em></div><div class="lbl">미확인(?) 항목</div></div>
   <div class="stat"><div class="num">78%</div><div class="lbl">결정적 비율</div></div>
 </div>
 
@@ -293,7 +293,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </li>
 <li><span class="depth-tag">D3</span><span class="node">출시일·최종 업데이트 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">업데이트 버전 표기 포함(버전 형식은 design)</span>
 </li>
-<li><span class="depth-tag">D3</span><span class="node">그 외 작품 추천</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">같은 제작자·연관 캐릭터 캐러셀(선정식은 design)</span>
+<li><span class="depth-tag">D3</span><span class="node">그 외 작품 추천</span> <span class="chip chip-det">결정적</span> <span class="chip chip-low">Low</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">카테고리를 공유하는 연관 작품 캐러셀, 후보가 없으면 안내 문구(선정식은 design)</span>
 </li>
 <li><span class="depth-tag">D3</span><span class="node">시작 상황 표시</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">제작자가 정한 시작 상황을 캐릭터 페이지에 노출하고, 유저는 고르지 못한 채 그 상황으로 대화가 시작됨(언세이프면 상세와 함께 숨김)</span>
 </li>
@@ -369,7 +369,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 </li></ul></li></ul></li>
 <li><span class="depth-tag">D1</span><span class="node">서사 시스템</span> <span class="chip chip-ok">구현</span>
 <ul>
-<li><span class="depth-tag">D2</span><span class="node">호감도 증감</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">선택지별 가중치 반영(값은 design, 후보 +1/+2/−1)</span>
+<li><span class="depth-tag">D2</span><span class="node">호감도 증감</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">선택지별 가중치 반영(값은 design)</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">관계 단계 임계 전이</span> <span class="chip chip-det">결정적</span> <span class="chip chip-high">High</span> <span class="chip">REF</span> <span class="chip chip-ok">구현</span> <span class="note">임계 경계(−1/정확/+1)에서 단계 전이(단계 수·값은 design에서 ADD)</span>
 </li>
@@ -464,19 +464,10 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="callout">TC 설계 전입니다 — 케이스 사이의 선행 관계는 test-case/ 산출 후 이 섹션에서 재생성됩니다.</div>
 
 <h2 id="unknown">미확인 목록</h2>
-<div class="callout warn">아래 항목은 design/에서 확정되기 전까지 기대값이 성립하지 않습니다. 그래서 이 목록이 곧 명세 작성의 작업 목록입니다.</div>
-<div class="tbl-scroll">
-<table>
-  <thead><tr><th>노드 경로</th><th>미확인 값</th><th>확정처</th></tr></thead>
-  <tbody>
-    <tr><td>탐색 &gt; 출시일·최종 업데이트 표시</td><td>업데이트 버전 표기 형식</td><td>design</td></tr>
-    <tr><td>탐색 &gt; 그 외 작품 추천</td><td>선정식(같은 제작자·연관 기준)</td><td>design</td></tr>
-  </tbody>
-</table>
-</div>
+<div class="callout">현재 미확인 항목이 없습니다 — 전 항목이 design/에서 확정되었습니다. 값의 정본은 design/이며, 트리 노드는 값을 담지 않고 위임합니다.</div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.9 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.10 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div>
