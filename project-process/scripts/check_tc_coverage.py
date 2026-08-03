@@ -126,18 +126,26 @@ def main():
     ap.add_argument("--waiver")
     args = ap.parse_args()
 
+    # 콘솔 기본 인코딩(cp949)으로는 목록의 문장부호가 깨진다 — 대조를 다 해 놓고 출력에서
+    # 죽으면 미검증 목록을 못 본다
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
     cfg = json.load(open(args.input, encoding="utf-8"))
     tcs = cfg.get("tcs") or []
 
     leaves, tree_version = tree_leaves(args.tree)
     testids, id_prefixes = blueprint_testids(args.blueprint)
 
-    waived, waived_prefix = set(), []
+    waived, waived_prefix, waiver_rows = set(), [], []
     if args.waiver and os.path.exists(args.waiver):
         for w in json.load(open(args.waiver, encoding="utf-8")).get("waivers", []):
             if not w.get("reason"):
                 continue        # 사유 없는 제외는 인정하지 않는다
             t = w["target"]
+            waiver_rows.append(w)
             # 끝의 *는 접두 제외 — 디버그 콘솔처럼 묶음 전체가 검증 대상이 아닐 때 쓴다
             (waived_prefix.append(t[:-1]) if t.endswith("*") else waived.add(t))
 
@@ -192,6 +200,45 @@ def main():
     # ── ② 구현 축
     missed_ids = sorted(t for t in testids if t not in ids and not is_waived(t))
 
+    # ── 잎을 겸해 덮은 케이스 (case-expansion.md §잎을 겸해 덮지 않습니다)
+    # covers는 자기 신고라, 잎 둘을 적고 하나만 검증해도 대조는 통과한다. 겸함 자체를
+    # 드러내 두지 않으면 그 잎은 「덮였다」로 집계된 채 영영 검증되지 않는다 — 빠진 것보다
+    # 나쁘다. 빠진 것은 목록에 뜨지만 겸한 것은 안 뜬다.
+    # 한 판정으로 두 잎이 동시에 결정되는 정당한 겸함은 제외 파일에 TC ID와 사유를 적는다.
+    dual_covers = [f"{tc_id} — {' || '.join(cov_paths)}"
+                   for tc_id, cov_paths, _ in tc_states
+                   if len(cov_paths) > 1 and not is_waived(tc_id)]
+
+    # ── 제외 자체를 검사한다
+    # 제외는 판단이고 판단은 낡는다. 사유를 문장으로만 두면 근거가 사라져도 조용하므로,
+    # 기계가 확인할 수 있는 것(kind·requires·대상 실재)을 함께 적게 하고 여기서 본다.
+    KINDS = {"testid 제외", "잎 제외", "겸함 인정"}
+    all_tc_ids = {t[0] for t in tcs}
+    dual_tc_ids = {tc_id for tc_id, cov_paths, _ in tc_states if len(cov_paths) > 1}
+    stale_waivers = []
+    for w in waiver_rows:
+        t = w["target"]
+        kind = w.get("kind")
+        if kind not in KINDS:
+            stale_waivers.append(f"{t} — kind가 없거나 값 밖입니다: {kind!r}")
+        for req in w.get("requires") or []:
+            if req not in all_tc_ids and req not in testids:
+                stale_waivers.append(
+                    f"{t} — requires의 근거가 사라졌습니다: {req}. 사유가 그 근거에 기대고 "
+                    f"있으므로 제외를 다시 판단해야 합니다")
+        # 대상이 이미 없어졌는데 남아 있는 제외 — 사유만 쌓이고 아무것도 덮지 않는다
+        if t.endswith("*"):
+            used = any(i.startswith(t[:-1]) for i in testids)
+        elif t.startswith("TC-"):
+            used = t in dual_tc_ids
+        elif ">" in t:
+            used = any(" > ".join(l["path"]).endswith(t) for l in leaves)
+        else:
+            used = t in testids
+        if not used:
+            stale_waivers.append(f"{t} — 덮는 대상이 없습니다. 제외할 것이 사라졌으면 "
+                                 f"항목도 지웁니다")
+
     # ── 좌표가 실재하는지 (오타 잡기)
     leaf_full = {" > ".join(l["path"]) for l in leaves}
     unknown_paths = sorted({p for p in paths if not any(
@@ -212,7 +259,9 @@ def main():
                         ("덮이지 않은 testid", missed_ids),
                         ("트리에 없는 경로 (오타 의심)", unknown_paths),
                         ("청사진에 없는 testid (오타 의심)", unknown_ids),
-                        ("상태 값 오타 (5종 밖)", bad_states)):
+                        ("상태 값 오타 (5종 밖)", bad_states),
+                        ("잎을 겸해 덮은 TC (쪼개거나 사유를 남길 것)", dual_covers),
+                        ("낡은 제외 (근거가 사라졌거나 덮는 대상이 없음)", stale_waivers)):
         if rows:
             bad = True
             print(f"\n[{title}] {len(rows)}건")
