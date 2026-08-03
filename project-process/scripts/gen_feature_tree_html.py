@@ -46,6 +46,9 @@ def chips(node):
         out.append(f'<span class="chip">{node["source"]}</span>')
     if node["scope"]:
         out.append(f'<span class="chip {SCOPE_CHIP[node["scope"]]}">{node["scope"]}</span>')
+    # 상태 선언 — 그 잎을 확인해야 하는 상태 목록. 마스터 토큰 재사용(신규 클래스 금지)
+    if node.get("states"):
+        out.append(f'<span class="chip">상태: {esc(node["states"])}</span>')
     return " ".join(out)
 
 
@@ -171,7 +174,8 @@ def main():
 
 <h2 id="tree">기능 트리</h2>
 <p>명칭이 아니라 역할로 묶었고, 상태(로그인·인증)는 Depth가 아니라 Pre-Condition으로 흡수했습니다.
-칩은 순서대로 검증유형 · 우선순위 · 출처(REF=레퍼런스 채택 / ADD=직접 보강) · 범위입니다.
+칩은 순서대로 검증유형 · 우선순위 · 출처(REF=레퍼런스 채택 / ADD=직접 보강) · 범위이며,
+상태 칩이 붙은 잎은 선언된 상태 각각에서 최소 한 케이스가 요구됩니다(규칙: rules/depth-and-tn.md §상태 축).
 값이 미정인 항목은 트리에 박지 않고 미확인 목록에 모았습니다 — 확정처는 전부 spec/design/입니다.</p>
 {render_tree(nodes)}
 

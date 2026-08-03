@@ -70,8 +70,11 @@ statusChangedDay}]} 이며 키 순서는 ISSUE_KEYS가 정본입니다.
      "사전조건","1. 절차\\n2. 절차",
      [["1번 스텝의 기대결과"],["2번 스텝의 기대결과","같은 스텝의 두 번째 판정"]],
      "결정적|확률적|루브릭|금칙","자동화 전용|공통|사람 전용","High|Medium|Low",
-     "선행 TC ID 또는 -","대상 서비스","Note(수행 안내)"]
+     "선행 TC ID 또는 -","대상 서비스","Note(수행 안내)",
+     ["커버리지 좌표 — 트리 경로(> 구분) 또는 testid"],
+     "상태 — 5종 라벨, 복수는 쉼표, 생략 시 성인 인증"]
     # 8번째 값(실행 주체)은 2026-08-03 신설이며 생략하면 「공통」으로 읽습니다(11필드 호환)
+    # 13번째 covers·14번째 상태는 2026-08-03/04 신설 — 둘 다 생략 가능(뒤에서부터 잘라도 됨)
   ]
 }
 
@@ -184,9 +187,15 @@ VT_NOTE = {
 EXEC_TYPES = ["자동화 전용", "공통", "사람 전용"]
 EXEC_DEFAULT = "공통"
 
+# 상태 열의 값 5종 — 상태 스위처 라벨 그대로 (tc-sheet-format.md §상태 열).
+# 생략하면 기본 로그인 상태(계정 A)로 읽습니다 — 대부분 케이스가 이 상태에서 돕니다
+GATE_STATES = ["미로그인", "본인인증 미진행", "성인 인증", "미성년", "세션 만료"]
+STATE_DEFAULT = "성인 인증"
+
 DEFAULT_LISTS = {
     "프로젝트": ["{프로젝트}"],
     "실행 주체": EXEC_TYPES,
+    "상태": GATE_STATES,
     "이슈 상태": ["Open", "In Progress", "Resolved", "Reopen", "Closed"],
     "우선순위": ["High", "Medium", "Low"],
     "빈도": ["Always", "Often", "Sometimes", "Once"],
@@ -200,7 +209,7 @@ DEFAULT_LISTS = {
     "스프린트": ["{테스트환경}_{개발목표버전}_{스프린트}"],
 }
 LIST_NAME_MAP = {
-    "프로젝트": "list_project", "실행 주체": "list_exec",
+    "프로젝트": "list_project", "실행 주체": "list_exec", "상태": "list_state",
     "이슈 상태": "list_status", "우선순위": "list_priority",
     "빈도": "list_frequency", "버전(영향/수정 공용)": "list_version",
     "해결책": "list_resolution", "환경": "list_env", "레이블": "list_label",
@@ -345,16 +354,23 @@ def normalize_tc(row):
         # 실행 주체(exec)는 2026-08-03 신설 — 없으면 기본값 「공통」으로 읽습니다
         if len(row) >= 12:
             tid, path, case, pre, steps, exp, vt, ex, prio, par, target, note = row[:12]
+            # 13번째 covers는 커버리지 좌표 — 시트에는 나가지 않고 대조 스크립트만 읽습니다
+            # (case-expansion.md §커버리지 보증). 없으면 좌표가 안 달린 케이스로 잡힙니다
+            covers = row[12] if len(row) >= 13 else []
+            # 14번째 상태는 케이스가 밟는 게이팅·세션 상태 — 생략하면 기본 로그인 상태입니다
+            # (tc-sheet-format.md §상태 열). 복수는 쉼표, 전환 케이스가 여기 해당합니다
+            state = row[13] if len(row) >= 14 else ""
         else:
             tid, path, case, pre, steps, exp, vt, prio, par, target, note = row
-            ex = EXEC_DEFAULT
+            ex, covers, state = EXEC_DEFAULT, [], ""
     else:
         tid, d1, d2, d3, case, pre, steps, exp, vt, prio, par, target, note = row
         path = [d for d in (d1, d2, d3) if d]
-        ex = EXEC_DEFAULT
+        ex, covers, state = EXEC_DEFAULT, [], ""
     return {"id": tid, "path": list(path), "case": case, "pre": pre, "steps": steps,
             "exp": exp, "vt": vt, "exec": ex or EXEC_DEFAULT, "prio": prio,
-            "par": par, "target": target, "note": note}
+            "par": par, "target": target, "note": note, "covers": list(covers or []),
+            "state": (state or STATE_DEFAULT).strip()}
 
 
 def expected_by_step(steps, exp):
@@ -451,7 +467,8 @@ def main():
     TOTAL_COLS = take(NP) if NP > 1 else [take()]
     RESULT_COLS = take(NP) if NP > 1 else [take()]
     ISSUE_COL, COMMENT, NOTE, TCID_COL, VT_COL = (take(), take(), take(), take(), take())
-    LAST = VT_COL   # Test Case Edit 열은 2026-08-03 사용자 결정으로 제거 — 이력은 json+git이 담당
+    STATE_COL = take()   # 상태 열 (2026-08-04 신설) — Note 우측 참조 블록, 케이스 단위 필터 축
+    LAST = STATE_COL   # Test Case Edit 열은 2026-08-03 사용자 결정으로 제거 — 이력은 json+git이 담당
 
     ENV_ROW = 5                        # 환경 블록 첫 행 (2행 제목 · 3~4행 헤더 다음)
     DATA_ROW = ENV_ROW + len(ENV)      # 데이터 첫 행 = 틀 고정 경계
@@ -462,7 +479,8 @@ def main():
              (STEP, "Test-Step", 34), (EXPECT, "Expected-Result", 46),
              (EXEC_COL, "실행 주체", 11), (PRIO_COL, "Priority", 9)]
     tail = [(ISSUE_COL, "Issue No.", 11), (COMMENT, "Comment", 34),
-            (NOTE, "Note", 30), (TCID_COL, "TC ID", 13), (VT_COL, "검증유형", 9)]
+            (NOTE, "Note", 30), (TCID_COL, "TC ID", 13), (VT_COL, "검증유형", 9),
+            (STATE_COL, "상태", 14)]
     ALL_COLS = [b[0] for b in base[1:]] + TOTAL_COLS + RESULT_COLS + [t[0] for t in tail]
 
     wb = Workbook()
@@ -571,7 +589,7 @@ def main():
     for d1 in ORDER:
         for tc in idx.get(d1, []):
             tid, case, prio = tc["id"], tc["case"], tc["prio"]
-            target, note, vt = tc["target"], tc["note"], tc["vt"]
+            target, note, vt, state = tc["target"], tc["note"], tc["vt"], tc["state"]
             # 경로 + 케이스명을 뎁스 열에 깔고, 남는 칸은 비운다
             cells = (tc["path"] + [case])[:ND]
             cells += [""] * (ND - len(cells))
@@ -603,6 +621,7 @@ def main():
                     ws[f"{EXEC_COL}{row}"] = tc["exec"]
                     ws[f"{TCID_COL}{row}"] = tid
                     ws[f"{VT_COL}{row}"] = vt
+                    ws[f"{STATE_COL}{row}"] = state
                     row += 1
                 blocks.append((bstart, row - 1))
             for r in range(first, row):
@@ -610,7 +629,7 @@ def main():
                     x = ws[f"{col}{r}"]
                     x.border = BOX
                     x.font = dfont()
-                    center = (col in ("B", TN_COL, PRIO_COL, EXEC_COL, TCID_COL, VT_COL)
+                    center = (col in ("B", TN_COL, PRIO_COL, EXEC_COL, TCID_COL, VT_COL, STATE_COL)
                               or col in TOTAL_COLS or col in RESULT_COLS)
                     x.alignment = Alignment(horizontal="center" if center else "left",
                                             vertical="center", wrap_text=True)
@@ -657,6 +676,8 @@ def main():
         d = DataValidation(type="list", formula1='"%s"' % ",".join(vals), allow_blank=True)
         ws.add_data_validation(d)
         d.add(f"{col}{DATA_ROW}:{col}500")
+    # 상태 열은 드롭다운을 걸지 않습니다 — 복수 상태를 쉼표로 적는 열이라(전환 케이스)
+    # 멀티 선택이 없는 xlsx 표준에서 검증을 걸면 쉼표 값이 막힙니다. 값 정본은 목록 시트
 
     # 상태 배색 — 실행 결과(Result)와 케이스 판정(Total Result), 우선순위
     paint_status(ws, f"{RESULT_COLS[0]}{DATA_ROW}:{RESULT_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
@@ -953,6 +974,10 @@ def build_spec_sheet(wb, area_codes=None):
           "자기에게 내려진 지시로 오독하기 때문입니다. 반복은 자동화가 수행하며, 사람은 "
           "어떤 유형이든 1회입니다. 확률적·루브릭을 사람이 1회 수행했다면 결과는 Pass가 "
           "아니라 관찰 기록이고, 판정은 자동화 반복이나 채점이 담당합니다"),
+        R("상태", "케이스가 밟는 게이팅·세션 상태 (2026-08-04 신설)",
+          "행마다 반복. 값 5종은 목록 시트가 정본이고 복수 상태는 쉼표로 적습니다"
+          "(전환 케이스 — 드롭다운을 걸지 않는 이유). 자동 필터를 「포함」 조건으로 걸어 "
+          "상태별 TC를 추출하고, 트리의 [상태:] 선언과 맞물려 잎×상태 커버리지를 대조합니다"),
         ("gap",),
         ("section", "3. 상태값 정의"),
         H("상태", "정의", "Pass율 분모"),
