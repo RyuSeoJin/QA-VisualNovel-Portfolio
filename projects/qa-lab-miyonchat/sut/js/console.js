@@ -23,7 +23,8 @@ let confirmOpen = false;   // 저장 재확인 팝업
 const DEBUG_NOTICE =
   "해당 디버그는 테스트 환경을 용이하게 세팅하기 위하여 여러 세팅값을 넣었습니다. " +
   "값을 바꾼 뒤 [저장]을 눌러야 반영되며, [닫기]는 바꾼 값을 버립니다. " +
-  "테스트 페이지에서 F5 등 새로고침을 하면 데이터가 기본값으로 초기화되니, " +
+  "F5 등 새로고침을 하면 로그인·재화·대화방은 유지되지만 여기서 만진 시트 데이터(캐릭터·" +
+  "이벤트·기준일)는 기본값으로 돌아갑니다 — 시트는 테스트 조건이라 저장하지 않습니다. " +
   "데이터를 유지한 채 화면만 다시 그리려면 [현재 화면 새로고침]을 써 주세요.";
 
 /* 게이팅 5상태 — 본인인증을 했는지, 했다면 성인인지가 갈리는 지점입니다.
@@ -634,6 +635,27 @@ function renderConsole() {
       (v) => { draft.relatedMax = v; })
   ]);
 
+  // 세션 지속(system-spec §1-3) — 저장은 계정 스코프뿐이라 여기서 무엇이 남아 있는지
+  // 읽고 손으로 비울 수 있어야 합니다. reset·로그아웃도 같은 저장분을 지웁니다
+  const persisted = (function () {
+    try { return JSON.parse(localStorage.getItem("miyonchat.session") || "null"); }
+    catch (e) { return null; }
+  })();
+  const session = block("세션 지속 (저장소)", [
+    el("p", { class: "hint",
+      text: "새로고침해도 계정 스코프가 복원됩니다. 시트 데이터와 화면 보기 상태는 저장하지 "
+        + "않습니다 — 시트는 테스트 조건이라 남으면 다음 사람이 만든 조건 위에서 돌게 됩니다." }),
+    el("p", { class: "hint", "data-testid": "t1-persist-state",
+      text: persisted ? "저장됨 — 계정 " + persisted.accountId : "저장된 세션 없음" }),
+    el("button", {
+      "data-testid": "t1-persist-clear", text: "저장소 비우기",
+      onclick: () => {
+        try { localStorage.removeItem("miyonchat.session"); } catch (e) { /* 무시 */ }
+        paintConsole();
+      }
+    })
+  ]);
+
   const noti = block("알림", [
     el("button", {
       "data-testid": "t1-noti-send", text: "+ 알림 1건 발송",
@@ -730,7 +752,7 @@ function renderConsole() {
     el("aside", { class: "t1-console", "data-testid": "t1-console" }, [
       el("h2", { text: "디버그 설정" }),
       el("div", { class: "t1-body", "data-testid": "t1-body" }, [
-        notice, switcher, adult, baseDay, wallet, roomBlock, failSwitch, metrics, relatedBlock,
+        notice, switcher, adult, baseDay, session, wallet, roomBlock, failSwitch, metrics, relatedBlock,
         renderCharBlock(), noti, account, raw, reset
       ]),
       foot

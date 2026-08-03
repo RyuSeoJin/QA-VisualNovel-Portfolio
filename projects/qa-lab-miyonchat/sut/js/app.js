@@ -736,6 +736,11 @@ function render() {
   }
 
   if (sameScreen && keepPageTop) window.scrollTo(0, keepPageTop);
+
+  // 계정 스코프를 저장소에 남깁니다 (system-spec §1-3). 상태를 바꾸는 경로가 여럿이라
+  // 곳곳에 저장 호출을 흩는 대신 여기 한 곳에 둡니다 — 화면이 다시 그려졌다는 것은
+  // 상태가 바뀌었다는 뜻이고, 빠뜨린 경로가 생기지 않습니다
+  persistSession();
 }
 
 function boot() {
@@ -743,6 +748,10 @@ function boot() {
   VN.seed = Number(params.get("seed") || 1);
   VN.inject = params.get("inject");
   VN.sheet = JSON.parse(JSON.stringify(VN_DATA));
+
+  // 계정 스코프 복원은 라우팅 가드보다 **먼저** 합니다 — 가드는 로그인 여부로 판정하므로,
+  // 복원이 늦으면 로그인 상태인데도 보호 화면에서 튕겨 나갑니다 (system-spec §1-3)
+  restoreSession();
 
   const screen = params.get("screen");
   VN.screen = screen || "s2";                      // 진입점은 홈

@@ -27,7 +27,7 @@
  *   RC12 = 세로형 카드 · 페이지 레이아웃 재배치 · 페이지 카테고리 통합
  *   RC13 = 서사 — 고정 선택지 · 호감도 · 관계 단계 전이 · 엔딩 판정 · P2 현재 상태
  */
-const SUT_BUILD = "PC웹_Ver1.0_Dev_RC21";
+const SUT_BUILD = "PC웹_Ver1.0_Dev_RC22";
 
 const VN_DATA = {
   /* 기준일 — 이 값이 SUT의 "오늘"입니다 */

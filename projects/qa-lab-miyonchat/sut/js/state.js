@@ -110,9 +110,55 @@ function setAdultVerified(on) {
   return { ok: true };
 }
 
+/* ── 세션 지속 (system-spec §1-3) ─────────────────────────────
+ * 브라우저를 새로고침해도 계정 스코프가 복원됩니다. 담는 것은 **유저가 만든 것**뿐입니다.
+ *
+ * 시트 데이터를 저장하지 않는 이유 — 그건 제품 데이터가 아니라 테스트 조건입니다. 저장하면
+ * 앞사람이 디버그 콘솔로 만든 조건 위에서 다음 테스트가 돌아, 무엇을 전제로 통과했는지
+ * 알 수 없게 됩니다. 화면 보기 상태도 같은 이유로 담지 않습니다 — 새로고침은 처음부터
+ * 보는 동작이라 홈에서 시작합니다.
+ */
+const PERSIST_KEY = "miyonchat.session";
+
+function persistSession() {
+  try {
+    if (!isLoggedIn()) return clearPersisted();
+    localStorage.setItem(PERSIST_KEY, JSON.stringify({
+      accountId: VN.accountId,
+      accounts: VN.accounts          // 계정 스코프 전체 — 재화·프로필·방·세이브·활동
+    }));
+  } catch (e) {
+    /* 저장소를 쓸 수 없는 환경(프라이빗 모드 등)에서도 SUT는 계속 돕니다 —
+     * 지속만 되지 않을 뿐이며, 그 상태를 화면이 잘못 그리는 일은 없어야 합니다 */
+  }
+}
+
+function clearPersisted() {
+  try { localStorage.removeItem(PERSIST_KEY); } catch (e) { /* 위와 같음 */ }
+}
+
+/* 부팅 때 한 번 — 복원에 성공하면 로그인 상태로 이어집니다.
+ * 만료는 로그인이 풀린 상태이므로 복원 대상이 아닙니다(§1-3) */
+function restoreSession() {
+  try {
+    const raw = localStorage.getItem(PERSIST_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved || !saved.accountId || !saved.accounts) return false;
+    VN.accounts = saved.accounts;
+    VN.accountId = saved.accountId;
+    VN.session = SESSION.ACTIVE;
+    return true;
+  } catch (e) {
+    clearPersisted();               // 깨진 값이 남아 매번 실패하는 것을 막습니다
+    return false;
+  }
+}
+
 function login(accountId) {
   VN.accountId = accountId;
   VN.session = SESSION.ACTIVE;
+  persistSession();
 }
 
 /* 화면의 보기 상태를 처음으로 되돌립니다 — 로그아웃·초기화가 함께 씁니다.
@@ -139,12 +185,15 @@ function resetViewState() {
 }
 
 function logout() {
-  // 앞 계정의 데이터가 화면·저장소 어디에도 남지 않아야 합니다
+  // 앞 계정의 데이터가 화면·저장소 어디에도 남지 않아야 합니다.
+  // 계정 스코프 자체를 초기값으로 되돌려야 다시 로그인했을 때 앞의 흔적이 없습니다
+  VN.accounts = { a: newAccountState("a"), b: newAccountState("b") };
   VN.accountId = null;
   VN.session = SESSION.GUEST;
   VN.screen = "s2";          // 미로그인 상태의 홈으로 복귀
   VN.panel = null;
   resetViewState();
+  clearPersisted();          // 저장소에도 남기지 않습니다 (system-spec §1-3)
 }
 
 /* 이용수 집계 — 유저×캐릭터×날짜 중복 제거 (system-spec §8-2) */
@@ -1211,6 +1260,9 @@ window.__VN__ = {
   /* 전체 상태를 초기값으로 — 매 테스트 전 conftest에서 호출합니다.
    * 시작점을 만드는 것이므로 화면도 함께 초기화합니다. */
   reset() {
+    // 저장소를 먼저 지웁니다 — 메모리만 되돌리면 다음 부팅이 앞 테스트의 계정으로
+    // 복원되어 격리 검증이 통째로 무의미해집니다 (system-spec §1-3)
+    clearPersisted();
     VN.session = SESSION.GUEST;
     VN.accountId = null;
     VN.accounts = { a: newAccountState("a"), b: newAccountState("b") };

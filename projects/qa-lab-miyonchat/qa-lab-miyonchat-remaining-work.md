@@ -1,17 +1,17 @@
 # qa-lab-miyonchat — 남은 작업 (remaining-work)
 
 할 일의 정본입니다(규칙: `rules/remaining-work.md`). 완료 항목은 삭제되며, 완료 기록은
-change-log가 담당합니다. 갱신일: 2026-08-04 (TC 본문 v1.0 완성 — 10영역 147건 · 커버리지 3축 통과 · 다음은 자동화).
+change-log가 담당합니다. 갱신일: 2026-08-04 (세션 지속 편입 RC22 · 골격 v1.13 · TC 149건 · 자동화 착수 — ENT 8건 통과).
 
 ## 지금 상태 (이어받기용 요약)
 
 | 항목 | 값 |
 |---|---|
-| SUT 빌드 | `PC웹_Ver1.0_Dev_RC21` (`sut/js/data.js`의 `SUT_BUILD`) |
-| 캐시 무효화 번호 | `sut/index.html`의 `?v=59` |
-| 골격 | **v1.12** — `[상태:]` 선언 5개 잎 · 용어 교체(로그인 필요/미로그인 열람) |
+| SUT 빌드 | `PC웹_Ver1.0_Dev_RC22` (`sut/js/data.js`의 `SUT_BUILD`) — RC22에서 세션 지속 |
+| 캐시 무효화 번호 | `sut/index.html`의 `?v=60` |
+| 골격 | **v1.13** — 세션 지속 노드 편입(86잎) |
 | git | **push 완료 · 미push 없음.** 좌표는 `git log --oneline -1`·`git status -sb`로 확인합니다 |
-| 다음 착수 지점 | **자동화**(큐 3번). TC 본문은 끝났습니다 — 10영역 147건 285행, 커버리지 3축 통과 |
+| 다음 착수 지점 | **자동화 이어가기** — 설비(thresholds·gate·wait_gone)와 ENT 8건이 섰습니다. 다음은 GAT(게이팅)·DSC(탐색) 순 |
 
 **세션을 새로 열었다면 이 순서로 읽습니다.** ① 이 파일 → ② `qa-lab-miyonchat-change-log.md`
 (§확정된 결정이 규칙 정본) → ③ 착수할 영역의 `spec/design/…-system-spec.md` 해당 절 →
@@ -77,8 +77,14 @@ change-log가 담당합니다. 갱신일: 2026-08-04 (TC 본문 v1.0 완성 — 
        --issues projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-issues.json
      ```
      생성 뒤 Excel에서 '복구' 프롬프트 없이 열리는지 확인합니다(`verify_xlsx_opens.ps1`)
-3. **자동화** — **다음 단위.** conftest(reset)·thresholds·영역별 테스트 파일 →
-   결정적·금칙 격리부터 → 결함 주입 매트릭스(대각선만 FAIL) → 리포트(+"SUT 한계와 검증 범위")
+3. **자동화** — **진행 중.** 설비와 첫 영역이 섰습니다(13건 통과 — 스모크 5 + ENT 8)
+   - **완료**: `thresholds.py`(기획 확정값 SPEC / 실행 설정 RUN 분리) · conftest의 `gate`
+     픽스처(상태 열 값 5종을 그대로 받아 그 상태를 만듦)·`wait_gone`(조건 대기) ·
+     `test_ent.py` 8건 · `rules/sut-automation.md` §3 대기 규칙 신설
+   - **남은 영역**: GAT(게이팅) → DSC(탐색·홈·MY) → PRF → CUR → NAR → CHT → SAV → MEM → SAF
+   - 자동화 전용 5건(슬롯 격리·저장소 잔존·계정 전환 2·연타)은 상태 훅·간격 고정이 필요합니다 —
+     저장소 잔존은 ENT에서 이미 통과했습니다
+   - 그다음: 결함 주입 매트릭스(대각선만 FAIL) → 리포트(+"SUT 한계와 검증 범위")
    - 커버리지 대조 스크립트는 **TC 설계 단계에서 이미 만들었습니다**(`check_tc_coverage.py`) —
      잎·testid·잎×상태 3축. 자동화에서는 **결함 주입 매트릭스의 열 매핑**만 같은 자리에서
      처리하면 됩니다

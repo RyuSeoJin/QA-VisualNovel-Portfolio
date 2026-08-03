@@ -25,6 +25,8 @@ import threading
 
 import pytest
 
+from thresholds import RUN
+
 SUT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "sut")
 
 
@@ -53,4 +55,48 @@ def sut(page, sut_url):
     page.goto(sut_url + "?seed=1")
     page.wait_for_function("() => !!window.__VN__")
     page.evaluate("() => window.__VN__.reset()")
+    page.set_default_timeout(RUN["wait_timeout_ms"])
     return page
+
+
+# ── 상태 세팅 헬퍼 ────────────────────────────────────────────────────────────
+# 게이팅 5상태를 만드는 길을 한 곳에 둔다. 케이스마다 다르게 세우면 「사전조건이 달라서 나는
+# 실패」와 「기능 결함」이 구분되지 않는다. TC 시트의 상태 열 값과 인자가 1:1로 맞는다.
+
+_GATE_SETUP = {
+    "미로그인": "() => { logout(); }",
+    "성인 인증": "() => { logout(); login('a'); setAdultVerified(true); }",
+    "본인인증 미진행": "() => { logout(); login('a'); setAdultVerified(false); }",
+    "미성년": "() => { logout(); login('b'); }",
+    "세션 만료": "() => { logout(); login('a'); window.__VN__.expireSession(); }",
+}
+
+
+@pytest.fixture
+def gate(sut):
+    """TC의 상태 열 값을 그대로 받아 그 게이팅 상태를 만든다.
+
+    상태를 바꾸는 API는 화면을 자동 갱신하지 않으므로(청사진 §3-2) 여기서 refresh까지
+    한다 — 「데이터가 바뀌었는데 화면이 안 따라오는가」는 그 자체가 검증 대상이라
+    화면 갱신을 확인하는 케이스는 이 헬퍼를 쓰지 않고 직접 조작한다.
+    """
+    def _set(state):
+        if state not in _GATE_SETUP:
+            raise ValueError(f"상태 열 값이 아닙니다: {state}")
+        sut.evaluate(_GATE_SETUP[state])
+        sut.evaluate("() => window.__VN__.refresh()")
+        return sut
+    return _set
+
+
+@pytest.fixture
+def wait_gone(sut):
+    """표식이 사라질 때까지 기다린다 — 고정 대기 금지 규칙의 기본 수단(§3).
+
+    타임아웃은 성공 판정이 아니라 실패 판정이다. 시간이 지나 조건이 성립하지 않으면
+    통과가 아니라 예외로 끝난다.
+    """
+    def _wait(testid):
+        sut.wait_for_selector(f'[data-testid="{testid}"]', state="detached",
+                              timeout=RUN["wait_timeout_ms"])
+    return _wait
