@@ -31,11 +31,24 @@ from thresholds import RUN
 SUT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "sut")
 
 
+class _Handler(http.server.SimpleHTTPRequestHandler):
+    """조용하고, 연결을 재사용하는 정적 핸들러.
+
+    기본값(HTTP/1.0)은 파일 하나마다 연결을 새로 열고 닫는다. 한 페이지가 스크립트 여섯 개를
+    받으므로 테스트마다 연결이 그만큼 생기고, 그중 하나가 끊기면 그 파일만 빠진 채 페이지가
+    뜬다 — `data.js`가 빠지면 `__VN__`은 있는데 `VN_DATA`는 없는 반쪽 상태가 되어, 제품
+    결함이 아닌 이유로 빨간불이 켜진다(§4). keep-alive를 켜 연결 수를 줄인다.
+    """
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *args):
+        pass                      # 요청 로그가 테스트 출력을 덮는다
+
+
 @pytest.fixture(scope="session")
 def sut_url():
     """세션당 한 번 정적 서버를 띄우고 주소를 준다."""
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler,
-                                directory=os.path.abspath(SUT_DIR))
+    handler = functools.partial(_Handler, directory=os.path.abspath(SUT_DIR))
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -78,13 +91,25 @@ def sut(page, sut_url, inject_key):
     """
     query = "?seed=1" + ("&inject=" + inject_key if inject_key else "")
     page.goto(sut_url + query)
-    page.wait_for_function("() => !!window.__VN__")
+    _wait_booted(page)
     page.evaluate("() => window.__VN__.reset()")
     if inject_key:
         page.goto(sut_url + query)
-        page.wait_for_function("() => !!window.__VN__")
+        _wait_booted(page)
     page.set_default_timeout(RUN["wait_timeout_ms"])
     return page
+
+
+def _wait_booted(page):
+    """부팅이 끝났는지를 조건으로 기다린다 — `__VN__`만 보면 반쪽 상태를 통과시킨다.
+
+    `__VN__`은 state.js 끝에서 생기고 시트 데이터는 그 앞의 data.js가 싣는다. data.js만
+    빠지면 `__VN__`은 있는데 시트가 없어, 그 뒤 호출이 「VN_DATA is not defined」로 죽는다.
+    시트 값(baseDay)이 서 있는지까지 봐야 「열렸다」가 성립한다.
+    """
+    page.wait_for_function(
+        "() => !!window.__VN__ && !!window.__VN__.getState().baseDay",
+        timeout=RUN["wait_timeout_ms"])
 
 
 # ── 상태 세팅 헬퍼 ────────────────────────────────────────────────────────────
