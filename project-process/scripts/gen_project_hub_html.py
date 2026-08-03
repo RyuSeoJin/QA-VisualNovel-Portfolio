@@ -119,6 +119,15 @@ def main():
         w('<a href="#%s">%s</a>' % (aid, esc(name)))
     w('</div></div>')
 
+    demo = os.path.join(P, "docs", "sut-demo.gif")
+    if os.path.exists(demo):
+        w('<div class="card" style="padding:12px">'
+          '<img src="%sdocs/sut-demo.gif" alt="SUT 실행 — 미로그인에서 언세이프가 가려져 '
+          '있고, 로그인하면 풀리고, 대화방에서 응답이 스트리밍되며 재화가 차감된다" '
+          'style="width:100%%;height:auto;display:block;border-radius:8px">'
+          '<p class="foot" style="margin:10px 2px 0">검증 대상을 직접 만들었습니다 — '
+          '게이팅 한 갈래를 처음부터 끝까지. 이 GIF도 스크립트로 다시 만듭니다</p></div>' % rel)
+
     w('<div class="stats">')
     for num, lbl in ((len(leaves), "기능 단위"), (len(testids), "화면 요소"),
                      (len(tcs), "테스트 케이스"),
