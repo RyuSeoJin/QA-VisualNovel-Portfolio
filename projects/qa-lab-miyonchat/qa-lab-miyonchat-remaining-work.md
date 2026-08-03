@@ -10,8 +10,7 @@ change-log가 담당합니다. 갱신일: 2026-08-03 (SUT 구현 완료 · 시�
 | SUT 빌드 | `PC웹_Ver1.0_Dev_RC20` (`sut/js/data.js`의 `SUT_BUILD`) |
 | 캐시 무효화 번호 | `sut/index.html`의 `?v=58` |
 | 골격 | v1.9 |
-| HEAD | 작업 트리 깨끗함 (`git log -1`로 확인) |
-| push | `f566f4d`까지 완료 — **미push 0건** |
+| git | **push 완료 · 미push 없음.** 좌표는 `git log --oneline -1`·`git status -sb`로 확인합니다 |
 | 다음 착수 지점 | **TC 본문 작성 — 첫 영역 「웹 진입」.** 설계 규칙은 전부 확정됐고 `tcs` 배열만 비어 있습니다 |
 
 **세션을 새로 열었다면 이 순서로 읽습니다.** ① 이 파일 → ② `qa-lab-miyonchat-change-log.md`
@@ -167,8 +166,6 @@ SUT 마무리 둘도 끝났습니다 — **testid 239종을 청사진 §3-1에 �
   안과, 출처 감각이 노드에서 읽히므로 남기는 안이 있습니다. 지우면 출처는
   `rationale/…-addition-rationale.md`에서만 읽힙니다
 - **`build_tc_xlsx.py` 존치** — 분석 문서를 HTML로 내기로 해 역할 중복, 보류 중
-- **미push 커밋 push 시점** — 2026-08-03 `4b03894`까지 push 완료(저작권 게이트 통과). 이후 누적분은
-  그때그때 승인받아 올립니다
 - **트리 미확인 2건** — 「업데이트 버전 표기 형식」·「그 외 작품 추천 선정식」. 값을 정하면
   design에 적고 트리 미확인 목록에서 지웁니다
 
