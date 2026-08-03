@@ -36,9 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           # 로컬은 3.14지만 러너 기본 제공 범위가 아직 좁습니다. requirements.txt가
           # 버전을 고정하고 있어 같은 조합으로 돕니다
@@ -92,7 +92,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: qa-lab-miyonchat-report
