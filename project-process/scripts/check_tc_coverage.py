@@ -3,13 +3,13 @@
 
 무엇을 맞추는가
 --------------
-  ① 기획 축   기능 트리의 **구현 잎** ↔ TC의 covers
+  ① 기획 축   기능 트리의 **구현 기능 단위** ↔ TC의 covers
   ② 구현 축   청사진 §3-1의 **testid** ↔ TC의 covers
-  ③ 상태 축   트리 잎의 **[상태:] 선언** ↔ TC의 상태(14번째 값)
+  ③ 상태 축   기능 단위의 **[상태:] 선언** ↔ TC의 상태(14번째 값)
 
   한 축만 보면 반대쪽이 통째로 샌다. 트리만 보면 푸터 링크·모달 닫기처럼 트리에 없는 화면
   요소가 빠지고, testid만 보면 집계·격리처럼 화면에 드러나지 않는 규칙이 빠진다.
-  상태 축은 잎 안에서 갈린다 — [상태:]가 선언된 잎은 선언된 상태 각각에 그 잎을 covers하고
+  상태 축은 기능 단위 안에서 갈린다 — [상태:]가 선언된 기능 단위는 선언된 상태 각각에 그 기능 단위를 covers하고
   상태 값에 그 라벨을 포함한 TC가 최소 하나씩 있어야 한다(depth-and-tn.md §상태 축).
 
 covers는 무엇인가
@@ -24,7 +24,7 @@ covers는 무엇인가
 
 트리 경로는 어떻게 적나
 ----------------------
-  잎의 **전체 경로**를 ` > `로 잇는다. 잎 이름만으로는 같은 이름이 여러 가지에 있을 때 갈리지
+  기능 단위의 **전체 경로**를 ` > `로 잇는다. 기능 단위 이름만으로는 같은 이름이 여러 가지에 있을 때 갈리지
   않는다. 꼬리만 적어도 유일하게 걸리면 통과시킨다 — 전수 경로를 외우게 하면 좌표를 안 달게 된다.
 
 제외는 어떻게 적나
@@ -56,7 +56,7 @@ TESTID_RE = re.compile(r"`([a-z][a-z0-9]*-[a-z0-9가-힣{}|\\-]+|-[a-z][a-z0-9-]
 
 
 def tree_leaves(md_path):
-    """구현 범위의 잎만 — 자식이 있는 노드는 묶음이라 검증 단위가 아니다."""
+    """구현 범위의 기능 단위만 — 자식이 있는 노드는 묶음이라 검증 단위가 아니다."""
     with open(md_path, encoding="utf-8") as f:
         data = parse(f.read())
     nodes = data["nodes"]
@@ -182,7 +182,7 @@ def main():
     missed_leaves = [l for l in leaves
                      if not covered(l) and not is_waived(" > ".join(l["path"]))]
 
-    # ── ③ 상태 축 — [상태:] 선언 잎은 선언된 상태마다 최소 한 케이스
+    # ── ③ 상태 축 — [상태:] 선언 기능 단위는 선언된 상태마다 최소 한 케이스
     def path_match(full, p):
         return full == p or full.endswith(" > " + p) or p.endswith(" > " + full)
 
@@ -200,11 +200,11 @@ def main():
     # ── ② 구현 축
     missed_ids = sorted(t for t in testids if t not in ids and not is_waived(t))
 
-    # ── 잎을 겸해 덮은 케이스 (case-expansion.md §잎을 겸해 덮지 않습니다)
-    # covers는 자기 신고라, 잎 둘을 적고 하나만 검증해도 대조는 통과한다. 겸함 자체를
-    # 드러내 두지 않으면 그 잎은 「덮였다」로 집계된 채 영영 검증되지 않는다 — 빠진 것보다
+    # ── 기능 단위를 겸해 덮은 케이스 (case-expansion.md §기능 단위를 겸해 덮지 않습니다)
+    # covers는 자기 신고라, 기능 단위 둘을 적고 하나만 검증해도 대조는 통과한다. 겸함 자체를
+    # 드러내 두지 않으면 그 기능 단위는 「덮였다」로 집계된 채 영영 검증되지 않는다 — 빠진 것보다
     # 나쁘다. 빠진 것은 목록에 뜨지만 겸한 것은 안 뜬다.
-    # 한 판정으로 두 잎이 동시에 결정되는 정당한 겸함은 제외 파일에 TC ID와 사유를 적는다.
+    # 한 판정으로 두 기능 단위가 동시에 결정되는 정당한 겸함은 제외 파일에 TC ID와 사유를 적는다.
     dual_covers = [f"{tc_id} — {' || '.join(cov_paths)}"
                    for tc_id, cov_paths, _ in tc_states
                    if len(cov_paths) > 1 and not is_waived(tc_id)]
@@ -212,7 +212,7 @@ def main():
     # ── 제외 자체를 검사한다
     # 제외는 판단이고 판단은 낡는다. 사유를 문장으로만 두면 근거가 사라져도 조용하므로,
     # 기계가 확인할 수 있는 것(kind·requires·대상 실재)을 함께 적게 하고 여기서 본다.
-    KINDS = {"testid 제외", "잎 제외", "겸함 인정"}
+    KINDS = {"testid 제외", "기능 단위 제외", "겸함 인정"}
     all_tc_ids = {t[0] for t in tcs}
     dual_tc_ids = {tc_id for tc_id, cov_paths, _ in tc_states if len(cov_paths) > 1}
     stale_waivers = []
@@ -246,21 +246,21 @@ def main():
     unknown_ids = sorted(i for i in ids
                          if i not in testids and not any(i.startswith(p) for p in id_prefixes))
 
-    print(f"트리 {tree_version} · 구현 잎 {len(leaves)} · testid {len(testids)} · TC {len(tcs)}")
-    print(f"덮인 잎 {len(leaves) - len(missed_leaves)}/{len(leaves)} · "
+    print(f"트리 {tree_version} · 구현 기능 단위 {len(leaves)} · testid {len(testids)} · TC {len(tcs)}")
+    print(f"덮인 기능 단위 {len(leaves) - len(missed_leaves)}/{len(leaves)} · "
           f"덮인 testid {len(testids) - len(missed_ids)}/{len(testids)}")
     if waived or waived_prefix:
         print(f"제외 {len(waived) + len(waived_prefix)}건 (사유 있음)")
 
     bad = False
     for title, rows in (("좌표가 없는 TC", no_covers),
-                        ("덮이지 않은 트리 잎", [" > ".join(l["path"]) for l in missed_leaves]),
-                        ("잎 × 상태 — 미검증", missed_states),
+                        ("덮이지 않은 기능 단위", [" > ".join(l["path"]) for l in missed_leaves]),
+                        ("기능 단위 × 상태 — 미검증", missed_states),
                         ("덮이지 않은 testid", missed_ids),
                         ("트리에 없는 경로 (오타 의심)", unknown_paths),
                         ("청사진에 없는 testid (오타 의심)", unknown_ids),
                         ("상태 값 오타 (5종 밖)", bad_states),
-                        ("잎을 겸해 덮은 TC (쪼개거나 사유를 남길 것)", dual_covers),
+                        ("기능 단위를 겸해 덮은 TC (쪼개거나 사유를 남길 것)", dual_covers),
                         ("낡은 제외 (근거가 사라졌거나 덮는 대상이 없음)", stale_waivers)):
         if rows:
             bad = True

@@ -230,7 +230,7 @@ def main():
     w('<div class="stats">')
     for num, lbl in ((len(tcs), "설계한 TC"),
                      ("%d/%d" % (passed, total_auto), "자동화 통과"),
-                     ("%d/%d" % (len(leaves), len(leaves)), "덮인 기능 잎"),
+                     ("%d/%d" % (len(leaves), len(leaves)), "덮인 기능 단위"),
                      ("%d/%d" % (len(testids), len(testids)), "덮인 화면 요소"),
                      ("%d종" % len(faults), "주입한 결함"),
                      (len(issues), "검출한 이슈")):
@@ -337,10 +337,10 @@ def main():
       '빈 상태 안내가 빠지고, 구현 축만 보면 집계·격리처럼 화면에 드러나지 않는 규칙이 빠집니다.</p>')
     w('<div class="card-grid">')
     for name, n, desc in (("기획 축", "%d/%d" % (len(leaves), len(leaves)),
-                           "기능 골격의 구현 잎"),
+                           "기능 골격의 구현 기능 단위"),
                           ("구현 축", "%d/%d" % (len(testids), len(testids)),
                            "화면의 조작 가능한 요소"),
-                          ("상태 축", "미검증 0", "잎 × 게이팅 상태 조합")):
+                          ("상태 축", "미검증 0", "기능 단위 × 게이팅 상태 조합")):
         w('<div class="card"><h3>%s</h3><div class="stat" style="border:none;padding:0;'
           'background:none"><div class="num"><em>%s</em></div>'
           '<div class="lbl">%s</div></div></div>' % (esc(name), esc(n), esc(desc)))
