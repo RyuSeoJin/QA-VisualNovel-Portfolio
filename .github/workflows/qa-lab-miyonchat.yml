@@ -1,0 +1,102 @@
+# qa-lab-miyonchat — 검증 파이프라인
+#
+# 무엇을 지키는가 (project-process/rules/sut-automation.md §7)
+#   · deploy-pages 액션을 쓰지 않습니다. 이 저장소의 Pages는 브랜치 배포로 루트를
+#     서빙하고 있어, Actions 배포로 바꾸면 지금 사이트가 내려갑니다. 리포트는 커밋본이
+#     서빙되고 CI는 검증만 합니다
+#   · 경로 필터로 필요할 때만 돕니다 — SUT·자동화·TC 입력·명세가 바뀔 때
+#   · 결함 주입 매트릭스를 함께 돌립니다. 탐지력 검증이 사람 손 없이 반복되어야 합니다
+#   · 리포트를 자동 커밋하지 않습니다. 커밋본은 대표 1부만 두고 실행분은 artifact로
+#     흘립니다 — 매번 커밋하면 이력이 결과 파일로 도배됩니다
+
+name: qa-lab-miyonchat
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/qa-lab-miyonchat/sut/**'
+      - 'projects/qa-lab-miyonchat/automation/tests/**'
+      - 'projects/qa-lab-miyonchat/automation/*.json'
+      - 'projects/qa-lab-miyonchat/test-case/**'
+      - 'projects/qa-lab-miyonchat/spec/**'
+      - 'project-process/scripts/**'
+      - '.github/workflows/qa-lab-miyonchat.yml'
+  pull_request:
+    paths:
+      - 'projects/qa-lab-miyonchat/**'
+      - 'project-process/scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # 로컬은 3.14지만 러너 기본 제공 범위가 아직 좁습니다. requirements.txt가
+          # 버전을 고정하고 있어 같은 조합으로 돕니다
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: projects/qa-lab-miyonchat/automation/requirements.txt
+
+      - name: 의존성 설치
+        run: pip install -r projects/qa-lab-miyonchat/automation/requirements.txt
+
+      - name: 브라우저 설치
+        run: python -m playwright install --with-deps chromium
+
+      # ── ① 커버리지 3축 — 덮이지 않은 것이 하나라도 있으면 종료 코드 1
+      - name: 커버리지 대조
+        working-directory: projects/qa-lab-miyonchat
+        run: |
+          python ../../project-process/scripts/check_tc_coverage.py \
+            test-case/qa-lab-miyonchat-tc-input-v1.0.json \
+            --tree spec/qa-lab-miyonchat-feature-tree.md \
+            --blueprint spec/sut-design/qa-lab-miyonchat-sut-blueprint.md \
+            --waiver test-case/qa-lab-miyonchat-coverage-waiver.json
+
+      # ── ② 결함 주입 매트릭스 — 기준선 1회 + 결함별 1회.
+      #    담당 TC만 깨지지 않으면 종료 코드 1
+      - name: 결함 주입 매트릭스
+        run: |
+          python project-process/scripts/run_fault_matrix.py \
+            --tests projects/qa-lab-miyonchat/automation/tests \
+            --map projects/qa-lab-miyonchat/automation/qa-lab-miyonchat-fault-matrix.json \
+            --out projects/qa-lab-miyonchat/automation/result/matrix
+
+      # ── ③ 리포트 재생성
+      - name: 리포트 재생성
+        run: |
+          python project-process/scripts/gen_qa_report_html.py \
+            --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \
+            --css design-guide/design-guide-master.css \
+            -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html
+
+      # ── ④ 커밋본이 낡았는지 — 정본을 고치고 재생성을 잊은 상태를 여기서 잡습니다.
+      #    파일을 직접 비교하지 않고 git에 맡깁니다 — 줄바꿈 정규화를 git이 처리하므로
+      #    OS 차이로 거짓 실패가 나지 않습니다
+      - name: 커밋된 산출물이 최신인지 확인
+        run: |
+          paths="projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html \
+                 projects/qa-lab-miyonchat/automation/result/matrix/fault-matrix.md"
+          if ! git diff --quiet -- $paths; then
+            echo "::error::커밋된 산출물이 정본과 어긋납니다. 재생성해 함께 커밋하세요"
+            git diff --stat -- $paths
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-lab-miyonchat-report
+          path: |
+            projects/qa-lab-miyonchat/automation/report/*.html
+            projects/qa-lab-miyonchat/automation/result/matrix/*
+          retention-days: 30
