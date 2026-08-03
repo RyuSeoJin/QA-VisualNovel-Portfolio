@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>qa-lab-miyonchat 기능 골격 v1.10</title>
+<title>qa-lab-miyonchat 기능 골격 v1.11</title>
 <!-- ============================================================
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
@@ -178,11 +178,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="wrap">
 
 <header class="doc-header">
-  <h1>qa-lab-miyonchat 기능 골격 v1.10</h1>
+  <h1>qa-lab-miyonchat 기능 골격 v1.11</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
-    <span class="badge">골격 버전 <b>v1.10</b></span>
+    <span class="badge">골격 버전 <b>v1.11</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
     <span class="badge">기준일 <b>2026-08-03</b></span>
   </div>
@@ -227,7 +227,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <ul>
 <li><span class="depth-tag">D2</span><span class="node">계정 전환 격리</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">계정 A(성인 인증)/B(미성년) 전환 시 대화·세이브·재화 완전 분리</span>
 </li>
-<li><span class="depth-tag">D2</span><span class="node">보호 화면 직접 접근 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">미로그인 상태로 보호 화면(대화·페르소나·채팅·MY) URL 직접 진입 시 차단·리다이렉트. 공개 화면(홈·커뮤니티)은 통과</span>
+<li><span class="depth-tag">D2</span><span class="node">보호 화면 직접 접근 차단</span> <span class="chip chip-ban">금칙</span> <span class="chip chip-high">High</span> <span class="chip">ADD</span> <span class="chip chip-ok">구현</span> <span class="note">미로그인 상태로 보호 화면(대화방·채팅 탭·MY 탭·내 작품 탭) URL 직접 진입 시 차단·리다이렉트. 공개 화면(홈 화면·캐릭터 페이지·커뮤니티 탭)은 통과</span>
 </li>
 <li><span class="depth-tag">D2</span><span class="node">성인 게이팅</span>
 <ul>
@@ -467,7 +467,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="callout">현재 미확인 항목이 없습니다 — 전 항목이 design/에서 확정되었습니다. 값의 정본은 design/이며, 트리 노드는 값을 담지 않고 위임합니다.</div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.10 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.11 · 템플릿 01-feature-tree v1.0 · design-guide-master v1.0 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div>
