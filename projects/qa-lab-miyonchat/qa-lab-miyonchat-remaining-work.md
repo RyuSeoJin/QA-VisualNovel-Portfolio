@@ -1,7 +1,7 @@
 # qa-lab-miyonchat — 남은 작업 (remaining-work)
 
 할 일의 정본입니다(규칙: `rules/remaining-work.md`). 완료 항목은 삭제되며, 완료 기록은
-change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스 통과 — 대각선만 FAIL · TC 153건(루브릭 편입) 157건 통과 · RC25 · 다음은 리포트).
+change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스 통과 — 대각선만 FAIL · TC 153건(루브릭 편입) 157건 통과 · RC25 · 리포트 완료 · 다음은 CI).
 
 ## 지금 상태 (이어받기용 요약)
 
@@ -12,7 +12,8 @@ change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스
 | 골격 | **v1.14** — 내부 식별자 제거(표기만, 86잎·128노드) |
 | git | **push 완료 · 미push 없음.** 좌표는 `git log --oneline -1`·`git status -sb`로 확인합니다 |
 | TC·자동화 | TC **153건**(루브릭 1건은 사람 전용) · 자동화 **157건 통과** · 커버리지 3축 통과 · **결함 주입 매트릭스 통과**(담당 14건 전부 잡음·담당 밖 0) |
-| 다음 착수 지점 | **리포트** — 검증유형별 집계 분리 + 결함 주입 매트릭스 + 「SUT 한계와 검증 범위」. 그다음 CI |
+| 리포트 | `automation/report/…-report.html` — 단일 파일·외부 요청 0건. `gen_qa_report_html.py`로 재생성만 합니다 |
+| 다음 착수 지점 | **CI·묶기** — 워크플로(경로 필터·deploy-pages 금지), 추적 매트릭스, 프로젝트 허브·용어집, README |
 
 **매트릭스를 다시 돌리는 법** (SUT나 자동화를 고쳤을 때 반드시 함께 돌립니다)
 
@@ -95,19 +96,15 @@ python project-process/scripts/run_fault_matrix.py \
    - 매트릭스 실행법과 담당의 기준은 위 §지금 상태에 있습니다
    - 남은 개선: 상태 열을 pytest 마커로 옮기면 `-m 미성년` 식의 부분 실행이 됩니다(미착수)
 
-4. **리포트** — **다음 착수 지점**
-   - `rules/sut-automation.md` §6이 필수 항목을 정합니다 — **검증유형별 집계 분리**(완전 검증과
-     계측을 한 평균으로 섞지 않음) · **결함 주입 매트릭스 포함** · **「SUT 한계와 검증 범위」**
-   - 「SUT 한계와 검증 범위」 재료는 넷입니다 — 청사진 §4 검증 가능성 맵 · §4-1 전개 축 제외
-     판정 · `test-case/…-coverage-waiver.json`의 제외 7건(각 항목에 `kind`·사유가 있고
-     `requires`가 있는 것은 근거까지 기계가 확인합니다) · **시드 변주의 실효 가짓수**(후보
-     선택이 `시드 % 후보 수`라 후보가 둘인 턴은 홀·짝 두 갈래뿐 — 「N회 반복」이 실제로는
-     두 경로를 N/2번씩 도는 것입니다)
-   - **수동 결과 통합**(`rules/sut-automation.md` §5)이 이제 실체를 갖습니다 —
-     `automation/result/rubric-scores.csv`에 2회차 × 3축이 들어 있고, 리포트가 이것을
-     자동 결과와 한곳에서 집계합니다
-   - 매트릭스 산출물은 `automation/result/matrix/fault-matrix.md`이며 그대로 한 절이 됩니다
-   - 리포트는 파생물이라 손으로 고치지 않고 재생성만 합니다
+4. **리포트** — **완료(2026-08-04)**
+   - `automation/report/…-report.html` · 생성기 `project-process/scripts/gen_qa_report_html.py`
+   - 재생성
+     ```
+     python project-process/scripts/gen_qa_report_html.py        --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat        --css design-guide/design-guide-master.css        -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html
+     ```
+   - 파생물이라 손으로 고치지 않습니다. 수치는 전부 정본에서 읽으므로 정본을 고치고 다시 만듭니다
+   - 남은 개선: 계열이 늘어 표로 읽기 어려워지면 그때 Chart.js를 인라인합니다(지금은 표+CSS 막대)
+
 5. **CI·묶기** — 워크플로(경로 필터, deploy-pages 금지), 추적 매트릭스, 프로젝트 허브·용어집
    생성, README 실행 GIF, 저작권 게이트 → push
    - 결함 주입 매트릭스도 CI에 묶습니다 — 탐지력 검증이 사람 손 없이 반복되어야 합니다
