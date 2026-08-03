@@ -15,7 +15,8 @@ change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스
 | 리포트 | `automation/report/…-report.html` — 단일 파일·외부 요청 0건. `gen_qa_report_html.py`로 재생성만 합니다 |
 | CI | `.github/workflows/qa-lab-miyonchat.yml` — 커버리지 대조 → 매트릭스 → 리포트 재생성 → **커밋본이 최신인지** |
 | 산출물 | [프로젝트 허브](index.html) · [QA 리포트](automation/report/qa-lab-miyonchat-report.html) · [추적 매트릭스](automation/report/qa-lab-miyonchat-traceability.html) |
-| 다음 착수 지점 | **남은 묶기** — 프로젝트 용어집 · README 실행 GIF · `structure.svg` 갱신(automation 흐름 누락) |
+| 설명 다이어그램 | `structure.svg`(전체 구조) + `diagrams/` 3종(커버리지 3축 · 결함 주입 · 자동화 격리) |
+| 다음 착수 지점 | **남은 묶기** — 프로젝트 용어집 · README 실행 GIF |
 
 **매트릭스를 다시 돌리는 법** (SUT나 자동화를 고쳤을 때 반드시 함께 돌립니다)
 
@@ -102,7 +103,7 @@ python project-process/scripts/run_fault_matrix.py \
    - `automation/report/…-report.html` · 생성기 `project-process/scripts/gen_qa_report_html.py`
    - 재생성
      ```
-     python project-process/scripts/gen_qa_report_html.py        --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat        --css design-guide/design-guide-master.css        -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html
+     python project-process/scripts/gen_qa_report_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html
      ```
    - 파생물이라 손으로 고치지 않습니다. 수치는 전부 정본에서 읽으므로 정본을 고치고 다시 만듭니다
    - 남은 개선: 계열이 늘어 표로 읽기 어려워지면 그때 Chart.js를 인라인합니다(지금은 표+CSS 막대)
@@ -115,12 +116,13 @@ python project-process/scripts/run_fault_matrix.py \
 
 6. **묶기** — **진행 중**
    - **완료**: 추적 매트릭스(기능 단위↔TC↔자동화↔이슈) · 프로젝트 허브 · 중앙 허브 갱신 · README
-   - **남음**: 프로젝트 용어집 · README 실행 GIF · `structure.svg` 갱신
-     (`automation/` 흐름 — 테스트 → 매트릭스 → 리포트 → CI가 그림에 없습니다)
+   - **완료(2026-08-04)**: 구조도 분리 — `structure.svg` v1.5(automation 안쪽 + CI) +
+     `diagrams/` 3종. ①은 `inline_structure_svg.py`로 주입, ②③④는 허브 생성기가 읽어 넣음
+   - **남음**: 프로젝트 용어집 · README 실행 GIF
    - 재생성
      ```
-     python project-process/scripts/gen_project_hub_html.py        --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat        --css design-guide/design-guide-master.css        -o projects/qa-lab-miyonchat/index.html
-     python project-process/scripts/gen_traceability_html.py        --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat        --css design-guide/design-guide-master.css        -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html
+     python project-process/scripts/gen_project_hub_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css --diagrams diagrams \n       -o projects/qa-lab-miyonchat/index.html
+     python project-process/scripts/gen_traceability_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html
      ```
 
 ## TC 입력 형식 (참조)

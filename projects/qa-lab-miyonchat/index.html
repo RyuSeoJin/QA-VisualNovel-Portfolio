@@ -2,6 +2,9 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v1.1 (2026-08-04) 구조도(.sd) 규칙을 index.html에서 옮겨 왔다 — 문서마다
+     복사해 두면 한쪽만 고쳤을 때 갈라진다. 경고 계열(grp-warn·nd-warn)과
+     화살표 색(arrow-green·arrow-red), 그림별 마커 id를 더했다.
    v1.0 (2026-07-31) 최초 수립 — rules/html-report-guide.md의
      다크 테마·인디고 포인트 체계를 마스터로 승격.
      색 토큰 / 타이포 / 레이아웃 / 카드·표·칩·콜아웃·스탯 타일 /
@@ -158,4 +161,336 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* ---------- 12. footer ---------- */
 .doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
   color:var(--muted);font-size:12.5px}
-</style></head><body><div class="wrap"><div class="doc-header"><h1>qa-lab-miyonchat — 프로젝트 허브</h1><p class="doc-lead">미연시 AI 챗 서비스를 역분석해 <strong>기능 골격</strong>을 세우고, 그 골격을 검증할 <strong>SUT</strong>를 직접 만든 뒤, TC를 설계해 자동화하고 <strong>결함을 일부러 심어</strong> 탐지력까지 확인한 프로젝트입니다. 이 문서는 그 단계와 산출물이 어디 있는지를 한 장에 모은 지도입니다.</p><div class="meta-row"><span class="badge">SUT <b>PC웹_Ver1.0_Dev_RC25</b></span><span class="badge">기능 골격 <b>v1.14</b></span><span class="badge">TC <b>153건</b></span><span class="badge">자동화 <b>157건</b></span><span class="badge">결함 주입 <b>4종</b></span></div><div class="toc"><a href="#pipe">파이프라인</a><a href="#map">문서 지도</a><a href="#canon">정본과 파생물</a><a href="#rules">이 프로젝트가 세운 규칙</a></div></div><div class="stats"><div class="stat"><div class="num">86</div><div class="lbl">기능 단위</div></div><div class="stat"><div class="num">258</div><div class="lbl">화면 요소</div></div><div class="stat"><div class="num">153</div><div class="lbl">테스트 케이스</div></div><div class="stat"><div class="num">157/157</div><div class="lbl">자동화 통과</div></div><div class="stat"><div class="num">4</div><div class="lbl">주입 결함</div></div><div class="stat"><div class="num">3</div><div class="lbl">검출 이슈</div></div></div><h2 id="pipe">파이프라인</h2><p>앞 단계의 산출물이 뒤 단계의 <strong>입력이자 기대값의 출처</strong>입니다. 건너뛰면 뒤 단계가 근거 없이 만들어집니다 — 예를 들어 골격 없이 TC를 쓰면 「무엇을 다 봤는가」를 대조할 기준이 사라집니다.</p><div class="steps"><div class="step"><div class="body"><b>역분석</b> — 출시된 미연시 AI 서비스 셋을 분해해 행동 인벤토리와 공통 트리를 뽑습니다. 확인 못 한 값은 추측으로 채우지 않고 실측 대상으로 남깁니다. <a href="analysis/">analysis/</a></div></div><div class="step"><div class="body"><b>기능 골격</b> — 공통 기능을 Depth 계층으로 정규화하고 노드마다 검증유형을 판정합니다. <strong>TC 기대값의 출처는 여기와 design 명세뿐</strong>입니다. <a href="spec/qa-lab-miyonchat-feature-tree.md">spec/qa-lab-miyonchat-feature-tree.md</a></div></div><div class="step"><div class="body"><b>design 명세</b> — 골격이 「무엇을」이라면 여기는 「얼마나·어떤 규칙으로」입니다. 상한값·요율·임계·합격선이 확정됩니다. <a href="spec/design/">spec/design/</a></div></div><div class="step"><div class="body"><b>SUT 제작</b> — 검증 대상을 직접 만듭니다. 테스트 인터페이스 넷(testid · 상태 API · 실행 조건 파라미터 · 데이터 주입)을 함께 설계합니다. <a href="sut/">sut/</a></div></div><div class="step"><div class="body"><b>TC 설계</b> — 기능 단위를 정상·경계·예외·우회로 전개합니다. 케이스마다 무엇을 덮는지를 좌표로 적어 두어 커버리지를 기계가 대조합니다. <a href="test-case/">test-case/</a></div></div><div class="step"><div class="body"><b>자동화</b> — 케이스명이 곧 TC ID입니다 — 리포트만 보고 시트를 찾을 수 있습니다. <a href="automation/tests/">automation/tests/</a></div></div><div class="step"><div class="body"><b>결함 주입</b> — 일부러 만든 고장을 하나씩 켜고 전체를 다시 돌려 <strong>담당 TC만 깨지는지</strong> 봅니다. 커버리지가 「빠짐없이 봤다」라면 이쪽은 「봤을 때 알아챈다」입니다. <a href="spec/sut-design/qa-lab-miyonchat-fault-injection.md">spec/sut-design/qa-lab-miyonchat-fault-injection.md</a></div></div><div class="step"><div class="body"><b>리포트</b> — 검증유형별 집계를 분리하고, 매트릭스와 「SUT 한계와 검증 범위」를 싣습니다. <a href="automation/report/qa-lab-miyonchat-report.html">automation/report/qa-lab-miyonchat-report.html</a></div></div></div><h2 id="map">문서 지도</h2><p>작업을 이어받을 때는 <strong>change-log와 remaining-work를 먼저</strong> 읽습니다. 그 둘이 「지금 어디까지 왔고 다음이 무엇인가」의 정본입니다.</p><div class="tbl-scroll"><table><thead><tr><th>폴더</th><th>무엇이 있나</th><th>지위</th></tr></thead><tbody><tr><td><code>analysis/</code></td><td>역분석 조사 기록 — 행동 인벤토리 3종 + 공통 트리</td><td>조사 자료 (TC 기대값 출처 아님)</td></tr><tr><td><code>reference/</code></td><td>조사에서 채택한 기능 목록</td><td>판단 기록</td></tr><tr><td><code>spec/</code></td><td>기능 골격 · design 명세 · SUT 설계(청사진·결함 주입·mock·세이브 스키마)</td><td><strong>정본</strong></td></tr><tr><td><code>spec/rationale/</code></td><td>왜 이렇게 정했나 — 추가·SUT 설계의 근거</td><td>근거 기록 (기대값 출처 아님)</td></tr><tr><td><code>spec/archive/</code></td><td>골격 변경 이력</td><td>기본 참조 금지 — 행방을 물을 때만</td></tr><tr><td><code>sut/</code></td><td>검증 대상 (단일 HTML + JS)</td><td><strong>구현</strong></td></tr><tr><td><code>test-case/</code></td><td>TC 입력 · 제외 사유 · 이슈 · xlsx</td><td><strong>정본</strong>은 json, xlsx는 파생</td></tr><tr><td><code>automation/</code></td><td>테스트 · 매트릭스 기대표 · 실행 결과 · 리포트</td><td>리포트·매트릭스 결과는 파생</td></tr></tbody></table></div><h2 id="canon">정본과 파생물</h2><div class="callout warn"><strong>파생물은 손으로 고치지 않습니다.</strong> 고치면 정본과 갈라지는데 아무 에러도 나지 않아 오래 발견되지 않습니다. 정본을 고치고 다시 만드는 것이 유일한 경로이며, CI가 「커밋본이 최신인가」를 확인합니다.</div><div class="tbl-scroll"><table><thead><tr><th>파생물</th><th>정본</th><th>만드는 도구</th></tr></thead><tbody><tr><td><code>qa-lab-miyonchat-feature-tree.html</code></td><td><code>qa-lab-miyonchat-feature-tree.md</code></td><td><code>gen_feature_tree_html.py</code></td></tr><tr><td><code>qa-lab-miyonchat-tc-v1.0.xlsx</code></td><td><code>qa-lab-miyonchat-tc-input-v1.0.json</code></td><td><code>build_tc_template_xlsx.py</code></td></tr><tr><td><code>result/matrix/fault-matrix.md</code></td><td><code>테스트 실행 + qa-lab-miyonchat-fault-matrix.json</code></td><td><code>run_fault_matrix.py</code></td></tr><tr><td><code>report/qa-lab-miyonchat-report.html</code></td><td><code>위의 정본 전부</code></td><td><code>gen_qa_report_html.py</code></td></tr><tr><td><code>index.html (이 문서)</code></td><td><code>위의 정본 전부</code></td><td><code>gen_project_hub_html.py</code></td></tr></tbody></table></div><h3>현재 규모</h3><div class="tbl-scroll"><table><thead><tr><th>축</th><th class="num">값</th><th>뜻</th></tr></thead><tbody><tr><td>기능 단위</td><td class="num">86</td><td>골격에서 구현 범위로 확정된 검증 단위</td></tr><tr><td>화면 요소</td><td class="num">258</td><td>청사진에 등재된 조작 가능한 요소(testid)</td></tr><tr><td>TC</td><td class="num">153</td><td>결정적 111 · 금칙 39 · 확률적 2 · 루브릭 1</td></tr><tr><td>사람 전용 TC</td><td class="num">1</td><td>자동화가 판정 기준을 세울 수 없는 것 — 루브릭 채점</td></tr><tr><td>검증 제외</td><td class="num">7</td><td>누락이 아니라 판단. 사유와 근거를 기계가 확인</td></tr><tr><td>검출 이슈</td><td class="num">3</td><td>TC를 수행하다 나온 것</td></tr></tbody></table></div><h2 id="rules">이 프로젝트가 세운 규칙</h2><p>진행하다 막힌 자리에서 나온 것들입니다. 프로젝트 안에 묻어 두면 다음 프로젝트가 같은 자리에서 다시 막히므로, 워크스페이스 규칙(<code>project-process/rules/</code>)으로 올렸습니다.</p><div class="card-grid"><div class="card"><h3>TN은 연쇄에만</h3><p>스텝 하나를 떼어 내도 나머지가 성립하면 그건 나열입니다. 나열을 TN으로 묶으면 어느 대상이 깨졌는지 ID로 읽히지 않습니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/depth-and-tn.md">depth-and-tn.md</a></p></div><div class="card"><h3>케이스는 사전조건의 묶음</h3><p>뎁스 마지막 칸은 요약이 아닙니다. 「무엇을 보는가」를 적으면 기대 결과와 중복되고, 값이 행마다 달라 뎁스 색이 묶음이 아니라 소음이 됩니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md">tc-sheet-format.md</a></p></div><div class="card"><h3>차단은 도달 경로마다</h3><p>판정 지점이 하나여도 그 상태를 만드는 코드가 경로마다 다르면 케이스를 나눕니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>기능 단위를 겸해 덮지 않음</h3><p>covers는 자기 신고라, 기능 단위 둘을 적고 하나만 검증해도 대조기가 통과시킵니다. 빠진 것보다 나쁩니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>판단은 낡는다</h3><p>제외 사유에 기계가 확인할 조건을 붙입니다. 근거가 사라지면 대조가 실패합니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>담당은 주입 지점으로</h3><p>「돌려 보니 깨졌다」를 담당으로 삼으면 매트릭스는 항상 통과하고 아무것도 증명하지 않습니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md">sut-automation.md</a></p></div><div class="card"><h3>고정 대기 금지</h3><p>브라우저가 타이머를 늦추면 sleep 기반 대기가 환경에 따라 깨집니다. 상태 표식이 바뀌는 것을 기다립니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md">sut-automation.md</a></p></div><div class="card"><h3>내부 식별자 금지</h3><p>「계정 A」는 저장소 안에서만 통하는 이름입니다. 사전조건은 그 밖에서도 읽힙니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md">tc-sheet-format.md</a></p></div></div><h2>산출물 바로 가기</h2><div class="card-grid"><div class="card"><h3><a href="automation/report/qa-lab-miyonchat-report.html">QA 검증 리포트</a></h3><p>검증유형별 집계 · 결함 주입 매트릭스 · SUT 한계</p></div><div class="card"><h3><a href="automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a></h3><p>기능 단위 → TC → 자동화 함수 → 이슈를 한 줄로</p></div><div class="card"><h3><a href="spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a></h3><p>구현 기능 단위 86개 · 검증유형 판정</p></div><div class="card"><h3><a href="sut/index.html">SUT</a></h3><p>검증 대상을 직접 실행해 봅니다</p></div><div class="card"><h3><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx">TC 시트</a></h3><p>xlsx — GitHub에서는 내려받아 엽니다</p></div></div><div class="doc-footer">이 문서는 파생물입니다 — <code>gen_project_hub_html.py</code>로 재생성합니다. 수치는 전부 정본에서 읽습니다.</div></div></body></html>
+
+/* ---------- 13. 구조도·설명 다이어그램 (SVG 인라인) ----------
+   정본은 저장소 루트 structure.svg와 diagrams/*.svg이며 색은 밝은 배경 기준으로 그린다.
+   여기서 클래스를 덮어 다크 표면에 맞춘다 — 그림 파일을 테마마다 따로 두지 않기 위해서다. */
+.sd{width:100%;height:auto;display:block}
+.sd .grp-entry{fill:#131316;stroke:#3a3a3f}
+.sd .nd-entry{fill:#1c1c21;stroke:#565660}
+.sd .grp-proc{fill:#0e1a24;stroke:#3987e5}
+.sd .nd-proc{fill:#152634;stroke:#3987e5}
+.sd .grp-form{fill:#16161f;stroke:#6b74d6}
+.sd .nd-form{fill:#1e1f2e;stroke:#6b74d6}
+.sd .grp-out{fill:#0f1c17;stroke:#199e70}
+.sd .nd-out{fill:#132923;stroke:#199e70}
+.sd .grp-warn{fill:#241a12;stroke:#c2410c}
+.sd .nd-warn{fill:#33241a;stroke:#c2410c}
+.sd text.t{fill:var(--ink)}
+.sd text.s{fill:var(--ink-2)}
+.sd text.lbl{fill:var(--ink-2)}
+.sd rect.pill{fill:var(--surface-2);stroke:var(--grid)}
+.sd path.arrow-gray{stroke:#8b8f98}
+.sd path.arrow-green{stroke:var(--ok)}
+.sd path.arrow-red{stroke:#fb923c}
+.sd marker#ar-gray path,.sd marker#cv-ar-gray path,
+.sd marker#fm-ar-gray path,.sd marker#ai-ar-gray path{fill:#8b8f98}
+.sd marker#cv-ar-green path,.sd marker#ai-ar-green path{fill:var(--ok)}
+.sd marker#cv-ar-red path,.sd marker#fm-ar-red path{fill:#fb923c}
+</style></head><body><div class="wrap"><div class="doc-header"><h1>qa-lab-miyonchat — 프로젝트 허브</h1><p class="doc-lead">미연시 AI 챗 서비스를 역분석해 <strong>기능 골격</strong>을 세우고, 그 골격을 검증할 <strong>SUT</strong>를 직접 만든 뒤, TC를 설계해 자동화하고 <strong>결함을 일부러 심어</strong> 탐지력까지 확인한 프로젝트입니다. 이 문서는 그 단계와 산출물이 어디 있는지를 한 장에 모은 지도입니다.</p><div class="meta-row"><span class="badge">SUT <b>PC웹_Ver1.0_Dev_RC25</b></span><span class="badge">기능 골격 <b>v1.14</b></span><span class="badge">TC <b>153건</b></span><span class="badge">자동화 <b>157건</b></span><span class="badge">결함 주입 <b>4종</b></span></div><div class="toc"><a href="#pipe">파이프라인</a><a href="#logic">검증 로직</a><a href="#map">문서 지도</a><a href="#canon">정본과 파생물</a><a href="#rules">이 프로젝트가 세운 규칙</a></div></div><div class="stats"><div class="stat"><div class="num">86</div><div class="lbl">기능 단위</div></div><div class="stat"><div class="num">258</div><div class="lbl">화면 요소</div></div><div class="stat"><div class="num">153</div><div class="lbl">테스트 케이스</div></div><div class="stat"><div class="num">157/157</div><div class="lbl">자동화 통과</div></div><div class="stat"><div class="num">4</div><div class="lbl">주입 결함</div></div><div class="stat"><div class="num">3</div><div class="lbl">검출 이슈</div></div></div><h2 id="pipe">파이프라인</h2><p>앞 단계의 산출물이 뒤 단계의 <strong>입력이자 기대값의 출처</strong>입니다. 건너뛰면 뒤 단계가 근거 없이 만들어집니다 — 예를 들어 골격 없이 TC를 쓰면 「무엇을 다 봤는가」를 대조할 기준이 사라집니다.</p><div class="steps"><div class="step"><div class="body"><b>역분석</b> — 출시된 미연시 AI 서비스 셋을 분해해 행동 인벤토리와 공통 트리를 뽑습니다. 확인 못 한 값은 추측으로 채우지 않고 실측 대상으로 남깁니다. <a href="analysis/">analysis/</a></div></div><div class="step"><div class="body"><b>기능 골격</b> — 공통 기능을 Depth 계층으로 정규화하고 노드마다 검증유형을 판정합니다. <strong>TC 기대값의 출처는 여기와 design 명세뿐</strong>입니다. <a href="spec/qa-lab-miyonchat-feature-tree.md">spec/qa-lab-miyonchat-feature-tree.md</a></div></div><div class="step"><div class="body"><b>design 명세</b> — 골격이 「무엇을」이라면 여기는 「얼마나·어떤 규칙으로」입니다. 상한값·요율·임계·합격선이 확정됩니다. <a href="spec/design/">spec/design/</a></div></div><div class="step"><div class="body"><b>SUT 제작</b> — 검증 대상을 직접 만듭니다. 테스트 인터페이스 넷(testid · 상태 API · 실행 조건 파라미터 · 데이터 주입)을 함께 설계합니다. <a href="sut/">sut/</a></div></div><div class="step"><div class="body"><b>TC 설계</b> — 기능 단위를 정상·경계·예외·우회로 전개합니다. 케이스마다 무엇을 덮는지를 좌표로 적어 두어 커버리지를 기계가 대조합니다. <a href="test-case/">test-case/</a></div></div><div class="step"><div class="body"><b>자동화</b> — 케이스명이 곧 TC ID입니다 — 리포트만 보고 시트를 찾을 수 있습니다. <a href="automation/tests/">automation/tests/</a></div></div><div class="step"><div class="body"><b>결함 주입</b> — 일부러 만든 고장을 하나씩 켜고 전체를 다시 돌려 <strong>담당 TC만 깨지는지</strong> 봅니다. 커버리지가 「빠짐없이 봤다」라면 이쪽은 「봤을 때 알아챈다」입니다. <a href="spec/sut-design/qa-lab-miyonchat-fault-injection.md">spec/sut-design/qa-lab-miyonchat-fault-injection.md</a></div></div><div class="step"><div class="body"><b>리포트</b> — 검증유형별 집계를 분리하고, 매트릭스와 「SUT 한계와 검증 범위」를 싣습니다. <a href="automation/report/qa-lab-miyonchat-report.html">automation/report/qa-lab-miyonchat-report.html</a></div></div></div><h2 id="logic">검증 로직</h2><p>위 파이프라인이 <strong>무엇을 거치는가</strong>라면, 여기는 <strong>무엇을 근거로 판정하는가</strong>입니다. 저장소 구조도에서 각각 <code>spec/</code>↔<code>test-case/</code> 구간과 <code>automation/</code> 안쪽을 확대한 그림입니다.</p><h3>① 커버리지 3축 — 「다 봤다」를 어떻게 판정하나</h3><p>기준선 셋을 정본에서 읽어 오고, TC가 신고한 좌표와 맞춰 <strong>덮이지 않은 것을 목록으로</strong> 냅니다. 그 목록이 빌 때까지가 TC 설계입니다.</p><div class="card" style="padding:12px"><svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 520" width="940" height="520" role="img" aria-labelledby="cvt cvd">
+<title id="cvt">커버리지 3축 대조 — 「다 봤다」를 기계가 판정하는 방법</title>
+<desc id="cvd">기획 축은 기능 골격의 구현 기능 단위를, 구현 축은 청사진에 등재된 화면 요소를, 상태 축은 기능 단위에 선언된 게이팅 상태를 기준선으로 삼습니다. TC가 케이스마다 적어 둔 좌표(covers)와 이 셋을 맞춰, 덮이지 않은 것을 목록으로 냅니다. 목록이 빌 때까지가 TC 설계이며, 검증 대상이 아닌 것은 사유와 함께 제외 파일에 적고 대조기가 그 사유의 근거까지 확인합니다.</desc>
+<!--
+  CHANGELOG
+  v1.0 (2026-08-04) 최초 수립. 저장소 구조도(structure.svg)에서 spec/ ↔ test-case/ 구간을
+                    확대한 그림이다.
+
+  이 파일이 정본이다. 프로젝트 허브 생성기가 이 파일을 읽어 넣으므로 사본을 손으로
+  맞출 일이 없다 — 고친 뒤 허브를 재생성하면 된다.
+      python project-process/scripts/gen_project_hub_html.py …
+
+  변환 없이 그대로 주입되므로 root의 class="sd"와 id(cvt/cvd)는 바꾸지 않는다.
+  색은 밝은 배경 기준이고, HTML에서는 클래스를 CSS로 덮어 다크 테마로 표시한다.
+-->
+<defs>
+<marker id="cv-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
+<marker id="cv-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#199e70"/></marker>
+<marker id="cv-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker>
+</defs>
+
+<!-- 기준선 셋 -->
+<rect class="grp-form" x="20" y="52" width="300" height="250" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="36" y="74" font-size="12.5" font-weight="500" fill="#1f2328">기준선 — 무엇을 다 봐야 하나</text>
+<text class="s" x="36" y="91" font-size="11.5" fill="#57606a">정본에서 읽어 온다. 사람이 세지 않는다</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="36" y="104" width="268" height="54" rx="6"/><rect x="36" y="168" width="268" height="54" rx="6"/><rect x="36" y="232" width="268" height="54" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="52" y="124" font-size="12.5" font-weight="500" fill="#1f2328">① 기획 축 — 구현 기능 단위</text>
+<text class="s" x="52" y="142" font-size="11.5" fill="#57606a">기능 골격(feature-tree.md)의 말단</text>
+<text class="t" x="52" y="188" font-size="12.5" font-weight="500" fill="#1f2328">② 구현 축 — 화면 요소</text>
+<text class="s" x="52" y="206" font-size="11.5" fill="#57606a">청사진 §3-1에 등재된 testid</text>
+<text class="t" x="52" y="252" font-size="12.5" font-weight="500" fill="#1f2328">③ 상태 축 — 기능 단위 × 상태</text>
+<text class="s" x="52" y="270" font-size="11.5" fill="#57606a">기능 단위의 [상태:] 선언 × 게이팅 5종</text>
+</g>
+
+<!-- TC 좌표 -->
+<rect class="grp-out" x="20" y="330" width="300" height="118" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="36" y="352" font-size="12.5" font-weight="500" fill="#1f2328">TC가 신고한 좌표</text>
+<text class="s" x="36" y="369" font-size="11.5" fill="#57606a">케이스를 쓰는 시점에 함께 적는다</text>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70"><rect x="36" y="382" width="268" height="50" rx="6"/></g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="52" y="402" font-size="11.5" fill="#1f2328">covers: ["앱 진입/세션 &gt; 진입 분기 &gt; …",</text>
+<text class="s" x="52" y="420" font-size="11.5" fill="#1f2328">         "g-nav-chat", "g-login-modal"] + 상태 열</text>
+</g>
+
+<!-- 대조기 -->
+<rect class="nd-proc" x="400" y="196" width="150" height="96" rx="8" fill="#e0eefb" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="475" y="230" font-size="13" font-weight="500" fill="#1f2328">대조기</text>
+<text class="s" x="475" y="250" font-size="11.5" fill="#57606a">check_tc_</text>
+<text class="s" x="475" y="266" font-size="11.5" fill="#57606a">coverage.py</text>
+</g>
+
+<!-- 산출 -->
+<rect class="grp-warn" x="630" y="52" width="290" height="180" rx="8" fill="#fff5ed" stroke="#c2410c"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="646" y="74" font-size="12.5" font-weight="500" fill="#1f2328">덮이지 않은 것</text>
+<text class="s" x="646" y="91" font-size="11.5" fill="#57606a">이 목록이 빌 때까지가 TC 설계</text>
+</g>
+<g class="nd-warn" fill="#fde8d7" stroke="#c2410c">
+<rect x="646" y="104" width="258" height="34" rx="6"/><rect x="646" y="146" width="258" height="34" rx="6"/><rect x="646" y="188" width="258" height="34" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="662" y="126" font-size="11.5" fill="#1f2328">덮이지 않은 기능 단위 · 화면 요소</text>
+<text class="s" x="662" y="168" font-size="11.5" fill="#1f2328">기능 단위 × 상태 — 미검증 조합</text>
+<text class="s" x="662" y="210" font-size="11.5" fill="#1f2328">좌표 오타 · 기능 단위를 겸해 덮은 TC</text>
+</g>
+
+<!-- 제외 -->
+<rect class="grp-proc" x="630" y="270" width="290" height="178" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="646" y="292" font-size="12.5" font-weight="500" fill="#1f2328">검증 대상이 아닌 것 — 제외</text>
+<text class="s" x="646" y="309" font-size="11.5" fill="#57606a">누락이 아니라 판단이므로 사유가 함께</text>
+</g>
+<g class="nd-proc" fill="#e0eefb" stroke="#3987e5"><rect x="646" y="322" width="258" height="110" rx="6"/></g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="662" y="344" font-size="11.5" fill="#1f2328">kind — 제외의 성격</text>
+<text class="s" x="662" y="366" font-size="11.5" fill="#1f2328">reason — 사유(없으면 제외로 인정 안 함)</text>
+<text class="s" x="662" y="388" font-size="11.5" fill="#1f2328">requires — 그 사유가 기대는 근거</text>
+<text class="s" x="662" y="414" font-size="11.5" fill="#57606a">근거가 사라지면 대조가 실패한다 —</text>
+<text class="s" x="662" y="430" font-size="11.5" fill="#57606a">판단이 낡는 것을 기계가 잡는다</text>
+</g>
+
+<!-- 화살표 -->
+<path class="arrow arrow-gray" d="M324,131 H364 V236 H394" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#cv-ar-gray)"/>
+<path class="arrow arrow-gray" d="M324,195 H364 V236 H394" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#cv-ar-gray)"/>
+<path class="arrow arrow-gray" d="M324,259 H364 V236 H394" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#cv-ar-gray)"/>
+<path class="arrow arrow-green" d="M324,407 H364 V244 H394" fill="none" stroke="#199e70" stroke-width="1.8" marker-end="url(#cv-ar-green)"/>
+<path class="arrow arrow-red" d="M556,222 H592 V140 H624" fill="none" stroke="#c2410c" stroke-width="1.8" marker-end="url(#cv-ar-red)"/>
+<path class="arrow" d="M624,352 H592 V262 H556" fill="none" stroke="#3987e5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#cv-ar-gray)"/>
+
+<!-- 한 줄 요지 -->
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="20" y="30" font-size="13.5" font-weight="600" fill="#1f2328">커버리지 3축 대조 — 「다 봤다」를 감이 아니라 대조로 보증한다</text>
+<text class="s" x="20" y="480" font-size="11.5" fill="#57606a">한 축만 보면 반대쪽이 통째로 샌다 — 기획 축만 보면 푸터 링크·빈 상태 안내가 빠지고, 구현 축만 보면 집계·격리처럼 화면에 드러나지 않는 규칙이 빠진다.</text>
+<text class="s" x="20" y="500" font-size="11.5" fill="#57606a">기능 단위 하나가 여러 게이팅 상태를 묶고 있으면 기능 단위 단위 대조로는 「미성년 케이스를 안 썼다」를 못 잡는다. 그래서 상태 축을 따로 둔다.</text>
+</g>
+</svg></div><h3>② 결함 주입 매트릭스 — 「봤을 때 알아챈다」를 어떻게 증명하나</h3><p>일부러 만든 고장을 하나씩 켜고 같은 스위트를 다시 돌려 <strong>담당 TC만 깨지는지</strong> 봅니다. 커버리지가 증명하지 못하는 것을 이쪽이 맡습니다.</p><div class="card" style="padding:12px"><svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 520" width="940" height="520" role="img" aria-labelledby="fmt fmd">
+<title id="fmt">결함 주입 매트릭스 — 「봤을 때 알아챈다」를 증명하는 방법</title>
+<desc id="fmd">일부러 만든 결함을 URL 파라미터로 하나씩 켜고 같은 테스트 스위트를 반복 실행합니다. 주입 없음 1회는 전부 통과해야 하고, 결함별 1회는 담당 TC만 깨져야 합니다. 담당은 관측이 아니라 주입 지점을 지나고 그 오동작을 판정하는가로 정하며, 담당인데 통과하면 그 TC가 부실한 것이고 담당이 아닌데 깨지면 주입이 넓거나 담당을 빠뜨린 것입니다. 판정이 양방향이라 담당 목록이 낡으면 스스로 드러납니다.</desc>
+<!--
+  CHANGELOG
+  v1.0 (2026-08-04) 최초 수립. 저장소 구조도(structure.svg)에서 automation/ 안쪽을
+                    확대한 그림 둘 중 하나다(다른 하나는 automation-isolation.svg).
+
+  이 파일이 정본이다. 프로젝트 허브 생성기가 이 파일을 읽어 넣으므로 사본을 손으로
+  맞출 일이 없다 — 고친 뒤 허브를 재생성하면 된다.
+      python project-process/scripts/gen_project_hub_html.py …
+
+  변환 없이 그대로 주입되므로 root의 class="sd"와 id(fmt/fmd)는 바꾸지 않는다.
+-->
+<defs>
+<marker id="fm-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
+<marker id="fm-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker>
+</defs>
+
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="20" y="30" font-size="13.5" font-weight="600" fill="#1f2328">결함 주입 매트릭스 — 커버리지가 「빠짐없이 봤다」라면, 이쪽은 「봤을 때 알아챈다」</text>
+</g>
+
+<!-- 주입 -->
+<rect class="grp-warn" x="20" y="52" width="234" height="196" rx="8" fill="#fff5ed" stroke="#c2410c"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="36" y="74" font-size="12.5" font-weight="500" fill="#1f2328">일부러 만든 결함</text>
+<text class="s" x="36" y="91" font-size="11.5" fill="#57606a">?inject= 로만 켠다 · 한 번에 하나</text>
+</g>
+<g class="nd-warn" fill="#fde8d7" stroke="#c2410c">
+<rect x="36" y="104" width="202" height="30" rx="6"/><rect x="36" y="138" width="202" height="30" rx="6"/><rect x="36" y="172" width="202" height="30" rx="6"/><rect x="36" y="206" width="202" height="30" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="50" y="123" font-size="11.5" fill="#1f2328">persona-drift — 치환 무시</text>
+<text class="s" x="50" y="157" font-size="11.5" fill="#1f2328">save-leak — 참조 공유</text>
+<text class="s" x="50" y="191" font-size="11.5" fill="#1f2328">ghost-memory — 판정 무력화</text>
+<text class="s" x="50" y="225" font-size="11.5" fill="#1f2328">gate-bypass — 가드 무력화</text>
+</g>
+
+<!-- 실행 -->
+<rect class="nd-proc" x="316" y="96" width="164" height="108" rx="8" fill="#e0eefb" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="398" y="126" font-size="13" font-weight="500" fill="#1f2328">같은 스위트를</text>
+<text class="t" x="398" y="146" font-size="13" font-weight="500" fill="#1f2328">5회 실행</text>
+<text class="s" x="398" y="170" font-size="11.5" fill="#57606a">주입 없음 1 + 결함별 1</text>
+<text class="s" x="398" y="188" font-size="11.5" fill="#57606a">케이스는 한 줄도 안 고친다</text>
+</g>
+
+<!-- 기대표 -->
+<rect class="grp-form" x="316" y="248" width="164" height="128" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="332" y="270" font-size="12.5" font-weight="500" fill="#1f2328">담당 TC 기대표</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6"><rect x="332" y="282" width="132" height="80" rx="6"/></g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="344" y="302" font-size="11.5" fill="#1f2328">point — 주입 지점</text>
+<text class="s" x="344" y="322" font-size="11.5" fill="#1f2328">expect — 담당 TC</text>
+<text class="s" x="344" y="342" font-size="11.5" fill="#1f2328">why — 담당인 근거</text>
+<text class="s" x="344" y="358" font-size="11.5" fill="#57606a">사양 §2가 정본</text>
+</g>
+
+<!-- 판정 -->
+<rect class="grp-out" x="540" y="52" width="380" height="152" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="556" y="74" font-size="12.5" font-weight="500" fill="#1f2328">정상 — 담당만 깨진다</text>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70">
+<rect x="556" y="88" width="348" height="46" rx="6"/><rect x="556" y="142" width="348" height="46" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="572" y="108" font-size="11.5" fill="#1f2328">주입 없음 — 전부 통과</text>
+<text class="s" x="572" y="126" font-size="11.5" fill="#57606a">기준선이 깨져 있으면 매트릭스를 읽을 수 없다</text>
+<text class="s" x="572" y="162" font-size="11.5" fill="#1f2328">결함별 — 담당 TC만 FAIL</text>
+<text class="s" x="572" y="180" font-size="11.5" fill="#57606a">그 결함을 그 케이스가 실제로 잡아냈다는 뜻</text>
+</g>
+
+<!-- 어긋남 -->
+<rect class="grp-warn" x="540" y="222" width="380" height="154" rx="8" fill="#fff5ed" stroke="#c2410c"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="556" y="244" font-size="12.5" font-weight="500" fill="#1f2328">어긋나면 — 양방향으로 본다</text>
+</g>
+<g class="nd-warn" fill="#fde8d7" stroke="#c2410c">
+<rect x="556" y="258" width="348" height="48" rx="6"/><rect x="556" y="314" width="348" height="48" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="572" y="278" font-size="11.5" fill="#1f2328">담당인데 PASS</text>
+<text class="s" x="572" y="296" font-size="11.5" fill="#57606a">결함이 아니라 그 TC가 부실 → 케이스로 되돌아간다</text>
+<text class="s" x="572" y="334" font-size="11.5" fill="#1f2328">담당 밖인데 FAIL</text>
+<text class="s" x="572" y="352" font-size="11.5" fill="#57606a">주입이 넓거나 담당을 빠뜨렸다 → 어느 쪽인지 판단</text>
+</g>
+
+<path class="arrow arrow-red" d="M258,150 H310" fill="none" stroke="#c2410c" stroke-width="1.8" marker-end="url(#fm-ar-red)"/>
+<path class="arrow arrow-gray" d="M398,248 V210" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#fm-ar-gray)"/>
+<path class="arrow arrow-gray" d="M486,150 H534" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#fm-ar-gray)"/>
+<path class="arrow arrow-gray" d="M486,312 H534" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#fm-ar-gray)"/>
+
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="20" y="410" font-size="11.5" fill="#57606a">담당은 <tspan class="t" font-weight="600">관측이 아니라 주입 지점</tspan>으로 정한다 — 「돌려 보니 깨졌다」를 담당으로 삼으면 이 표는 항상 통과하고 아무것도 증명하지 않는다.</text>
+<text class="s" x="20" y="430" font-size="11.5" fill="#57606a">그 지점을 ①지나고 ②그 오동작을 판정하는 케이스만 담당이다. 지나가기만 하고 결과를 보지 않는 케이스는 담당이 아니다.</text>
+<text class="s" x="20" y="456" font-size="11.5" fill="#57606a">판정이 양방향이라 <tspan class="t" font-weight="600">담당 목록이 낡으면 스스로 드러난다</tspan> — 실제로 이 검사가 자동화 결함 셋을 잡아냈다.</text>
+<text class="s" x="20" y="476" font-size="11.5" fill="#57606a">시트에 적힌 스텝을 자동화가 구현하지 않은 것, 오라클이 결함의 증상을 합격으로 센 것, 픽스처가 조건을 아예 만들지 않은 것.</text>
+</g>
+</svg></div><h3>③ 자동화 실행과 격리 — 어떻게 오염 없이 도나</h3><p>테스트끼리 간섭하면 통과도 실패도 근거가 되지 않습니다. 시작점을 같게 만드는 일과 <strong>기다리는 방식</strong>이 그 근거를 지킵니다.</p><div class="card" style="padding:12px"><svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 490" width="940" height="490" role="img" aria-labelledby="ait aid">
+<title id="ait">자동화 실행과 격리 — 테스트가 서로 오염되지 않는 구조</title>
+<desc id="aid">정적 서버는 세션당 한 번 띄우고, 매 테스트 전에 페이지를 열어 상태를 초기값으로 되돌립니다. 되돌리기는 메모리뿐 아니라 브라우저 저장소까지 지웁니다. 게이팅 상태 다섯은 헬퍼 한 곳에서 만들고, 대기는 고정 시간이 아니라 상태 표식이 바뀌는 것을 조건으로 삼습니다. 결과는 junit으로 남아 매트릭스와 리포트의 입력이 됩니다.</desc>
+<!--
+  CHANGELOG
+  v1.0 (2026-08-04) 최초 수립. 저장소 구조도(structure.svg)에서 automation/ 안쪽을
+                    확대한 그림 둘 중 하나다(다른 하나는 fault-matrix.svg).
+
+  이 파일이 정본이다. 프로젝트 허브 생성기가 이 파일을 읽어 넣으므로 사본을 손으로
+  맞출 일이 없다 — 고친 뒤 허브를 재생성하면 된다.
+      python project-process/scripts/gen_project_hub_html.py …
+
+  변환 없이 그대로 주입되므로 root의 class="sd"와 id(ait/aid)는 바꾸지 않는다.
+-->
+<defs>
+<marker id="ai-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
+<marker id="ai-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#199e70"/></marker>
+</defs>
+
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="20" y="30" font-size="13.5" font-weight="600" fill="#1f2328">자동화 실행과 격리 — 앞 테스트가 남긴 것이 다음 테스트로 새지 않게</text>
+</g>
+
+<!-- 세션 1회 -->
+<rect class="grp-proc" x="20" y="52" width="200" height="96" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="36" y="74" font-size="12.5" font-weight="500" fill="#1f2328">세션당 한 번</text>
+</g>
+<g class="nd-proc" fill="#e0eefb" stroke="#3987e5"><rect x="36" y="86" width="168" height="46" rx="6"/></g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="50" y="106" font-size="11.5" fill="#1f2328">정적 서버 (빈 포트)</text>
+<text class="s" x="50" y="124" font-size="11.5" fill="#57606a">남이 띄운 서버를 안 잡게</text>
+</g>
+
+<!-- 매 테스트 전 -->
+<rect class="grp-out" x="20" y="176" width="560" height="214" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="36" y="198" font-size="12.5" font-weight="500" fill="#1f2328">매 테스트 전 — 시작점을 같게 만든다</text>
+<text class="s" x="36" y="215" font-size="11.5" fill="#57606a">격리 계열 검증(계정 간·방 간·슬롯 간)은 시작점이 같아야 성립한다</text>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70">
+<rect x="36" y="228" width="122" height="60" rx="6"/><rect x="176" y="228" width="122" height="60" rx="6"/><rect x="316" y="228" width="122" height="60" rx="6"/><rect x="456" y="228" width="108" height="60" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="97" y="252" font-size="12" font-weight="500" fill="#1f2328">페이지 열기</text>
+<text class="s" x="97" y="270" font-size="11.5" fill="#1f2328">부팅 완료를 조건으로</text>
+<text class="t" x="237" y="252" font-size="12" font-weight="500" fill="#1f2328">reset()</text>
+<text class="s" x="237" y="270" font-size="11.5" fill="#1f2328">메모리 + 저장소</text>
+<text class="t" x="377" y="252" font-size="12" font-weight="500" fill="#1f2328">gate(상태)</text>
+<text class="s" x="377" y="270" font-size="11.5" fill="#1f2328">게이팅 5종 생성</text>
+<text class="t" x="510" y="252" font-size="12" font-weight="500" fill="#1f2328">room · send</text>
+<text class="s" x="510" y="270" font-size="11.5" fill="#1f2328">공통 사전조건</text>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="36" y="316" font-size="11.5" fill="#57606a">저장소까지 지우는 것이 격리의 유일한 근거다 —</text>
+<text class="s" x="36" y="333" font-size="11.5" fill="#57606a">메모리만 되돌리면 앞 테스트의 계정으로 복원된다.</text>
+<text class="s" x="36" y="356" font-size="11.5" fill="#57606a">상태를 케이스마다 다르게 세우면 사전조건 탓 실패와</text>
+<text class="s" x="36" y="373" font-size="11.5" fill="#57606a">기능 결함이 구분되지 않는다.</text>
+</g>
+
+<!-- 대기 규칙 -->
+<rect class="grp-form" x="612" y="176" width="308" height="214" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="628" y="198" font-size="12.5" font-weight="500" fill="#1f2328">대기는 조건으로</text>
+<text class="s" x="628" y="215" font-size="11.5" fill="#57606a">고정 시간 대기 금지</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="628" y="228" width="276" height="52" rx="6"/><rect x="628" y="290" width="276" height="66" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="644" y="248" font-size="11.5" fill="#1f2328">상태 표식이 바뀌는 것을 기다린다</text>
+<text class="s" x="644" y="268" font-size="11.5" fill="#57606a">스트리밍 표시가 사라짐 · 부팅이 끝남</text>
+<text class="s" x="644" y="312" font-size="11.5" fill="#1f2328">타임아웃은 성공이 아니라 실패 판정</text>
+<text class="s" x="644" y="331" font-size="11.5" fill="#57606a">브라우저가 백그라운드 탭 타이머를 늦추면</text>
+<text class="s" x="644" y="348" font-size="11.5" fill="#57606a">sleep 기반 대기는 환경에 따라 깨진다</text>
+</g>
+
+<!-- 결과 -->
+<rect class="nd-proc" x="248" y="76" width="330" height="48" rx="8" fill="#e0eefb" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="264" y="96" font-size="11.5" fill="#1f2328">케이스명 = TC ID — <tspan font-family="ui-monospace, Consolas, monospace">test_tc_{영역}_{번호}_{요약}</tspan></text>
+<text class="s" x="264" y="114" font-size="11.5" fill="#57606a">리포트만 보고 시트를 찾을 수 있고, 반대로도 간다</text>
+</g>
+<rect class="nd-out" x="612" y="76" width="308" height="48" rx="8" fill="#d9f2e6" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="628" y="96" font-size="11.5" fill="#1f2328">junit 결과 → 매트릭스 · 리포트 · 추적 매트릭스</text>
+<text class="s" x="628" y="114" font-size="11.5" fill="#57606a">조인 키는 TC ID 하나</text>
+</g>
+
+<path class="arrow arrow-gray" d="M226,100 H242" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ai-ar-gray)"/>
+<path class="arrow arrow-green" d="M584,100 H606" fill="none" stroke="#199e70" stroke-width="1.8" marker-end="url(#ai-ar-green)"/>
+<path class="arrow arrow-gray" d="M162,258 H170" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ai-ar-gray)"/>
+<path class="arrow arrow-gray" d="M302,258 H310" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ai-ar-gray)"/>
+<path class="arrow arrow-gray" d="M442,258 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ai-ar-gray)"/>
+<path class="arrow arrow-green" d="M120,148 V170" fill="none" stroke="#199e70" stroke-width="1.8" marker-end="url(#ai-ar-green)"/>
+
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="20" y="422" font-size="11.5" fill="#57606a">이 구조가 실제로 잡은 것 — 픽스처가 방마다 <tspan class="t" font-weight="600">이름 없는 프로필</tspan>을 고정하고 있어, 페르소나 계측이 무엇을 재든 통과하고 있었다.</text>
+<text class="s" x="20" y="442" font-size="11.5" fill="#57606a">그리고 자산 하나가 로드에 실패했을 때 준비 완료 판정이 <tspan class="t" font-weight="600">반쪽 상태</tspan>를 통과시켜, 제품이 아닌 이유로 빨간불이 켜졌다.</text>
+<text class="s" x="20" y="468" font-size="11.5" fill="#57606a">자기 사정으로 내는 빨간불이 반복되면 실행자가 리포트를 믿지 않게 된다 — 그래서 부팅 완료를 조건에 넣고 연결을 재사용하게 고쳤다.</text>
+</g>
+</svg></div><h2 id="map">문서 지도</h2><p>작업을 이어받을 때는 <strong>change-log와 remaining-work를 먼저</strong> 읽습니다. 그 둘이 「지금 어디까지 왔고 다음이 무엇인가」의 정본입니다.</p><div class="tbl-scroll"><table><thead><tr><th>폴더</th><th>무엇이 있나</th><th>지위</th></tr></thead><tbody><tr><td><code>analysis/</code></td><td>역분석 조사 기록 — 행동 인벤토리 3종 + 공통 트리</td><td>조사 자료 (TC 기대값 출처 아님)</td></tr><tr><td><code>reference/</code></td><td>조사에서 채택한 기능 목록</td><td>판단 기록</td></tr><tr><td><code>spec/</code></td><td>기능 골격 · design 명세 · SUT 설계(청사진·결함 주입·mock·세이브 스키마)</td><td><strong>정본</strong></td></tr><tr><td><code>spec/rationale/</code></td><td>왜 이렇게 정했나 — 추가·SUT 설계의 근거</td><td>근거 기록 (기대값 출처 아님)</td></tr><tr><td><code>spec/archive/</code></td><td>골격 변경 이력</td><td>기본 참조 금지 — 행방을 물을 때만</td></tr><tr><td><code>sut/</code></td><td>검증 대상 (단일 HTML + JS)</td><td><strong>구현</strong></td></tr><tr><td><code>test-case/</code></td><td>TC 입력 · 제외 사유 · 이슈 · xlsx</td><td><strong>정본</strong>은 json, xlsx는 파생</td></tr><tr><td><code>automation/</code></td><td>테스트 · 매트릭스 기대표 · 실행 결과 · 리포트</td><td>리포트·매트릭스 결과는 파생</td></tr></tbody></table></div><h2 id="canon">정본과 파생물</h2><div class="callout warn"><strong>파생물은 손으로 고치지 않습니다.</strong> 고치면 정본과 갈라지는데 아무 에러도 나지 않아 오래 발견되지 않습니다. 정본을 고치고 다시 만드는 것이 유일한 경로이며, CI가 「커밋본이 최신인가」를 확인합니다.</div><div class="tbl-scroll"><table><thead><tr><th>파생물</th><th>정본</th><th>만드는 도구</th></tr></thead><tbody><tr><td><code>qa-lab-miyonchat-feature-tree.html</code></td><td><code>qa-lab-miyonchat-feature-tree.md</code></td><td><code>gen_feature_tree_html.py</code></td></tr><tr><td><code>qa-lab-miyonchat-tc-v1.0.xlsx</code></td><td><code>qa-lab-miyonchat-tc-input-v1.0.json</code></td><td><code>build_tc_template_xlsx.py</code></td></tr><tr><td><code>result/matrix/fault-matrix.md</code></td><td><code>테스트 실행 + qa-lab-miyonchat-fault-matrix.json</code></td><td><code>run_fault_matrix.py</code></td></tr><tr><td><code>report/qa-lab-miyonchat-report.html</code></td><td><code>위의 정본 전부</code></td><td><code>gen_qa_report_html.py</code></td></tr><tr><td><code>index.html (이 문서)</code></td><td><code>위의 정본 전부</code></td><td><code>gen_project_hub_html.py</code></td></tr></tbody></table></div><h3>현재 규모</h3><div class="tbl-scroll"><table><thead><tr><th>축</th><th class="num">값</th><th>뜻</th></tr></thead><tbody><tr><td>기능 단위</td><td class="num">86</td><td>골격에서 구현 범위로 확정된 검증 단위</td></tr><tr><td>화면 요소</td><td class="num">258</td><td>청사진에 등재된 조작 가능한 요소(testid)</td></tr><tr><td>TC</td><td class="num">153</td><td>결정적 111 · 금칙 39 · 확률적 2 · 루브릭 1</td></tr><tr><td>사람 전용 TC</td><td class="num">1</td><td>자동화가 판정 기준을 세울 수 없는 것 — 루브릭 채점</td></tr><tr><td>검증 제외</td><td class="num">7</td><td>누락이 아니라 판단. 사유와 근거를 기계가 확인</td></tr><tr><td>검출 이슈</td><td class="num">3</td><td>TC를 수행하다 나온 것</td></tr></tbody></table></div><h2 id="rules">이 프로젝트가 세운 규칙</h2><p>진행하다 막힌 자리에서 나온 것들입니다. 프로젝트 안에 묻어 두면 다음 프로젝트가 같은 자리에서 다시 막히므로, 워크스페이스 규칙(<code>project-process/rules/</code>)으로 올렸습니다.</p><div class="card-grid"><div class="card"><h3>TN은 연쇄에만</h3><p>스텝 하나를 떼어 내도 나머지가 성립하면 그건 나열입니다. 나열을 TN으로 묶으면 어느 대상이 깨졌는지 ID로 읽히지 않습니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/depth-and-tn.md">depth-and-tn.md</a></p></div><div class="card"><h3>케이스는 사전조건의 묶음</h3><p>뎁스 마지막 칸은 요약이 아닙니다. 「무엇을 보는가」를 적으면 기대 결과와 중복되고, 값이 행마다 달라 뎁스 색이 묶음이 아니라 소음이 됩니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md">tc-sheet-format.md</a></p></div><div class="card"><h3>차단은 도달 경로마다</h3><p>판정 지점이 하나여도 그 상태를 만드는 코드가 경로마다 다르면 케이스를 나눕니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>기능 단위를 겸해 덮지 않음</h3><p>covers는 자기 신고라, 기능 단위 둘을 적고 하나만 검증해도 대조기가 통과시킵니다. 빠진 것보다 나쁩니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>판단은 낡는다</h3><p>제외 사유에 기계가 확인할 조건을 붙입니다. 근거가 사라지면 대조가 실패합니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>담당은 주입 지점으로</h3><p>「돌려 보니 깨졌다」를 담당으로 삼으면 매트릭스는 항상 통과하고 아무것도 증명하지 않습니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md">sut-automation.md</a></p></div><div class="card"><h3>고정 대기 금지</h3><p>브라우저가 타이머를 늦추면 sleep 기반 대기가 환경에 따라 깨집니다. 상태 표식이 바뀌는 것을 기다립니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md">sut-automation.md</a></p></div><div class="card"><h3>내부 식별자 금지</h3><p>「계정 A」는 저장소 안에서만 통하는 이름입니다. 사전조건은 그 밖에서도 읽힙니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md">tc-sheet-format.md</a></p></div></div><h2>산출물 바로 가기</h2><div class="card-grid"><div class="card"><h3><a href="automation/report/qa-lab-miyonchat-report.html">QA 검증 리포트</a></h3><p>검증유형별 집계 · 결함 주입 매트릭스 · SUT 한계</p></div><div class="card"><h3><a href="automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a></h3><p>기능 단위 → TC → 자동화 함수 → 이슈를 한 줄로</p></div><div class="card"><h3><a href="spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a></h3><p>구현 기능 단위 86개 · 검증유형 판정</p></div><div class="card"><h3><a href="sut/index.html">SUT</a></h3><p>검증 대상을 직접 실행해 봅니다</p></div><div class="card"><h3><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx">TC 시트</a></h3><p>xlsx — GitHub에서는 내려받아 엽니다</p></div></div><div class="doc-footer">이 문서는 파생물입니다 — <code>gen_project_hub_html.py</code>로 재생성합니다. 수치는 전부 정본에서 읽습니다.</div></div></body></html>
