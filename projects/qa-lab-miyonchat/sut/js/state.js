@@ -60,6 +60,9 @@ const VN = {
   noFund: false,        // 재화 부족 안내 화면 (system-spec §3)
   ledgerFilter: "all",  // 재화 내역 필터 — all / gain / spend
   showMetrics: false,   // 카드 지표 표시 — T1에서 켜는 검증용 표시 (청사진 §4-2)
+  /* 그 외 작품 추천의 두 값 — 확정값은 아래 상수이고 여기 담긴 것은 T1에서 옮긴 현재 값입니다 */
+  relatedLikeMin: 10,   // 좋아요 임계 (system-spec §8-8)
+  relatedMax: 5,        // 노출 상한 (system-spec §8-8)
   p2Help: false,        // P2 단계표 ⓘ 펼침
   editTurn: null,       // 편집 중인 턴 — 되돌림 (system-spec §5-1)
   confirm: null,        // 확인 모달 { kind, turn, slot }
@@ -333,6 +336,42 @@ function categoryList(category) {
   if (VN.catFilter) base = base.filter((c) => hasCategory(c, VN.catFilter));
   if (VN.catSort === "new") return sortChars(base, (c) => dayNum(c.createdDay));
   return sortChars(base, (c) => usageCount(c.id, null));   // 대화순 = 누적 이용수
+}
+
+/* 그 외 작품 추천의 확정값 (system-spec §8-8).
+ *
+ * 두 값은 T1에서 옮길 수 있습니다. 기본 데이터는 캐릭터가 여덟이라 카테고리를 공유하는 후보가
+ * 상한에 닿지 않고 좋아요도 전부 임계를 넘어, 값을 옮기지 않으면 어느 경계도 만들 수 없기
+ * 때문입니다. 옮긴 값은 경계를 만드는 수단이고 TC 기대값은 언제나 이 확정값입니다. */
+const RELATED_LIKE_MIN = 10;
+const RELATED_MAX = 5;
+
+/* 작품 버전 표기 (system-spec §8-8) — 저장은 숫자와 점만 담고, 표시할 때 `v`를 붙입니다.
+ * 입력에서 그 밖의 문자를 걷어내므로 테스터가 `v`를 직접 적어도 접두가 겹치지 않습니다. */
+function versionInput(s) {
+  return String(s == null ? "" : s).replace(/[^0-9.]/g, "");
+}
+
+function versionLabel(v) {
+  const n = versionInput(v);
+  return n ? "v" + n : "-";
+}
+
+/* 그 외 작품 추천 — 캐릭터 페이지 하단의 연관 작품 (system-spec §8-8).
+ *
+ * 페이지 카테고리를 하나라도 공유하고 좋아요가 임계 이상인 작품을, 좋아요를 선택 기준으로 삼은
+ * 동률 체인(§8-4) 순으로 상한까지 내놓습니다. 자기 자신은 빼고, 가시성 필터를 먼저 태우므로
+ * 필터로 숨겨진 작품은 후보에 들지 않습니다.
+ *
+ * 임계·정렬 모두 `likeCount`를 씁니다 — 화면에 보이는 좋아요 수(시트 값 + 내가 누른 것)와
+ * 판정 근거가 갈라지면 "10인데 왜 빠졌나"를 설명할 수 없습니다. */
+function relatedList(c) {
+  const cats = c.pageCategories || [];
+  const base = visibleCharacters().filter((x) =>
+    x.id !== c.id
+    && likeCount(x) >= VN.relatedLikeMin
+    && (x.pageCategories || []).some((n) => cats.indexOf(n) >= 0));
+  return sortChars(base, likeCount).slice(0, VN.relatedMax);
 }
 
 /* ── 방 스코프 ───────────────────────────────────────────

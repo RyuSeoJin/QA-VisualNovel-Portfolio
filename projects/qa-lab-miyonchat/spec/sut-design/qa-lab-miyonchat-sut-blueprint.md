@@ -157,7 +157,7 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `s3-missing` | 없는 캐릭터 id로 들어왔을 때 |
 | ✅ `s3-thumb` · `s3-title` · `s3-categories` · `s3-cat-{이름}` · `s3-stories` · `s3-story-{n}` | 캐릭터 이미지 · 본문 제목 · 카테고리 칩 묶음·칩 · 스토리 블록 묶음·블록 |
 | ✅ `s3-char-block` · `s3-name` · `s3-tagline` · `s3-char-desc` · `s3-situation` · `s3-first` | 캐릭터 소개(구분선 목록) — 이름·한 줄 설명·상세 설명·시작 상황·첫 메시지 |
-| ✅ `s3-creator` · `s3-stats` · `s3-stat-{지표}` · `s3-updated` · `s3-related` | 제작자(표시만) · 현황 묶음과 지표별 값 · 출시일/업데이트 · 그 외 작품 |
+| ✅ `s3-creator` · `s3-stats` · `s3-stat-{지표}` · `s3-updated` · `s3-related` · `s3-related-empty` | 제작자(표시만) · 현황 묶음과 지표별 값 · 출시일/업데이트 · 그 외 작품. 후보가 없으면 `s3-related` 대신 `s3-related-empty`가 안내를 답니다(둘은 함께 뜨지 않습니다) |
 | ✅ `s3-locked` | 언세이프 열람 제한 안내 |
 | ✅ `s3-like` · `s3-scrap` | 좋아요 · 스크랩 토글 |
 | ✅ `s3-rooms` · `s3-room-{id}` · `s3-room-{id}-delete` · `s3-room-limit` | 대화방 목록 · 방 항목(이어하기) · 방 삭제 · 한도 안내 |
@@ -219,12 +219,13 @@ g(전역 셸) · t1(테스트 콘솔).
 | ✅ `t1-baseday` | 기준일 입력 |
 | ✅ `t1-char-table` · `t1-char-add` · `t1-char-clear` | 캐릭터 지표 표 · 생성 · 비우기 (반영은 [저장]) |
 | ✅ `t1-row-{id}-title` / `-subtitle` (제목 20자·보조 설명 30자) |
-| ✅ `t1-row-{id}-categories` / `-created` / `-adult` / `-likes` / `-reviews` / `-score` / `-daily` / `-weekly` / `-monthly` | 표의 행별 셀 |
+| ✅ `t1-row-{id}-categories` / `-created` / `-updated` / `-version` / `-adult` / `-likes` / `-reviews` / `-score` / `-daily` / `-weekly` / `-monthly` | 표의 행별 셀. `-created`는 출시일이고 `-version`은 숫자와 점만 받습니다(표시할 때 `v`가 붙음 — system-spec §8-8) |
 | ✅ `t1-tag-guide` | 쓸 수 있는 태그 안내 |
 | ✅ `t1-noti-send` · `t1-noti-clear` | 알림 발송 · 비우기 |
 | ✅ `t1-followers` · `t1-following` · `t1-account-state` | 계정 속성 입력 · 초안 기준 상태 배지 |
 | ✅ `t1-raw-toggle` · `t1-table-{테이블}` · `t1-table-{테이블}-apply` | 원본 편집 접기 · JSON · 초안에 넣기 |
 | ✅ `t1-fail-next` · `t1-show-metrics` | 다음 응답 생성 실패 스위치(1회성) · 카드 지표 표시 토글 |
+| ✅ `t1-related-likemin` · `t1-related-max` | 그 외 작품 추천의 좋아요 임계·노출 상한. 기본 데이터로는 어느 경계에도 닿지 않아 값을 옮겨 만듭니다 — **확정값은 10·5이고 옮긴 값은 기대값의 근거가 아닙니다**(system-spec §8-8) |
 | ✅ `t1-wallet-free` · `t1-wallet-paid` · `t1-wallet-locked` | 잔액 설정(계정 스코프) · 미로그인 안내 |
 | ✅ `t1-affection` · `t1-room-state` · `t1-room-none` | 호감도 설정(방 스코프) · 방 상태 · 방 없음 안내 |
 | ✅ `t1-save` · `t1-confirm` · `t1-confirm-list` · `t1-confirm-ok` · `t1-confirm-cancel` | 저장(변경 없으면 비활성) · 재확인 팝업 · 변경 목록 · 반영 · 취소 |

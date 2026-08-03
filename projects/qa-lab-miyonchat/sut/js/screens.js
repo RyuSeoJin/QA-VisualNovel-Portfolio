@@ -890,16 +890,19 @@ function renderS3() {
     el("dd", { "data-testid": "s3-first", text: c.firstMessage })
   ]));
 
-  // ⑩ 출시일 · 최종 업데이트(버전)
+  // ⑩ 출시일 · 최종 업데이트(버전) — 버전은 숫자로 담고 표시할 때 v를 붙입니다 (§8-8)
   kids.push(el("p", { class: "s3-updated", "data-testid": "s3-updated",
     text: "출시 " + c.createdDay + " · 최종 업데이트 " + (c.updatedDay || "-")
-      + " (" + (c.version || "-") + ")" }));
+      + " (" + versionLabel(c.version) + ")" }));
 
-  // ⑪ 작품 추천 — 선정식은 미확인이라 같은 카테고리에서 체인 순으로 채웁니다(TC 기대값 아님)
-  const related = sortChars(visibleCharacters()
-    .filter((x) => x.id !== c.id && hasCategory(x, (c.pageCategories || [])[0])), monthUsage).slice(0, 4);
+  // ⑪ 그 외 작품 추천 (§8-8) — 후보가 없을 때 섹션을 감추면 "안 뜬 것"과 "없는 것"이
+  // 구분되지 않습니다. 기본 데이터에서 자주 나오는 화면이라 안내를 남깁니다
+  const related = relatedList(c);
   if (related.length) {
     kids.push(s2Section("s3-related", "그 외 작품", related, { carousel: true }));
+  } else {
+    kids.push(el("p", { class: "s3-related-empty", "data-testid": "s3-related-empty",
+      text: "관련 추천 작품이 없습니다" }));
   }
 
   // ⑫ 하단 — 대화방 목록·한도 + [프로필 선택] [대화 시작]

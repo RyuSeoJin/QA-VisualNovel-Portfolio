@@ -83,7 +83,9 @@ function snapshotDraft() {
       return r ? { id: r.id, affection: r.affection } : null;
     })(),
     failNext: !!VN.failNext,
-    showMetrics: !!VN.showMetrics
+    showMetrics: !!VN.showMetrics,
+    relatedLikeMin: VN.relatedLikeMin,
+    relatedMax: VN.relatedMax
   };
 }
 
@@ -119,7 +121,8 @@ function describeChanges() {
   if (removed.length) out.push("캐릭터 삭제 — " + removed.map((c) => c.name + "(" + c.id + ")").join(", "));
 
   const FIELDS = [["pageTitle", "페이지 제목"], ["pageSubtitle", "보조 설명"],
-    ["category", "카테고리"], ["createdDay", "생성일"], ["likes", "좋아요"],
+    ["category", "카테고리"], ["createdDay", "출시일"], ["updatedDay", "최종 업데이트일"],
+    ["version", "버전"], ["likes", "좋아요"],
     ["reviews", "리뷰 수"], ["score", "점수"]];
   draft.characters.forEach((c) => {
     const b = before.find((x) => x.id === c.id);
@@ -168,6 +171,12 @@ function describeChanges() {
   if (!!VN.showMetrics !== !!draft.showMetrics) {
     out.push("카드 지표 표시 — " + (VN.showMetrics ? "켜짐" : "꺼짐")
       + " → " + (draft.showMetrics ? "켜짐" : "꺼짐"));
+  }
+  if (VN.relatedLikeMin !== draft.relatedLikeMin) {
+    out.push("추천 좋아요 임계 — " + VN.relatedLikeMin + " → " + draft.relatedLikeMin);
+  }
+  if (VN.relatedMax !== draft.relatedMax) {
+    out.push("추천 노출 상한 — " + VN.relatedMax + " → " + draft.relatedMax);
   }
   if (!!VN.failNext !== !!draft.failNext) {
     out.push("다음 응답 생성 실패 — " + (VN.failNext ? "켜짐" : "꺼짐")
@@ -243,6 +252,8 @@ function commitDraft() {
   }
   VN.failNext = !!draft.failNext;
   VN.showMetrics = !!draft.showMetrics;
+  VN.relatedLikeMin = draft.relatedLikeMin;
+  VN.relatedMax = draft.relatedMax;
 
   draft = snapshotDraft();      // 저장 뒤에는 초안과 실제가 같아집니다
   confirmOpen = false;
@@ -299,7 +310,7 @@ function addRandomCharacter() {
     score: Math.round((3 + Math.random() * 2) * 10) / 10,
     createdDay: draft.baseDay,
     creator: { name: "테스트 제작자", followers: 0 },
-    updatedDay: draft.baseDay, version: "v1.0",
+    updatedDay: draft.baseDay, version: "1.0",
     // 카드 상세가 읽는 값 — 생성된 캐릭터도 대화가 성립해야 목록 증가를 끝까지 따라갑니다
     firstMessage: "생성된 캐릭터의 첫 메시지입니다. 데이터 시트에서 만든 캐릭터라 내용은 고정 문구입니다.",
     startSituation: { id: "sc1", label: "기본 시작점" }
@@ -383,7 +394,8 @@ function renderCharBlock() {
     return block("캐릭터", children);
   }
 
-  const head = el("tr", {}, ["캐릭터", "페이지 제목", "보조 설명", "mock", "페이지 카테고리", "생성일", "19세 이상"]
+  const head = el("tr", {}, ["캐릭터", "페이지 제목", "보조 설명", "mock", "페이지 카테고리",
+    "출시일", "최종 업데이트일", "버전", "19세 이상"]
     .concat(CHAR_COLS.map((c) => c[0])).concat(USAGE_COLS.map((c) => c[0]))
     .map((h) => el("th", { text: h })));
 
@@ -406,11 +418,28 @@ function renderCharBlock() {
         touchDraft();
       }
     });
-    // 생성일은 신작 창(60일) 경계를 만드는 값이라 직접 고칠 수 있어야 합니다
+    // 출시일은 신작 창(60일) 경계를 만드는 값이라 직접 고칠 수 있어야 합니다
     const created = el("input", {
       type: "text", class: "t1-cellday",
       "data-testid": "t1-row-" + c.id + "-created", value: c.createdDay || "",
       oninput: (e) => { c.createdDay = e.target.value.trim(); touchDraft(); }
+    });
+    // 최종 업데이트일·버전은 캐릭터 페이지 ⑩의 표시가 값을 따라가는지 보는 자리입니다.
+    // 값은 처음부터 있었는데 표에 칸이 없어 화면에서 흔들어 볼 수 없었습니다 (§8-8)
+    const updated = el("input", {
+      type: "text", class: "t1-cellday",
+      "data-testid": "t1-row-" + c.id + "-updated", value: c.updatedDay || "",
+      oninput: (e) => { c.updatedDay = e.target.value.trim(); touchDraft(); }
+    });
+    // 버전은 숫자와 점만 받습니다 — `v`는 표시할 때 붙으므로 직접 적어도 걸러집니다
+    const version = el("input", {
+      type: "text", class: "t1-cellver",
+      "data-testid": "t1-row-" + c.id + "-version", value: c.version || "",
+      oninput: (e) => {
+        const v = versionInput(e.target.value);
+        if (e.target.value !== v) e.target.value = v;
+        c.version = v; touchDraft();
+      }
     });
     // 어느 mock 세트로 말하는지 — 화면에서 읽히지 않으면 "이 캐릭터만 대사가 다르다"를
     // 결함으로 오인합니다 (mock-llm-spec §2-1)
@@ -443,6 +472,8 @@ function renderCharBlock() {
       })]),
       el("td", {}, [cats]),
       el("td", {}, [created]),
+      el("td", {}, [updated]),
+      el("td", {}, [version]),
       el("td", {}, [adult]),
       numCell("t1-row-" + c.id + "-likes", c.likes, (v) => { c.likes = v; }),
       numCell("t1-row-" + c.id + "-reviews", c.reviews, (v) => { c.reviews = v; }),
@@ -460,7 +491,7 @@ function renderCharBlock() {
   ]));
   children.push(el("p", { class: "hint",
     text: "이용수는 이벤트를 합성해 맞춥니다 (일간 ≤ 주간 ≤ 월간) · 카테고리는 쉼표로 구분하며 첫 항목이 홈 칩 대표입니다"
-      + " · 생성일을 기준일에서 " + NEW_WINDOW_DAYS + "일보다 앞으로 옮기면 신작 섹션에서 빠집니다" }));
+      + "  · 출시일을 기준일에서 " + NEW_WINDOW_DAYS + "일보다 앞으로 옮기면 신작 섹션에서 빠집니다" }));
   children.push(el("p", { class: "hint",
     text: "mock — 전용 세트는 하루(c1)뿐이고 나머지와 새로 만든 캐릭터는 공통 세트로 말합니다" }));
   children.push(el("p", { class: "hint", "data-testid": "t1-tag-guide",
@@ -590,6 +621,19 @@ function renderConsole() {
     })
   ]);
 
+  // 기본 데이터로는 어느 경계에도 닿지 않습니다 — 캐릭터가 여덟이라 카테고리를 공유하는 후보가
+  // 상한에 못 미치고 좋아요도 전부 임계를 넘습니다. 두 값을 옮겨 경계를 만듭니다 (§8-8)
+  const relatedBlock = block("그 외 작품 추천", [
+    el("p", { class: "hint",
+      text: "캐릭터 페이지 하단의 연관 작품입니다. 확정값은 좋아요 " + RELATED_LIKE_MIN
+        + " 이상 · 최대 " + RELATED_MAX + "개이며, 여기서 옮긴 값은 경계를 만드는 수단이지"
+        + " 기대값의 근거가 아닙니다." }),
+    field("좋아요 임계", "t1-related-likemin", draft.relatedLikeMin,
+      (v) => { draft.relatedLikeMin = v; }),
+    field("노출 상한", "t1-related-max", draft.relatedMax,
+      (v) => { draft.relatedMax = v; })
+  ]);
+
   const noti = block("알림", [
     el("button", {
       "data-testid": "t1-noti-send", text: "+ 알림 1건 발송",
@@ -686,7 +730,7 @@ function renderConsole() {
     el("aside", { class: "t1-console", "data-testid": "t1-console" }, [
       el("h2", { text: "디버그 설정" }),
       el("div", { class: "t1-body", "data-testid": "t1-body" }, [
-        notice, switcher, adult, baseDay, wallet, roomBlock, failSwitch, metrics,
+        notice, switcher, adult, baseDay, wallet, roomBlock, failSwitch, metrics, relatedBlock,
         renderCharBlock(), noti, account, raw, reset
       ]),
       foot

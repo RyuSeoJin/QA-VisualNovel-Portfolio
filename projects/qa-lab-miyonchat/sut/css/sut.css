@@ -423,6 +423,8 @@ button { font-family: inherit; cursor: pointer; }
 .stat-num { font-size: 16px; font-weight: 700; }
 .stat-lbl { font-size: 11px; color: #6b6b76; }
 .s3-updated { margin: 24px 16px 0; font-size: 11px; color: #6b6b76; }
+/* 추천 후보가 없을 때 — 섹션을 감추지 않고 자리를 남깁니다 (system-spec §8-8) */
+.s3-related-empty { margin: 24px 16px 0; font-size: 12px; color: #6b6b76; }
 .s3-situation {
   margin: 0 16px; padding: 11px 14px; border-radius: 8px;
   background: #1a1a24; border-left: 3px solid #6d5fd0; font-size: 12px; color: #c9c9d2;
@@ -592,6 +594,10 @@ textarea.f-input { resize: vertical; line-height: 1.6; }
 .t1-table-grid .t1-cellsub { width: 180px; min-width: 180px; margin: 0; padding: 4px 8px; font-size: 12px; text-align: left; }
 .t1-table-grid .t1-cellday {
   width: 104px; min-width: 104px; margin: 0;
+  padding: 4px 8px; font-size: 12px; text-align: center;
+}
+.t1-table-grid .t1-cellver {
+  width: 72px; min-width: 72px; margin: 0;
   padding: 4px 8px; font-size: 12px; text-align: center;
 }
 .t1-table-grid input[type="checkbox"] { accent-color: #6d5fd0; }

@@ -27,7 +27,7 @@
  *   RC12 = 세로형 카드 · 페이지 레이아웃 재배치 · 페이지 카테고리 통합
  *   RC13 = 서사 — 고정 선택지 · 호감도 · 관계 단계 전이 · 엔딩 판정 · P2 현재 상태
  */
-const SUT_BUILD = "PC웹_Ver1.0_Dev_RC20";
+const SUT_BUILD = "PC웹_Ver1.0_Dev_RC21";
 
 const VN_DATA = {
   /* 기준일 — 이 값이 SUT의 "오늘"입니다 */
@@ -53,7 +53,7 @@ const VN_DATA = {
       pageCategories: ["로맨스", "소꿉친구", "후회"], safe: true, likes: 320, reviews: 84, score: 4.6,
       createdDay: "2026-07-30",
       creator: { name: "빗물서점", followers: 128 },
-      updatedDay: "2026-08-01", version: "v1.2",
+      updatedDay: "2026-08-01", version: "1.2",
       firstMessage: "너 오늘도 우산 안 가져왔지. 됐고 이리 와, 어차피 가는 길 같잖아. …그렇게 놀란 얼굴 할 것까진 없고.",
       startSituation: { id: "sc1", label: "비 오는 하굣길" } },
 
@@ -66,7 +66,7 @@ const VN_DATA = {
       pageCategories: ["판타지", "회귀", "능력"], safe: true, likes: 512, reviews: 120, score: 4.4,
       createdDay: "2026-07-28",
       creator: { name: "회귀공방", followers: 342 },
-      updatedDay: "2026-07-30", version: "v2.0",
+      updatedDay: "2026-07-30", version: "2.0",
       firstMessage: "세 번째다. 같은 날, 같은 자리에서 당신을 만나는 건. 이번에는 반드시 살려 보내겠다.",
       startSituation: { id: "sc1", label: "회귀 첫날" } },
 
@@ -79,7 +79,7 @@ const VN_DATA = {
       pageCategories: ["일상", "직장", "힐링"], safe: true, likes: 180, reviews: 41, score: 4.9,
       createdDay: "2026-08-01",
       creator: { name: "야근클럽", followers: 57 },
-      updatedDay: "2026-08-02", version: "v1.0",
+      updatedDay: "2026-08-02", version: "1.0",
       firstMessage: "먼저 가도 된다니까 왜 남았어요. …커피 두 잔 뽑아 왔어요. 하나는 그쪽 거예요.",
       startSituation: { id: "sc1", label: "야근 끝 편의점" } },
 
@@ -92,7 +92,7 @@ const VN_DATA = {
       pageCategories: ["로맨스", "계약연애", "집착"], safe: false, likes: 640, reviews: 210, score: 4.2,
       createdDay: "2026-07-25",
       creator: { name: "계약사무소", followers: 890 },
-      updatedDay: "2026-07-31", version: "v3.1",
+      updatedDay: "2026-07-31", version: "3.1",
       firstMessage: "계약서 3조, 기억하지. 사람들 앞에서는 연인처럼 굴 것. …지금 여기, 보는 눈이 꽤 많은데.",
       startSituation: { id: "sc1", label: "계약 첫날" } },
 
@@ -105,7 +105,7 @@ const VN_DATA = {
       pageCategories: ["판타지", "이세계", "빙의"], safe: true, likes: 96, reviews: 12, score: 5.0,
       createdDay: "2026-08-02",
       creator: { name: "숲의기록", followers: 24 },
-      updatedDay: "2026-08-02", version: "v1.0",
+      updatedDay: "2026-08-02", version: "1.0",
       firstMessage: "네가 떨어진 곳은 지도에 없는 숲이야. 따라와. 혼자 두면 해 지기 전에 죽어.",
       startSituation: { id: "sc1", label: "숲의 첫 밤" } },
 
@@ -118,7 +118,7 @@ const VN_DATA = {
       pageCategories: ["일상", "학원물", "동거"], safe: true, likes: 74, reviews: 3, score: 5.0,
       createdDay: "2026-07-31",
       creator: { name: "교실뒤편", followers: 12 },
-      updatedDay: "2026-08-01", version: "v1.1",
+      updatedDay: "2026-08-01", version: "1.1",
       firstMessage: "야, 필기 좀 보여줘. …됐고 그냥 옆에 앉아. 같이 보면 되잖아.",
       startSituation: { id: "sc1", label: "시험 전날" } },
 
@@ -134,7 +134,7 @@ const VN_DATA = {
       pageCategories: ["로맨스", "후회", "집착"], safe: true, likes: 400, reviews: 150, score: 4.7,
       createdDay: "2026-05-20",
       creator: { name: "졸업앨범", followers: 205 },
-      updatedDay: "2026-06-30", version: "v2.4",
+      updatedDay: "2026-06-30", version: "2.4",
       firstMessage: "괜찮으세요?",
       startSituation: { id: "sc1", label: "해수욕장 앞" } },
 
@@ -147,7 +147,7 @@ const VN_DATA = {
       pageCategories: ["일상", "힐링", "직장"], safe: true, likes: 20, reviews: 60, score: 3.8,
       createdDay: "2026-04-10",
       creator: { name: "폐점서가", followers: 8 },
-      updatedDay: "2026-05-01", version: "v1.3",
+      updatedDay: "2026-05-01", version: "1.3",
       firstMessage: "오늘로 문을 닫습니다. …마지막 손님이 당신이라 다행이네요.",
       startSituation: { id: "sc1", label: "폐점 전날" } }
   ],
