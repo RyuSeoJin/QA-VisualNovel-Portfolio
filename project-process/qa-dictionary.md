@@ -7,11 +7,14 @@
 | 용어 | 한 줄 요약 | 정본 |
 |---|---|---|
 | Depth | 기능 트리의 계층. 화면→영역→구성 요소→세부 순으로 내려가며, 의미 있는 깊이까지만 쓴다 | `rules/depth-and-tn.md` |
+| 도달 경로 뎁스 | 뎁스를 기능 분류가 아니라 앱 진입부터의 화면 도달 경로로 쓰는 방식. 영역은 TC ID 접두가 담는다 | `rules/depth-and-tn.md` §도달 경로 뎁스 |
+| 뎁스 경계·소속 규칙 | 도달 경로 뎁스에서 어떤 화면이 1-Depth가 되는지(경계 기준 셋 — 합류점·전역·오버레이)와 케이스가 어디 놓이는지(소속 규칙 — 트리거 화면)를 정하는 규칙 | `rules/depth-and-tn.md` §도달 경로 뎁스 |
 | TN (테스트 넘버링) | 한 케이스 **안**의 스텝 번호. 마지막 Depth에서 이어지는 동작을 1→2→3으로 눕힌 것. 케이스 사이의 순서가 아니다 | `rules/depth-and-tn.md` |
 | Pre-Condition | 케이스 실행의 전제 상태(로그인·구독·플랫폼 등). 상태는 Depth로 쪼개지 않고 여기로 흡수한다 | `rules/depth-and-tn.md` |
 | 지원 표기 (O/X/△/?) | 노드별 지원 여부. O 확인 / X 미지원 확인 / △ 부분·조건부 / ? 미확인(실측 필요) | `rules/depth-and-tn.md` |
 | 우선순위 (High/Medium/Low) | 케이스의 속성(스텝 아님). High는 금전·보호·유실·중단·법규 축 | `rules/depth-and-tn.md` |
-| 검증유형 | 모든 TC가 갖는 판정 방식 분류 — 결정적·확률적·루브릭·금칙. 유형이 반복 횟수와 판정 규칙을 결정한다 | `rules/verification-types.md` |
+| 검증유형 | 모든 TC가 갖는 판정 방식 분류 — 결정적·확률적·루브릭·금칙. 유형이 반복 횟수와 판정 규칙을 결정한다. **반복은 자동화가 하고 사람은 어떤 유형이든 1회** | `rules/verification-types.md` · `rules/tc-sheet-format.md` §검증유형과 반복 |
+| 실행 주체 | 케이스마다 정하는 「누가 수행하는가」 — 자동화 전용·공통·사람 전용. 공통은 자동화가 있으면 자동화가 돌린다 | `rules/tc-sheet-format.md` §실행 주체 |
 | 결정적 (Deterministic) | LLM 출력과 무관하게 시스템이 보장해야 하는 값·상태 전이. 1회 실행, 불일치 즉 FAIL | `rules/verification-types.md` |
 | 확률적 (Probabilistic) | 출력 품질에 의존하나 통계 임계로 관리 가능한 항목. N회 반복 후 성공률을 임계와 비교 | `rules/verification-types.md` |
 | 루브릭 (Rubric) | 정량화 어려운 품질을 5점 루브릭으로 채점. 기본 합격선 4점 | `rules/verification-types.md` |
@@ -20,10 +23,10 @@
 | 경계값 (Boundary) | 수치 제약마다 경계-1/경계/경계+1 세 점을 찍는 전개. 등호 포함 여부 확인 필수 | `rules/case-expansion.md` |
 | TC 관계도 | 케이스 **사이**의 선행·실행 순서 층위(test dependency). TN과 다른 층위다 | `rules/tc-relations.md` |
 | 실행 단계 | 선행을 루트까지 거슬러 올라간 깊이. 깊을수록 실행 비용이 높다 | `rules/tc-relations.md` |
-| Blocked | 기능은 구현됐으나 선행 케이스의 Fail로 실행 불가한 상태. Fail로 적으면 결함이 과대 계상됩니다. Pass율 분모에서 제외하되 개수를 Summary에 별도 노출 | `rules/tc-relations.md` |
+| Blocked | 기능은 구현됐으나 확인할 수 없는 상태(선행 Fail·환경 결함·데이터 준비 불가 등). 사유는 실행 중 Comment에 적는다. Fail로 적으면 결함이 과대 계상되므로 Pass율 분모에서 제외하되 개수를 Summary에 별도 노출 | `rules/tc-sheet-format.md` §상태값 4종 |
 | NI (Not Implemented) | 미구현이거나 스펙에 없어 실행 대상이 아닌 상태. Pass율 분모에서 제외 | `rules/tc-sheet-format.md` §상태값 4종 |
-| 한 행 = 한 TN = 한 스텝 | TC 시트의 핵심 배치 규칙. Depth는 행마다 반복, Pre-Condition·Priority는 TN 1행에만 | `rules/tc-sheet-format.md` |
-| Total Result | 케이스의 여러 스텝 Result를 Fail 우선으로 요약하는 수식 열 | `rules/tc-sheet-format.md` |
+| 한 행 = 한 TN = 한 스텝 | TC 시트의 핵심 배치 규칙. 케이스 단위 값(No·Depth·Priority·실행 주체·TC ID·검증유형)은 행마다 반복, TN·Test-Step·Note는 스텝 범위 병합. **병합 범위는 스텝 하나뿐** | `rules/tc-sheet-format.md` §셀 병합 규칙 |
+| Total Result | **그 행의** Result를 Fail 우선으로 요약하는 수식 열. 같은 플랫폼에 단말이 여럿일 때 요약하는 자리이며 병합하지 않는다 | `rules/tc-sheet-format.md` |
 | 명세서 시트 | `tc-sheet-master.xlsx` 안의 서식 규칙 정본 시트. `tc-sheet-format.md`와 교차 검증하는 짝 | `CLAUDE.md` §TC 시트 규칙 |
 | 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `spec/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |
 | 정본 / 파생 | 손으로 고치는 유일한 파일(정본)과 거기서 재생성되는 출력물(파생). 파생은 직접 수정 금지 | `CLAUDE.md` §정본과 파생 |

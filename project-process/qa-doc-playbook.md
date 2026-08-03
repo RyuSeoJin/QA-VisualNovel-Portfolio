@@ -72,7 +72,7 @@
 1. **시트 규칙 확인** — `rules/tc-sheet-format.md`를 읽고 `design-template/tc-sheet-master.xlsx`의 '명세서' 시트와 교차 검증합니다. 불일치 시 사용자에게 질문합니다(임의 판단 금지).
 2. **케이스 전개** — 노드마다 정상 · 경계 · 예외 · 우회. → `rules/case-expansion.md`
 3. **TN 부여·우선순위** — 한 행 = 한 TN = 한 스텝. Pre-Condition·Priority는 TN 1행에만. → `rules/depth-and-tn.md`
-4. **관계도(선택)** — 선행 TC·실행 단계를 Comment에. → `rules/tc-relations.md`
+4. **관계도(선택)** — 선행 TC는 설계 입력(json)에만 두고 시트에는 싣지 않습니다. → `rules/tc-relations.md`
 5. **산출** — `scripts/`로 정본 md에서 xlsx를 생성합니다. 기준 골격 버전을 시트에 기록하고, 이슈 관리 시트를 내장합니다. 수식 검증(recalc)을 수행합니다.
 
 **산출 후 점검 체크리스트**

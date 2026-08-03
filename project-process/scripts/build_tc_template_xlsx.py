@@ -23,7 +23,8 @@ TC 입력 JSON -> TC 시트 xlsx (5시트 자기완결 산출물)
   구조·컬럼   project-process/rules/tc-sheet-format.md + 이 산출물의 '명세서' 시트
   서식        design-template/xlsx-design-guide.md
               (헤더 #1F2A44/#F3F3F3 · 데이터 #FFFFFF/#000000 · 표 테두리 #999999
-               · 실행 채움 셀 #FFF9C4 · 맑은 고딕 · 날짜 YYYY-MM-DD)
+               · 실행 채움 셀 #FFF9C4 · 머리 영역 #BFBFBF/#DEFFE4 · 뎁스 채움 §5
+               · 맑은 고딕 · 날짜 YYYY-MM-DD)
 
 openpyxl 함정 3종 (2026-08-02 디버깅으로 확인 — Excel '복구' 프롬프트의 원인)
 --------------------------------------------------------------------------
@@ -62,8 +63,9 @@ statusChangedDay}]} 이며 키 순서는 ISSUE_KEYS가 정본입니다.
   "tcs": [
     ["TC-XXX-001",["1-Depth","2-Depth","3-Depth"],"케이스",
      "사전조건","1. 절차\\n2. 절차","기대결과 문장. 여러 문장 가능.",
-     "결정적|확률적|루브릭|금칙","High|Medium|Low",
-     "선행 TC ID 또는 -","대상 서비스","비고"]
+     "결정적|확률적|루브릭|금칙","자동화 전용|공통|사람 전용","High|Medium|Low",
+     "선행 TC ID 또는 -","대상 서비스","Note(수행 안내)"]
+    # 8번째 값(실행 주체)은 2026-08-03 신설이며 생략하면 「공통」으로 읽습니다(11필드 호환)
   ]
 }
 
@@ -104,12 +106,16 @@ LABEL_FILL = "EDEFF4"
 INPUT_FILL = "FFF9C4"        # 실행 채움 셀 — 설계 시점에는 비어 있는 칸
 NOTE_TEXT = "555555"
 BORDER_RGB = "999999"
+HEADBAND_FILL = "BFBFBF"     # 머리 영역의 회색 면 — 헤더 + 환경 블록의 좌·우 구간
+ENVBAND_FILL = "F9D7BE"      # 머리 영역에서 Total Result·Result 열이 지나는 구간
 
 HDR = PatternFill("solid", fgColor=NAVY)
 SUB = PatternFill("solid", fgColor=SUBH)
 LABEL = PatternFill("solid", fgColor=LABEL_FILL)
 INPUT = PatternFill("solid", fgColor=INPUT_FILL)
 WHITE = PatternFill("solid", fgColor="FFFFFF")
+HEADBAND = PatternFill("solid", fgColor=HEADBAND_FILL)
+ENVBAND = PatternFill("solid", fgColor=ENVBAND_FILL)
 
 _side = Side(style="thin", color=BORDER_RGB)
 BOX = Border(left=_side, right=_side, top=_side, bottom=_side)
@@ -155,8 +161,16 @@ VT_NOTE = {
     "금칙": "금칙 · 우회 변형 포함 20~40회 시도, 1건이라도 발생 시 FAIL",
 }
 
+# 실행 주체 3종 (2026-08-03 확정) — 케이스마다 「누가 수행하는가」.
+# 판정은 순서대로: ①사람이 화면만 봐서 판정 불가 → 자동화 전용
+#                 ②자동화가 판정 기준을 못 세움 → 사람 전용  ③그 외 → 공통(기본값)
+# 반복 횟수는 판정 근거가 아닙니다 — "사람이 1회 봐도 의미가 있는가"로 갈립니다.
+EXEC_TYPES = ["자동화 전용", "공통", "사람 전용"]
+EXEC_DEFAULT = "공통"
+
 DEFAULT_LISTS = {
     "프로젝트": ["{프로젝트}"],
+    "실행 주체": EXEC_TYPES,
     "이슈 상태": ["Open", "In Progress", "Resolved", "Reopen", "Closed"],
     "우선순위": ["High", "Medium", "Low"],
     "빈도": ["Always", "Often", "Sometimes", "Once"],
@@ -170,7 +184,8 @@ DEFAULT_LISTS = {
     "스프린트": ["{테스트환경}_{개발목표버전}_{스프린트}"],
 }
 LIST_NAME_MAP = {
-    "프로젝트": "list_project", "이슈 상태": "list_status", "우선순위": "list_priority",
+    "프로젝트": "list_project", "실행 주체": "list_exec",
+    "이슈 상태": "list_status", "우선순위": "list_priority",
     "빈도": "list_frequency", "버전(영향/수정 공용)": "list_version",
     "해결책": "list_resolution", "환경": "list_env", "레이블": "list_label",
     "보고자": "list_reporter", "담당자": "list_assignee", "스프린트": "list_sprint",
@@ -208,18 +223,122 @@ def unfreeze(ws):
 MAX_DEPTH = 7          # 시트가 지원하는 뎁스 열의 최대 수
 
 
+# ── 뎁스 색상 배정 (xlsx-design-guide.md §5) ─────────────────
+# 규칙(2026-08-03 사용자 확정): ①빈칸은 칠하지 않음 ②같은 텍스트는 같은 색
+# ③다른 텍스트는 다른 색 ④연한 계열 ⑤인접한 다른 텍스트와 비슷한 계열 회피 ⑥색 최소화
+#
+# ③이 색 수를 텍스트 수로 고정하므로 ⑥은 "색을 적게 쓰라"가 아니라 "색상환을 고르게
+# 나눠 쓰라"로 구현됩니다 — 텍스트 수만큼 등간격 색을 만들면 그 이상 촘촘해지지 않습니다.
+# ⑤는 실제 인접 관계를 세어 그리디로 배정합니다: 시트에서 위아래(같은 열의 값 전환)와
+# 좌우(같은 행의 이웃 뎁스)로 붙는 쌍을 모아, 각 텍스트에 **이미 배정된 이웃과의 색상환
+# 거리가 최대가 되는** 색을 줍니다. 이웃이 많아 여유가 없으면 남은 것 중 최선을 씁니다(⑤ 단서).
+#
+# 노랑 대역(45~70°)은 건너뜁니다 — 이 시트에서 노랑은 "실행 단계에 채워지는 칸"이라는
+# 뜻을 이미 갖고 있어, 뎁스에 쓰면 색의 의미 체계가 충돌합니다.
+YELLOW_BAND = (45, 70)
+PASTEL_S = 0.42            # 연한 계열 — 글씨(검정)를 가리지 않는 범위
+PASTEL_L = 0.87
+
+
+def _hsl_to_hex(h, s, light):
+    c = (1 - abs(2 * light - 1)) * s
+    x = c * (1 - abs((h / 60.0) % 2 - 1))
+    m = light - c / 2
+    r, g, b = [(c, x, 0), (x, c, 0), (0, c, x),
+               (0, x, c), (x, 0, c), (c, 0, x)][int(h // 60) % 6]
+    return "".join("%02X" % round((v + m) * 255) for v in (r, g, b))
+
+
+def _hue_slots(n):
+    """노랑 대역을 뺀 색상환을 n등분한 색조 목록."""
+    span = 360 - (YELLOW_BAND[1] - YELLOW_BAND[0])
+    out = []
+    for i in range(n):
+        h = (i + 0.5) * span / n
+        out.append(h if h < YELLOW_BAND[0] else h + (YELLOW_BAND[1] - YELLOW_BAND[0]))
+    return out
+
+
+def _circ(a, b):
+    d = abs(a - b) % 360
+    return min(d, 360 - d)
+
+
+def depth_palette(paths):
+    """뎁스 경로 목록(시트에 찍히는 순서)을 받아 {텍스트: 채움색}을 만든다."""
+    seen, adj = [], {}
+    prev = []
+    for p in paths:
+        for v in p:
+            if v and v not in adj:
+                adj[v] = set()
+                seen.append(v)
+        for a, b in zip(p, p[1:]):            # 좌우 이웃 — 같은 행의 다음 뎁스
+            if a and b and a != b:
+                adj[a].add(b)
+                adj[b].add(a)
+        for a, b in zip(prev, p):             # 위아래 이웃 — 같은 열의 값 전환
+            if a and b and a != b:
+                adj[a].add(b)
+                adj[b].add(a)
+        prev = p
+
+    slots = _hue_slots(len(seen))
+    free = set(range(len(slots)))
+    got = {}
+    # 이웃이 많은 것부터 — 제약이 큰 쪽을 먼저 놓아야 뒤에서 몰리지 않는다
+    for t in sorted(seen, key=lambda x: (-len(adj[x]), seen.index(x))):
+        near = [slots[got[o]] for o in adj[t] if o in got]
+        pick = (max(free, key=lambda i: (min(_circ(slots[i], h) for h in near), -i))
+                if near else min(free))
+        got[t] = pick
+        free.discard(pick)
+
+    # 교환 개선 — 그리디는 마지막에 놓이는 것들이 남은 색을 받게 되어 한두 쌍이 붙는다.
+    # 가장 가까운 쌍을 골라 다른 텍스트와 색을 맞바꿔 보고, 전체 최솟값이 커지면 채택한다.
+    def worst_of(t, table):
+        near = [slots[table[o]] for o in adj[t]]
+        return min((_circ(slots[table[t]], h) for h in near), default=360)
+
+    for _ in range(200):
+        low = min(seen, key=lambda t: worst_of(t, got))
+        base = worst_of(low, got)
+        best = None
+        for other in seen:
+            if other is low:
+                continue
+            trial = dict(got)
+            trial[low], trial[other] = got[other], got[low]
+            gain = min(worst_of(low, trial), worst_of(other, trial))
+            if gain > base and (best is None or gain > best[0]):
+                best = (gain, other)
+        if best is None:
+            break
+        got[low], got[best[1]] = got[best[1]], got[low]
+
+    return {t: PatternFill("solid", fgColor=_hsl_to_hex(slots[i], PASTEL_S, PASTEL_L))
+            for t, i in got.items()}
+
+
 def normalize_tc(row):
     """TC 한 줄을 dict로 정규화한다 — 새 형식(경로 배열)과 옛 형식(d1·d2·d3)을 함께 받는다.
 
     두 번째 값이 배열이면 새 형식이다. 옛 형식은 빈 뎁스를 떨어내 같은 모양으로 만든다.
     """
     if isinstance(row[1], list):
-        tid, path, case, pre, steps, exp, vt, prio, par, target, note = row
+        # 실행 주체(exec)는 2026-08-03 신설 — 없으면 기본값 「공통」으로 읽습니다
+        if len(row) >= 12:
+            tid, path, case, pre, steps, exp, vt, ex, prio, par, target, note = row[:12]
+        else:
+            tid, path, case, pre, steps, exp, vt, prio, par, target, note = row
+            ex = EXEC_DEFAULT
     else:
         tid, d1, d2, d3, case, pre, steps, exp, vt, prio, par, target, note = row
         path = [d for d in (d1, d2, d3) if d]
+        ex = EXEC_DEFAULT
     return {"id": tid, "path": list(path), "case": case, "pre": pre, "steps": steps,
-            "exp": exp, "vt": vt, "prio": prio, "par": par, "target": target, "note": note}
+            "exp": exp, "vt": vt, "exec": ex or EXEC_DEFAULT, "prio": prio,
+            "par": par, "target": target, "note": note}
 
 
 def depth_layout(tcs):
@@ -242,7 +361,8 @@ def main():
     CFG = json.load(open(args.input, encoding="utf-8"))
     TCS = [normalize_tc(t) for t in CFG["tcs"]]
     PLATFORMS = CFG.get("platforms", ["Web", "And", "iOS"])
-    TITLE = CFG.get("title", "Test Case Template")
+    # 2026-08-03 개정으로 시트 제목은 title이 아니라 「기준 골격 버전 + {프로젝트} TC」
+    # 두 토막이 됩니다. title은 파일 설명용으로만 남아 시트에 찍히지 않습니다.
     PROJECT = CFG.get("project", "{프로젝트}")
     TREE_VERSION = CFG.get("tree_version", "{프로젝트}-tree-vX.Y")
     ENV = CFG.get("env", {k: [""] * len(PLATFORMS) for k in
@@ -271,27 +391,40 @@ def main():
 
     # ── 컬럼 레이아웃 ────────────────────────────────────────
     # 뎁스 수를 먼저 정하고 그 뒤 열 위치를 계산한다 — 지도를 그리고 채우는 순서다.
+    # 사람이 왼쪽부터 읽고 실행하는 구간 뒤에, 기계·참조용 값(TC ID·검증유형)을 오른쪽
+    # 끝 참조 블록으로 뺍니다(2026-08-03 확정). 조인 키와 분류는 실행 동선에 끼어들 이유가
+    # 없고, 이슈를 등록하며 TC ID를 옮겨 적을 때 Issue No.·Comment 바로 옆이 편합니다.
     ND = depth_layout(TCS)
-    DEPTH_COLS = [chr(ord("C") + i) for i in range(ND)]
-    DEPTH_W = [15, 14, 15, 20, 11, 11, 11]
     NP = len(PLATFORMS)
-    c = ord("C") + ND
-    PRE, TN_COL, STEP, EXPECT, PRIO_COL = (chr(c), chr(c + 1), chr(c + 2),
-                                           chr(c + 3), chr(c + 4))
+    DEPTH_W = [15, 14, 15, 20, 11, 11, 11]
+
+    n = 3                              # C열부터 시작 (A=여백, B=No)
+    def take(k=1):
+        nonlocal n
+        got = [get_column_letter(n + i) for i in range(k)]
+        n += k
+        return got if k > 1 else got[0]
+
+    DEPTH_COLS = take(ND)
+    if ND == 1:
+        DEPTH_COLS = [DEPTH_COLS]
+    PRE, TN_COL, STEP, EXPECT, EXEC_COL, PRIO_COL = (take(), take(), take(),
+                                                     take(), take(), take())
+    TOTAL_COLS = take(NP) if NP > 1 else [take()]
+    RESULT_COLS = take(NP) if NP > 1 else [take()]
+    ISSUE_COL, COMMENT, NOTE, TCID_COL, VT_COL = (take(), take(), take(), take(), take())
+    LAST = VT_COL   # Test Case Edit 열은 2026-08-03 사용자 결정으로 제거 — 이력은 json+git이 담당
+
+    ENV_ROW = 5                        # 환경 블록 첫 행 (2행 제목 · 3~4행 헤더 다음)
+    DATA_ROW = ENV_ROW + len(ENV)      # 데이터 첫 행 = 틀 고정 경계
+
     base = [("A", "", 3), ("B", "No", 6)]
     base += [(DEPTH_COLS[i], "%d-Depth" % (i + 1), DEPTH_W[i]) for i in range(ND)]
     base += [(PRE, "Pre-Condition", 26), (TN_COL, "TN", 5),
              (STEP, "Test-Step", 34), (EXPECT, "Expected-Result", 46),
-             (PRIO_COL, "Priority", 9)]
-    c += 5
-    TOTAL_COLS = [chr(c + i) for i in range(NP)]
-    c += NP
-    RESULT_COLS = [chr(c + i) for i in range(NP)]
-    c += NP
-    ISSUE_COL, COMMENT, NOTE, EDIT = chr(c), chr(c + 1), chr(c + 2), chr(c + 3)
-    LAST = EDIT
+             (EXEC_COL, "실행 주체", 11), (PRIO_COL, "Priority", 9)]
     tail = [(ISSUE_COL, "Issue No.", 11), (COMMENT, "Comment", 34),
-            (NOTE, "Note", 30), (EDIT, "Test Case Edit", 12)]
+            (NOTE, "Note", 30), (TCID_COL, "TC ID", 13), (VT_COL, "검증유형", 9)]
     ALL_COLS = [b[0] for b in base[1:]] + TOTAL_COLS + RESULT_COLS + [t[0] for t in tail]
 
     wb = Workbook()
@@ -301,78 +434,102 @@ def main():
     ws.title = "Test Case"
     ws.sheet_view.showGridLines = False
 
-    ws.merge_cells(f"B3:{LAST}3")
-    tt = ws["B3"]
-    tt.value = TITLE
-    tt.font = hfont(11)
-    tt.fill = HDR
-    tt.alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[3].height = 22
+    # ── 머리 영역 (2026-08-03 확정) ────────────────────────────
+    # A열과 1행은 값도 색도 두지 않는다 — 다른 어떤 규칙보다 우선하는 여백 규칙이다.
+    #   2행      제목 두 토막 (남색·흰 글씨·좌측 정렬) — 왼쪽=기준 골격 버전, 오른쪽={프로젝트} TC
+    #   3~4행    컬럼 헤더. Total Result·Result만 2단(3행 묶음명 / 4행 플랫폼)이고
+    #            나머지 열은 3:4를 세로 병합한다
+    #   5행~     환경 블록 (라벨은 Priority 열, 값은 Result 열)
+    # 회색 면(#BFBFBF)은 3행부터 데이터 직전까지 No~Priority·Issue No.~Note를 덮고,
+    # Total Result·Result 열은 같은 구간을 연녹색(#DEFFE4)으로 덮어 실행 입력 자리를 가른다.
+    HEAD_L = f"B2:{DEPTH_COLS[-1]}2"
+    HEAD_R = f"{PRE}2:{LAST}2"
+    for rng, text in ((HEAD_L, TREE_VERSION), (HEAD_R, f"{PROJECT} TC")):
+        ws.merge_cells(rng)
+        x = ws[rng.split(":")[0]]
+        x.value = text
+        x.font = hfont(11)
+        x.fill = HDR
+        x.alignment = Alignment(horizontal="left", vertical="center")
+    ws.row_dimensions[2].height = 22
 
     for col, label, _w in base[1:] + tail:
-        ws.merge_cells(f"{col}4:{col}5")
-        x = ws[f"{col}4"]
+        ws.merge_cells(f"{col}3:{col}4")
+        x = ws[f"{col}3"]
         x.value = label
         x.font = hfont()
-        x.fill = HDR
+        x.fill = HEADBAND
         x.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-    ws.merge_cells(f"{TOTAL_COLS[0]}4:{TOTAL_COLS[-1]}4")
-    ws[f"{TOTAL_COLS[0]}4"].value = "Total Result"
-    ws.merge_cells(f"{RESULT_COLS[0]}4:{RESULT_COLS[-1]}4")
-    ws[f"{RESULT_COLS[0]}4"].value = "Result"
+    ws.merge_cells(f"{TOTAL_COLS[0]}3:{TOTAL_COLS[-1]}3")
+    ws[f"{TOTAL_COLS[0]}3"].value = "Total Result"
+    ws.merge_cells(f"{RESULT_COLS[0]}3:{RESULT_COLS[-1]}3")
+    ws[f"{RESULT_COLS[0]}3"].value = "Result"
     for cc in (TOTAL_COLS[0], RESULT_COLS[0]):
-        ws[f"{cc}4"].font = hfont()
-        ws[f"{cc}4"].fill = HDR
-        ws[f"{cc}4"].alignment = Alignment(horizontal="center", vertical="center")
+        ws[f"{cc}3"].font = hfont(color="000000")
+        ws[f"{cc}3"].fill = ENVBAND
+        ws[f"{cc}3"].alignment = Alignment(horizontal="center", vertical="center")
     for col, lab in list(zip(TOTAL_COLS, PLATFORMS)) + list(zip(RESULT_COLS, PLATFORMS)):
-        x = ws[f"{col}5"]
+        x = ws[f"{col}4"]
         x.value = lab
-        x.font = hfont()
-        x.fill = SUB
+        x.font = hfont(color="000000")
+        x.fill = ENVBAND
         x.alignment = Alignment(horizontal="center", vertical="center")
-    for r in (4, 5):
+    for r in (3, 4):
         for col in ALL_COLS:
             ws[f"{col}{r}"].border = BOX
-    ws.row_dimensions[4].height = 18
-    ws.row_dimensions[5].height = 16
+    ws.row_dimensions[3].height = 18
+    ws.row_dimensions[4].height = 16
 
-    # 환경 블록 6~10행 — 라벨(Priority 열) + 병합 여백(Total 열) + 실행 채움 셀(Result 열)
+    # 환경 블록 — 라벨(Priority 열)과 값(Result 열). 라벨 왼쪽 열들은 행마다 가로 병합해
+    # 빈 칸이 격자로 쪼개져 보이지 않게 한다
     for i, (label, vals) in enumerate(ENV.items()):
-        r = 6 + i
-        lc = ws[f"{PRIO_COL}{r}"]
+        r = ENV_ROW + i
+        ws.merge_cells(f"B{r}:{PRIO_COL}{r}")
+        lc = ws[f"B{r}"]
         lc.value = label
-        lc.font = dfont(bold=True)
-        lc.fill = LABEL
-        lc.alignment = Alignment(horizontal="center", vertical="center")
-        lc.border = BOX
+        lc.font = hfont()
+        lc.alignment = Alignment(horizontal="right", vertical="center")
         ws.merge_cells(f"{TOTAL_COLS[0]}{r}:{TOTAL_COLS[-1]}{r}")
-        ws[f"{TOTAL_COLS[0]}{r}"].fill = LABEL
-        for col in TOTAL_COLS:
-            ws[f"{col}{r}"].border = BOX
         for col, v in zip(RESULT_COLS, list(vals) + [""] * NP):
             x = ws[f"{col}{r}"]
             x.value = v
-            x.font = dfont()
-            x.fill = INPUT
+            x.font = dfont(bold=True)
             x.alignment = Alignment(horizontal="center", vertical="center")
-            x.border = BOX
 
-    ws.merge_cells(f"{COMMENT}6:{EDIT}6")
-    ws[f"{COMMENT}6"] = ("※ 노란색 셀은 실행 단계에서 채워집니다 — 환경 정보 / Result / "
-                         "Issue No. / Comment   ·   수행 전 참고사항은 전부 Note에 있습니다")
-    ws[f"{COMMENT}6"].font = Font(name=FONT, size=8, color=NOTE_TEXT)
-    ws.merge_cells(f"{COMMENT}8:{EDIT}10")
-    ws[f"{COMMENT}8"] = ("※ 1-Depth는 기능 영역 기준. 실제 탐색으로 화면명이 확정되면 "
-                         "1-Depth에 화면명을 넣고 현재 계층을 한 칸씩 내림")
-    ws[f"{COMMENT}8"].font = Font(name=FONT, size=8, color=NOTE_TEXT)
-    ws[f"{COMMENT}8"].alignment = Alignment(wrap_text=True, vertical="top")
+    # 회색·연녹 면 — 3행부터 데이터 직전까지. 값이 있는 헤더 칸도 같은 면을 쓴다
+    for r in range(3, DATA_ROW):
+        for col in ALL_COLS:
+            x = ws[f"{col}{r}"]
+            x.fill = ENVBAND if col in TOTAL_COLS + RESULT_COLS else HEADBAND
+    for r in range(ENV_ROW, DATA_ROW):        # 환경 값 = 실행 채움 셀 — 띠 위에 노랑
+        for col in RESULT_COLS:
+            ws[f"{col}{r}"].fill = INPUT
+            ws[f"{col}{r}"].border = BOX
+    for col in ALL_COLS:                      # 헤더 두 줄만 테두리를 되살린다
+        for r in (3, 4):
+            ws[f"{col}{r}"].border = BOX
+
+    # 안내 문구 — 환경 블록 오른쪽(Issue No.~Note)의 빈 면을 한 덩어리로 묶어 넣는다.
+    # 시트를 처음 여는 사람이 색 규약을 여기서 읽습니다(정본은 명세서 시트).
+    ws.merge_cells(f"{ISSUE_COL}{ENV_ROW}:{LAST}{DATA_ROW - 1}")
+    nc = ws[f"{ISSUE_COL}{ENV_ROW}"]
+    nc.value = ("※ 노란색 셀은 실행 단계에서 채워집니다 — 환경 정보 / Result / Issue No. / "
+                "Comment\n※ 수행 전 참고사항은 전부 Note에 있습니다 — 설계 데이터는 노란 칸에 "
+                "두지 않습니다")
+    nc.font = Font(name=FONT, size=8, color="333333")
+    nc.alignment = Alignment(wrap_text=True, vertical="center", horizontal="left")
 
     # 데이터 행
     idx = {d: [] for d in ORDER}
     for t in TCS:
         idx.setdefault(t["path"][0], []).append(t)
 
-    row = 11
+    # 뎁스 색상 — 시트에 찍히는 순서(1-Depth 표시 순서 → 케이스 순)대로 모아 배정한다.
+    # 경로와 케이스명을 함께 넣는다 — 뎁스 열에 놓이는 값은 전부 같은 규칙을 받는다.
+    palette = depth_palette([(t["path"] + [t["case"]])[:ND]
+                             for d1 in ORDER for t in idx.get(d1, [])])
+
+    row = DATA_ROW
     for d1 in ORDER:
         for tc in idx.get(d1, []):
             tid, case, prio = tc["id"], tc["case"], tc["prio"]
@@ -384,9 +541,11 @@ def main():
             expl = split_expected(tc["exp"])
             aligned = len(expl) == len(stepl)
             first = row
+            blocks = []   # 스텝별 (시작행, 끝행) — 병합 범위 계산용
             for i, st in enumerate(stepl, start=1):
                 is_last = i == len(stepl)
-                ws[f"B{row}"] = "=ROW()-10"
+                bstart = row
+                ws[f"B{row}"] = f"=ROW()-{DATA_ROW - 1}"
                 for ci, v in enumerate(cells):
                     ws[f"{DEPTH_COLS[ci]}{row}"] = v
                 ws[f"{PRE}{row}"] = tc["pre"] if i == 1 else ""
@@ -394,63 +553,99 @@ def main():
                 ws[f"{STEP}{row}"] = to_step(st)
                 ws[f"{EXPECT}{row}"] = (expl[i - 1] if aligned
                                         else (expl[0] if (is_last and expl) else ""))
-                ws[f"{PRIO_COL}{row}"] = prio   # 행 단위 집계에 맞춰 스텝 행마다 반복
-                if i == 1:
-                    # 수행 전 참고사항은 전부 Note에 모은다 — Comment는 실행 중 기록용으로 비워 둔다
-                    p = PAR.get(tid, "-") or "-"
-                    meta = f"{tid} · {depth(tid)}단계 · 선행 {p} · 대상 {target}"
-                    w = vt_note.get(vt, vt)
-                    if note:
-                        w += " / " + note
-                    ws[f"{NOTE}{row}"] = f"{meta}\n{w}"
+                # 케이스 단위 값은 행마다 반복 — 행 단위 집계와 필터가 성립하려면 값이
+                # 모든 행에 있어야 합니다(병합하면 필터에 첫 행만 걸립니다)
+                ws[f"{PRIO_COL}{row}"] = prio
+                ws[f"{EXEC_COL}{row}"] = tc["exec"]
+                ws[f"{TCID_COL}{row}"] = tid
+                ws[f"{VT_COL}{row}"] = vt
+                if i == 1 and note:
+                    # Note는 사람이 읽을 안내만 담는다 — 함께 볼 것 / 수행 방법 / 조건 만드는 법.
+                    # 케이스 메타(TC ID·검증유형)는 2026-08-03 개정으로 각자 열을 갖는다
+                    ws[f"{NOTE}{row}"] = note
                 row += 1
-            for extra in ([] if aligned else expl[1:]):
-                ws[f"{TN_COL}{row}"] = len(stepl)
-                ws[f"{EXPECT}{row}"] = extra
-                row += 1
+                if is_last and not aligned:
+                    # 기대결과 추가 행 — No·Depth·Priority는 행마다 기재(행 단위 집계·필터의 전제),
+                    # TN·Test-Step은 비워 두고 아래에서 스텝 범위로 병합
+                    for extra in expl[1:]:
+                        ws[f"B{row}"] = f"=ROW()-{DATA_ROW - 1}"
+                        for ci, v in enumerate(cells):
+                            ws[f"{DEPTH_COLS[ci]}{row}"] = v
+                        ws[f"{EXPECT}{row}"] = extra
+                        ws[f"{PRIO_COL}{row}"] = prio
+                        ws[f"{EXEC_COL}{row}"] = tc["exec"]
+                        ws[f"{TCID_COL}{row}"] = tid
+                        ws[f"{VT_COL}{row}"] = vt
+                        row += 1
+                blocks.append((bstart, row - 1))
             for r in range(first, row):
                 for col in ALL_COLS:
                     x = ws[f"{col}{r}"]
                     x.border = BOX
                     x.font = dfont()
-                    center = (col in ("B", TN_COL, PRIO_COL)
+                    center = (col in ("B", TN_COL, PRIO_COL, EXEC_COL, TCID_COL, VT_COL)
                               or col in TOTAL_COLS or col in RESULT_COLS)
                     x.alignment = Alignment(horizontal="center" if center else "left",
                                             vertical="center", wrap_text=True)
                     x.fill = INPUT if col in RESULT_COLS + [ISSUE_COL, COMMENT] else WHITE
+                # 뎁스 채움 — 값이 있는 칸만(경로·케이스명 모두). 빈칸은 흰 배경
+                for ci in range(ND):
+                    x = ws[f"{DEPTH_COLS[ci]}{r}"]
+                    if x.value:
+                        x.fill = palette.get(x.value, WHITE)
                 ws[f"C{r}"].font = dfont(bold=True)
                 ws[f"{TN_COL}{r}"].font = dfont(bold=True)
                 ws.row_dimensions[r].height = 30
+            # 셀 병합 (2026-08-03 확정) — 스텝 범위: TN·Test-Step은 한 동작 = 한 덩어리로,
+            # TN 1 스텝의 Pre-Condition은 같은 조건이 걸리는 범위로 묶는다 (케이스 전체 병합 금지)
+            for bi, (b0, b1) in enumerate(blocks):
+                if b1 > b0:
+                    ws.merge_cells(f"{TN_COL}{b0}:{TN_COL}{b1}")
+                    ws.merge_cells(f"{STEP}{b0}:{STEP}{b1}")
+                    ws.merge_cells(f"{NOTE}{b0}:{NOTE}{b1}")
+                    if bi == 0:
+                        ws.merge_cells(f"{PRE}{b0}:{PRE}{b1}")
+            # Total Result — 병합하지 않고 데이터 한 행씩 세운다(2026-08-03 확정).
+            # 같은 플랫폼에 단말이 여럿일 때 그 행의 단말 결과를 하나로 요약하는 자리이며,
+            # 스텝 여러 개를 한 칸으로 묶으면 어느 행의 판정인지 읽히지 않습니다.
             for tcol, rcol in zip(TOTAL_COLS, RESULT_COLS):
-                cell = ws[f"{tcol}{first}"]
-                rng = f"{rcol}{first}:{rcol}{row - 1}"
-                cell.value = (f'=IF(COUNTIF({rng},"Fail")>0,"Fail",'
-                              f'IF(COUNTIF({rng},"Blocked")>0,"Blocked",'
-                              f'IF(COUNTIF({rng},"NI")>0,"NI",'
-                              f'IF(COUNTIF({rng},"Pass")>0,"Pass",""))))')
-                cell.font = dfont(bold=True)
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-                if row - 1 > first:
-                    ws.merge_cells(f"{tcol}{first}:{tcol}{row - 1}")
+                for r in range(first, row):
+                    cell = ws[f"{tcol}{r}"]
+                    rng = f"{rcol}{r}:{rcol}{r}"
+                    cell.value = (f'=IF(COUNTIF({rng},"Fail")>0,"Fail",'
+                                  f'IF(COUNTIF({rng},"Blocked")>0,"Blocked",'
+                                  f'IF(COUNTIF({rng},"NI")>0,"NI",'
+                                  f'IF(COUNTIF({rng},"Pass")>0,"Pass",""))))')
+                    cell.font = dfont(bold=True)
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
 
     last_row = row - 1
     dv = DataValidation(type="list", formula1='"Pass,Fail,NI,Blocked"', allow_blank=True)
     ws.add_data_validation(dv)
-    dv.add(f"{RESULT_COLS[0]}11:{RESULT_COLS[-1]}500")
+    dv.add(f"{RESULT_COLS[0]}{DATA_ROW}:{RESULT_COLS[-1]}500")
     dvp = DataValidation(type="list", formula1='"High,Medium,Low"', allow_blank=True)
     ws.add_data_validation(dvp)
-    dvp.add(f"{PRIO_COL}11:{PRIO_COL}500")
+    dvp.add(f"{PRIO_COL}{DATA_ROW}:{PRIO_COL}500")
+    for col, vals in ((EXEC_COL, EXEC_TYPES), (VT_COL, list(VT_NOTE))):
+        d = DataValidation(type="list", formula1='"%s"' % ",".join(vals), allow_blank=True)
+        ws.add_data_validation(d)
+        d.add(f"{col}{DATA_ROW}:{col}500")
 
     # 상태 배색 — 실행 결과(Result)와 케이스 판정(Total Result), 우선순위
-    paint_status(ws, f"{RESULT_COLS[0]}11:{RESULT_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
-    paint_status(ws, f"{TOTAL_COLS[0]}11:{TOTAL_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
-    paint_status(ws, f"{PRIO_COL}11:{PRIO_COL}500", ["High", "Medium", "Low"])
+    paint_status(ws, f"{RESULT_COLS[0]}{DATA_ROW}:{RESULT_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
+    paint_status(ws, f"{TOTAL_COLS[0]}{DATA_ROW}:{TOTAL_COLS[-1]}500", ["Pass", "Fail", "NI", "Blocked"])
+    paint_status(ws, f"{PRIO_COL}{DATA_ROW}:{PRIO_COL}500", ["High", "Medium", "Low"])
 
     for col, _l, w in base + tail:
         ws.column_dimensions[col].width = w
     for col in TOTAL_COLS + RESULT_COLS:
         ws.column_dimensions[col].width = 7
-    unfreeze(ws)   # 시트별 옵션: Test Case는 틀 고정 없음
+
+    ws.auto_filter.ref = f"B4:{LAST}{max(last_row, DATA_ROW)}"
+
+    # 틀 고정 — 데이터 첫 행 위. 스크롤해도 제목·헤더·환경 블록이 남는다.
+    # A열·1행은 값도 색도 없는 여백이므로 고정 대상에서 뺀다(B{DATA_ROW} 기준 고정).
+    ws.freeze_panes = f"A{DATA_ROW}"
 
     # ══ Summary ═════════════════════════════════════════════
     s2 = wb.create_sheet("Summary")
@@ -505,15 +700,15 @@ def main():
         a.fill = WHITE
         tcr = "'Test Case'!"
         # 행 수 기준 집계 — TC 수와 결과 집계의 단위를 스텝 행으로 맞춘다
-        f = {3: f'=COUNTIF({tcr}$C$11:$C$500,$B{r})'}
+        f = {3: f'=COUNTIF({tcr}$C${DATA_ROW}:$C$500,$B{r})'}
         for j, pr in enumerate(["High", "Medium", "Low"]):
-            f[4 + j] = (f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},'
-                        f'{tcr}${PRIO_COL}$11:${PRIO_COL}$500,"{pr}")')
+            f[4 + j] = (f'=COUNTIFS({tcr}$C${DATA_ROW}:$C$500,$B{r},'
+                        f'{tcr}${PRIO_COL}${DATA_ROW}:${PRIO_COL}$500,"{pr}")')
         for pi, rcol in enumerate(RESULT_COLS):
             c0 = 7 + pi * 4
             for j, st in enumerate(["Pass", "Fail", "Blocked"]):
-                f[c0 + j] = (f'=COUNTIFS({tcr}$C$11:$C$500,$B{r},'
-                             f'{tcr}${rcol}$11:${rcol}$500,"{st}")')
+                f[c0 + j] = (f'=COUNTIFS({tcr}$C${DATA_ROW}:$C$500,$B{r},'
+                             f'{tcr}${rcol}${DATA_ROW}:${rcol}$500,"{st}")')
             pcol, fcol = get_column_letter(c0), get_column_letter(c0 + 1)
             f[c0 + 3] = f'=IF({pcol}{r}+{fcol}{r}=0,"",{pcol}{r}/({pcol}{r}+{fcol}{r}))'
         for ci, formula in f.items():
@@ -666,19 +861,29 @@ def build_spec_sheet(wb):
         ("gap",),
         ("section", "2. 컬럼 정의 (Test Case)"),
         H("컬럼", "내용", "채우는 규칙"),
-        R("No", "행 번호", "자동(ROW()-10). 직접 입력하지 않습니다"),
-        R("1~7-Depth", "기능 계층", "스텝 행마다 반복. 의미 있는 깊이까지만 쓰고 나머지는 빈칸"),
+        R("No", "행 번호", "자동 수식(ROW() 기준). 직접 입력하지 않습니다"),
+        R("1~7-Depth", "기능 계층", "행마다 반복(기대결과 추가 행 포함 — 집계·필터의 전제). "
+          "의미 있는 깊이까지만 쓰고 나머지는 빈칸. 병합하지 않습니다"),
         R("Pre-Condition", "사전조건",
           "TN 1행에 케이스 진입 조건. 중간 스텝에 앞 스텝이 만들지 못하는 새 상태(시간 경과·"
-          "외부 변화 등)가 필요하면 그 행에도 적습니다 — 앞 스텝의 결과로 성립한 상태는 제외"),
-        R("TN", "스텝 번호", "케이스마다 1부터. 새 케이스가 시작되면 1로 복귀"),
-        R("Test-Step", "수행 동작", "「~한다」 체"),
+          "외부 변화 등)가 필요하면 그 행에도 적습니다 — 앞 스텝의 결과로 성립한 상태는 제외. "
+          "같은 조건이 걸리는 스텝 행 범위는 세로 병합하되 케이스 전체 병합은 금지"),
+        R("TN", "스텝 번호", "케이스마다 1부터. 새 케이스가 시작되면 1로 복귀. 한 스텝의 "
+          "기대결과가 여러 행이면(TN 값 무관) Test-Step과 함께 그 범위를 세로 병합합니다 — "
+          "반복 기재하면 독립 동작 여러 개로 오독됩니다"),
+        R("Test-Step", "수행 동작", "「~한다」 체. TN과 같은 범위로 세로 병합"),
         R("Expected-Result", "기대 결과",
-          "「~된다」 체. 판정 가능한 문장 — 임계·합격선·시도 횟수는 문장 안에 숫자로"),
+          "「~된다」 체. 판정 가능한 문장 — 임계·합격선·시도 횟수는 문장 안에 숫자로. "
+          "한 행 = 한 판정이므로 병합하지 않습니다"),
+        R("실행 주체", "누가 수행하는가",
+          "행마다 반복(드롭다운 3종). 자동화 전용 = 사람이 화면만 봐서 판정 불가 / "
+          "사람 전용 = 자동화가 판정 기준을 못 세움 / 공통 = 기본값. 반복 횟수는 판정 "
+          "근거가 아니며 「사람이 1회 봐도 의미가 있는가」로 갈립니다"),
         R("Priority", "우선순위",
-          "스텝 행마다 반복. High/Medium/Low — 케이스의 속성이지만 Summary가 행 단위로 "
+          "행마다 반복. High/Medium/Low — 케이스의 속성이지만 Summary가 행 단위로 "
           "집계하므로 행마다 값을 둡니다"),
-        R("Total Result", "케이스 판정", "수식 열. 케이스 행 범위를 세로 병합하며 직접 입력하지 않습니다"),
+        R("Total Result", "행 판정", "수식 열. 병합하지 않고 데이터 한 행씩 세웁니다 — "
+          "같은 플랫폼에 단말이 여럿일 때 그 행의 단말 결과를 요약합니다. 직접 입력하지 않습니다"),
         R("Result", "스텝 실행 결과", "드롭다운 4종(아래 상태값 정의). 실행 단계에서 채움 — 노란 셀"),
         R("Issue No.", "관련 이슈",
           "해당 TC를 수행하는 과정에서 이슈가 발생하면, 먼저 이슈 관리 시트에 이슈를 등록하고 "
@@ -686,16 +891,23 @@ def build_spec_sheet(wb):
         R("Comment", "수행 중 기록",
           "TC를 수행하다 생긴 문제·관찰을 실행 단계에서 적습니다 — 노란 셀. 설계 시점에는 비어 있습니다"),
         R("Note", "수행 전 참고사항",
-          "TC를 수행하기 전에 알아야 할 것을 전부 모읍니다 — 케이스 메타(TC ID · 실행 단계 · "
-          "선행 TC · 대상)와 검증유형·판정 규칙·주의사항"),
-        R("Test Case Edit", "편집 이력", "자유 기재"),
+          "사람이 읽을 안내만 담습니다 — ①함께 볼 것 ②수행 방법 ③조건 만드는 법. "
+          "케이스 메타는 2026-08-03 개정으로 TC ID·검증유형 열이 따로 갖습니다. 스텝 범위 세로 병합"),
+        R("TC ID", "조인 키",
+          "행마다 반복. 자동화 케이스명·추적 매트릭스·이슈 연결이 참조합니다. 사람의 실행 "
+          "동선에서 빼려고 Note 우측 참조 블록에 둡니다"),
+        R("검증유형", "판정 방식",
+          "행마다 반복(드롭다운 4종). 반복 횟수는 시트에 적지 않습니다 — 수동 실행자가 "
+          "자기에게 내려진 지시로 오독하기 때문입니다. 반복은 자동화가 수행하며, 사람은 "
+          "어떤 유형이든 1회입니다. 확률적·루브릭을 사람이 1회 수행했다면 결과는 Pass가 "
+          "아니라 관찰 기록이고, 판정은 자동화 반복이나 채점이 담당합니다"),
         ("gap",),
         ("section", "3. 상태값 정의"),
         H("상태", "정의", "Pass율 분모"),
         R("Pass", "성공", "포함"),
         R("Fail", "실패", "포함"),
         R("NI", "미구현이거나 스펙에 없어 실행 대상이 아님 (Not Implemented)", "제외"),
-        R("Blocked", "기능은 구현됐으나 선행 TC의 Fail로 확인 불가", "제외"),
+        R("Blocked", "기능은 구현됐으나 확인할 수 없는 상태 — 선행 케이스 Fail·환경 결함·데이터 준비 불가 등. 사유는 실행 과정에서 Comment에 적습니다", "제외"),
         ("note", "Pass율 = Pass ÷ (Pass + Fail). NI·Blocked를 분모에 넣지 않는 이유는 결함 "
                  "1건이 후속 Blocked 수만큼 중복 계상되는 것을 막기 위해서입니다."),
         ("gap",),
@@ -706,14 +918,16 @@ def build_spec_sheet(wb):
           'IF(COUNTIF(범위,"Fail")>0,"Fail",IF(COUNTIF(범위,"Blocked")>0,"Blocked",'
           'IF(COUNTIF(범위,"NI")>0,"NI",IF(COUNTIF(범위,"Pass")>0,"Pass",""))))'
           ' — 셀에는 앞에 = 를 붙여 사용합니다. 아무것도 실행되지 않은 케이스는 빈칸입니다'),
-        R("병합", "케이스의 스텝 행 범위를 플랫폼 열마다 세로 병합"),
+        R("병합", "하지 않습니다 — 데이터 한 행씩 세웁니다. 같은 플랫폼에 단말이 여럿일 때 그 행의 단말 결과를 하나로 요약하는 자리입니다"),
         ("gap",),
         ("section", "5. TC ID 체계"),
         H("항목", "규칙"),
         R("형식", "TC-{영역코드}-{번호 3자리} — 예: TC-ENT-001"),
         R("번호", "영역 안에서만 증가합니다. 다른 영역에 케이스가 추가돼도 기존 ID가 흔들리지 않습니다"),
         R("영역코드", "기능 트리 1-Depth당 하나. 매핑표는 프로젝트 시트에서 정의합니다 (예: 앱 진입=ENT)"),
-        R("기재 위치", "Comment의 첫 토큰. 자동화 케이스명·추적 매트릭스·이슈 연결이 이 ID를 참조합니다"),
+        R("기재 위치", "Note의 첫 토큰(케이스 메타의 맨 앞). 자동화 케이스명·추적 매트릭스·"
+          "이슈 연결이 이 ID를 참조합니다. Comment는 설계 시점에 비어 있는 실행 기록 칸이므로 "
+          "설계 데이터를 두지 않습니다"),
         ("gap",),
         ("section", "6. 플랫폼 열 규칙"),
         H("항목", "규칙"),
@@ -724,8 +938,18 @@ def build_spec_sheet(wb):
         ("section", "7. 입력 규칙"),
         H("항목", "규칙"),
         R("실행 채움 셀(노랑)", "설계 시점에는 비어 있고 실행 단계에서 채워지는 칸 — 환경 블록·"
-                        "Result·Issue No. 채우는 주체가 사람이든 자동화든 설계자는 건드리지 않습니다"),
+                        "Result·Issue No.·Comment. 채우는 주체가 사람이든 자동화든 설계자는 "
+                        "건드리지 않습니다. 설계 데이터는 노란 칸에 두지 않습니다"),
         R("설계 셀", "Depth·절차·기대결과는 실행 중 수정하지 않습니다"),
+        R("틀 고정", "데이터 첫 행 위. 스크롤해도 2행 제목·헤더·환경 블록이 남으며, "
+                  "그 구간은 회색(#BFBFBF)과 Total/Result 띠(#F9D7BE)로 데이터와 갈라 둡니다. "
+                  "A열과 1행은 값도 색도 두지 않습니다"),
+        R("자동 필터", "헤더 행에 걸어 둡니다. 실행 주체·검증유형·Priority처럼 케이스 단위 값으로 "
+                    "거르면 한 케이스의 행이 통째로 남거나 빠져 스텝 범위 병합이 깨지지 않습니다. "
+                    "Result 같은 행 단위 값으로 거르면 케이스 중간이 잘려 병합이 어색해집니다"),
+        R("뎁스 채움 색", "뎁스 열의 값 있는 셀만 텍스트별 고유색으로 채웁니다 — 같은 텍스트는 "
+                     "같은 색, 인접한 다른 텍스트와는 색상환에서 멀어지게 배정. 케이스명 칸과 "
+                     "빈칸은 흰 배경. 규칙 정본은 xlsx-design-guide.md §5"),
         R("기준 골격 버전", "Summary C4에 생성 스크립트가 자동 기입합니다 — 형식 {프로젝트}-tree-v{X.Y}. "
                       "TC 설계 입력(tc-input json)의 값을 그대로 쓰므로 사람이 옮겨 적지 않습니다"),
         ("gap",),
