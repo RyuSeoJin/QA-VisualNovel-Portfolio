@@ -513,7 +513,9 @@ def main():
         ws.merge_cells(f"{col}3:{col}4")
         x = ws[f"{col}3"]
         x.value = label
-        x.font = hfont()
+        # 머리 영역은 회색 면(BFBFBF)이라 헤더 기본 글자색(밝은 회색)이 묻힌다.
+        # 남색 면을 쓰는 2행 제목만 밝은 글자를 쓰고, 3행 아래는 검정으로 읽는다
+        x.font = hfont(color="000000")
         x.fill = HEADBAND
         x.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     ws.merge_cells(f"{TOTAL_COLS[0]}3:{TOTAL_COLS[-1]}3")
@@ -543,7 +545,7 @@ def main():
         ws.merge_cells(f"B{r}:{PRIO_COL}{r}")
         lc = ws[f"B{r}"]
         lc.value = label
-        lc.font = hfont()
+        lc.font = hfont(color="000000")        # 위와 같은 이유 — 회색 면 위의 라벨
         lc.alignment = Alignment(horizontal="right", vertical="center")
         ws.merge_cells(f"{TOTAL_COLS[0]}{r}:{TOTAL_COLS[-1]}{r}")
         for col, v in zip(RESULT_COLS, list(vals) + [""] * NP):
