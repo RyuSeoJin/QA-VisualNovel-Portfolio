@@ -1,0 +1,161 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>qa-lab-miyonchat — 프로젝트 허브</title><style>/* ============================================================
+   design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
+   ------------------------------------------------------------
+   CHANGELOG
+   v1.0 (2026-07-31) 최초 수립 — rules/html-report-guide.md의
+     다크 테마·인디고 포인트 체계를 마스터로 승격.
+     색 토큰 / 타이포 / 레이아웃 / 카드·표·칩·콜아웃·스탯 타일 /
+     상태·우선순위·검증유형 시맨틱 칩 / 트리·파이프라인 컴포넌트.
+   ------------------------------------------------------------
+   규칙: 원색 hex를 본문에 흩뿌리지 않는다 — 역할 변수로만 참조.
+   갱신은 Case B/C 승인 후에만, 기존 토큰 제거는 별도 승인.
+   ============================================================ */
+
+/* ---------- 1. 색 토큰 ---------- */
+:root{
+  --page:#0d0d0d;        /* 페이지 바탕 */
+  --surface:#16161a;     /* 카드·표 표면 */
+  --surface-2:#1c1c21;   /* 표면 위 한 단 (표 헤더·코드) */
+  --ink:#f4f4f5;         /* 본문 */
+  --ink-2:#c3c2b7;       /* 보조 텍스트 */
+  --muted:#898781;       /* 축·라벨·각주 */
+  --grid:#2c2c2a;        /* 표 구분선 */
+  --axis:#383835;        /* 축·경계 */
+  --hair:rgba(255,255,255,.10); /* 헤어라인 테두리 */
+  --accent:#818cf8;      /* 인디고 포인트 (제목 마커·링크·강조) */
+  --accent-dim:#4f46e5;  /* 눌린 상태·채움 */
+
+  /* 차트 카테고리 (고정 순서 — 필터로 빠져도 재배정 금지) */
+  --cat-1:#3987e5;  /* 파랑 */
+  --cat-2:#d95926;  /* 주황 */
+  --cat-3:#199e70;  /* 청록 */
+  --cat-4:#c98500;  /* 노랑 */
+
+  /* 상태 (지원 표기 O/X/△/? · 실행 결과) — 카테고리 색과 분리 */
+  --ok:#34d399;      /* O · Pass */
+  --no:#f87171;      /* X · Fail */
+  --part:#fbbf24;    /* △ · Blocked */
+  --unk:#9ca3af;     /* ? · N/A · Skip */
+  --ok-bg:rgba(52,211,153,.14);
+  --no-bg:rgba(248,113,113,.14);
+  --part-bg:rgba(251,191,36,.14);
+  --unk-bg:rgba(156,163,175,.14);
+
+  /* 우선순위 */
+  --pri-high:#f87171;
+  --pri-mid:#fbbf24;
+  --pri-low:#9ca3af;
+
+  /* 검증유형 */
+  --vt-det:#3987e5;   /* 결정적 */
+  --vt-prob:#c98500;  /* 확률적 */
+  --vt-rub:#199e70;   /* 루브릭 */
+  --vt-ban:#e24b4a;   /* 금칙 */
+}
+
+/* ---------- 2. 베이스·타이포 ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--page);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:26px;line-height:1.35;margin:0 0 8px}
+h2{font-size:19px;margin:48px 0 12px;padding-left:12px;border-left:3px solid var(--accent)}
+h3{font-size:16px;margin:28px 0 8px;color:var(--ink)}
+p{margin:8px 0;color:var(--ink-2)}
+strong{color:var(--ink)}
+small,.foot{color:var(--muted);font-size:12.5px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:var(--surface-2);border:1px solid var(--grid);border-radius:4px;
+  padding:1px 6px;font-size:13px;font-family:ui-monospace,Consolas,monospace;color:var(--ink)}
+pre{background:var(--surface-2);border:1px solid var(--grid);border-radius:8px;
+  padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.6}
+pre code{background:none;border:none;padding:0}
+hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
+
+/* ---------- 3. 헤더·메타 ---------- */
+.doc-header{padding:8px 0 20px;border-bottom:1px solid var(--grid);margin-bottom:8px}
+.doc-lead{color:var(--ink-2);max-width:72ch}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{display:inline-block;background:var(--surface);border:1px solid var(--hair);
+  border-radius:999px;padding:3px 12px;font-size:12.5px;color:var(--ink-2)}
+.badge b{color:var(--ink);font-weight:600}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px}
+
+/* ---------- 4. 스탯 타일 ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+.stat{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:16px 18px}
+.stat .num{font-size:26px;font-weight:700;color:var(--ink);line-height:1.2}
+.stat .num em{font-style:normal;color:var(--accent)}
+.stat .lbl{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* ---------- 5. 카드 ---------- */
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:20px;margin:14px 0}
+.card h3{margin-top:0}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card-grid .card{margin:0}
+
+/* ---------- 6. 표 ---------- */
+.tbl-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:10px;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+thead th{background:var(--surface-2);color:var(--ink-2);text-align:left;
+  padding:9px 12px;position:sticky;top:0;white-space:nowrap;font-weight:600}
+tbody td{padding:8px 12px;border-top:1px solid var(--grid);color:var(--ink-2);vertical-align:top}
+tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- 7. 칩 (상태·우선순위·검증유형) ---------- */
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-size:12px;
+  font-weight:600;color:var(--ink);border:1px solid transparent;white-space:nowrap}
+.chip-ok{background:var(--ok-bg);border-color:var(--ok)}
+.chip-no{background:var(--no-bg);border-color:var(--no)}
+.chip-part{background:var(--part-bg);border-color:var(--part)}
+.chip-unk{background:var(--unk-bg);border-color:var(--unk)}
+.chip-high{background:var(--no-bg);border-color:var(--pri-high)}
+.chip-mid{background:var(--part-bg);border-color:var(--pri-mid)}
+.chip-low{background:var(--unk-bg);border-color:var(--pri-low)}
+.chip-det{background:rgba(57,135,229,.14);border-color:var(--vt-det)}
+.chip-prob{background:rgba(201,133,0,.14);border-color:var(--vt-prob)}
+.chip-rub{background:rgba(25,158,112,.14);border-color:var(--vt-rub)}
+.chip-ban{background:rgba(226,75,74,.14);border-color:var(--vt-ban)}
+
+/* ---------- 8. 필터 버튼 ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.fbtn{background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  color:var(--ink-2);padding:5px 14px;font-size:13px;cursor:pointer}
+.fbtn:hover{border-color:var(--accent)}
+.fbtn.on{background:var(--accent-dim);border-color:var(--accent-dim);color:var(--ink)}
+
+/* ---------- 9. 콜아웃 ---------- */
+.callout{border-left:3px solid var(--accent);background:var(--surface);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--ink-2)}
+.callout.warn{border-left-color:var(--part);background:rgba(251,191,36,.06)}
+.callout.danger{border-left-color:var(--no);background:rgba(248,113,113,.06)}
+
+/* ---------- 10. 기능 트리 ---------- */
+.tree{list-style:none;padding-left:0;margin:12px 0;font-size:13.5px}
+.tree ul{list-style:none;padding-left:22px;border-left:1px solid var(--grid);margin:2px 0 2px 7px}
+.tree li{padding:3px 0;color:var(--ink-2)}
+.tree .node{color:var(--ink)}
+.tree .depth-tag{color:var(--muted);font-size:11.5px;margin-right:6px;
+  font-family:ui-monospace,Consolas,monospace}
+.tree .note{color:var(--muted);font-size:12px;margin-left:8px}
+
+/* ---------- 11. 파이프라인·단계 ---------- */
+.steps{display:flex;flex-direction:column;gap:10px;margin:16px 0;counter-reset:step}
+.step{display:flex;gap:14px;background:var(--surface);border:1px solid var(--hair);
+  border-radius:10px;padding:14px 16px}
+.step::before{counter-increment:step;content:counter(step);flex:0 0 26px;height:26px;
+  border-radius:50%;background:var(--accent-dim);color:var(--ink);font-size:13px;
+  font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .body{color:var(--ink-2)}
+.step .body b{color:var(--ink)}
+
+/* ---------- 12. footer ---------- */
+.doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
+  color:var(--muted);font-size:12.5px}
+</style></head><body><div class="wrap"><div class="doc-header"><h1>qa-lab-miyonchat — 프로젝트 허브</h1><p class="doc-lead">미연시 AI 챗 서비스를 역분석해 <strong>기능 골격</strong>을 세우고, 그 골격을 검증할 <strong>SUT</strong>를 직접 만든 뒤, TC를 설계해 자동화하고 <strong>결함을 일부러 심어</strong> 탐지력까지 확인한 프로젝트입니다. 이 문서는 그 단계와 산출물이 어디 있는지를 한 장에 모은 지도입니다.</p><div class="meta-row"><span class="badge">SUT <b>PC웹_Ver1.0_Dev_RC25</b></span><span class="badge">기능 골격 <b>v1.14</b></span><span class="badge">TC <b>153건</b></span><span class="badge">자동화 <b>157건</b></span><span class="badge">결함 주입 <b>4종</b></span></div><div class="toc"><a href="#pipe">파이프라인</a><a href="#map">문서 지도</a><a href="#canon">정본과 파생물</a><a href="#rules">이 프로젝트가 세운 규칙</a></div></div><div class="stats"><div class="stat"><div class="num">86</div><div class="lbl">기능 단위</div></div><div class="stat"><div class="num">258</div><div class="lbl">화면 요소</div></div><div class="stat"><div class="num">153</div><div class="lbl">테스트 케이스</div></div><div class="stat"><div class="num">157/157</div><div class="lbl">자동화 통과</div></div><div class="stat"><div class="num">4</div><div class="lbl">주입 결함</div></div><div class="stat"><div class="num">3</div><div class="lbl">검출 이슈</div></div></div><h2 id="pipe">파이프라인</h2><p>앞 단계의 산출물이 뒤 단계의 <strong>입력이자 기대값의 출처</strong>입니다. 건너뛰면 뒤 단계가 근거 없이 만들어집니다 — 예를 들어 골격 없이 TC를 쓰면 「무엇을 다 봤는가」를 대조할 기준이 사라집니다.</p><div class="steps"><div class="step"><div class="body"><b>역분석</b> — 출시된 미연시 AI 서비스 셋을 분해해 행동 인벤토리와 공통 트리를 뽑습니다. 확인 못 한 값은 추측으로 채우지 않고 실측 대상으로 남깁니다. <a href="analysis/">analysis/</a></div></div><div class="step"><div class="body"><b>기능 골격</b> — 공통 기능을 Depth 계층으로 정규화하고 노드마다 검증유형을 판정합니다. <strong>TC 기대값의 출처는 여기와 design 명세뿐</strong>입니다. <a href="spec/qa-lab-miyonchat-feature-tree.md">spec/qa-lab-miyonchat-feature-tree.md</a></div></div><div class="step"><div class="body"><b>design 명세</b> — 골격이 「무엇을」이라면 여기는 「얼마나·어떤 규칙으로」입니다. 상한값·요율·임계·합격선이 확정됩니다. <a href="spec/design/">spec/design/</a></div></div><div class="step"><div class="body"><b>SUT 제작</b> — 검증 대상을 직접 만듭니다. 테스트 인터페이스 넷(testid · 상태 API · 실행 조건 파라미터 · 데이터 주입)을 함께 설계합니다. <a href="sut/">sut/</a></div></div><div class="step"><div class="body"><b>TC 설계</b> — 기능 단위를 정상·경계·예외·우회로 전개합니다. 케이스마다 무엇을 덮는지를 좌표로 적어 두어 커버리지를 기계가 대조합니다. <a href="test-case/">test-case/</a></div></div><div class="step"><div class="body"><b>자동화</b> — 케이스명이 곧 TC ID입니다 — 리포트만 보고 시트를 찾을 수 있습니다. <a href="automation/tests/">automation/tests/</a></div></div><div class="step"><div class="body"><b>결함 주입</b> — 일부러 만든 고장을 하나씩 켜고 전체를 다시 돌려 <strong>담당 TC만 깨지는지</strong> 봅니다. 커버리지가 「빠짐없이 봤다」라면 이쪽은 「봤을 때 알아챈다」입니다. <a href="spec/sut-design/qa-lab-miyonchat-fault-injection.md">spec/sut-design/qa-lab-miyonchat-fault-injection.md</a></div></div><div class="step"><div class="body"><b>리포트</b> — 검증유형별 집계를 분리하고, 매트릭스와 「SUT 한계와 검증 범위」를 싣습니다. <a href="automation/report/qa-lab-miyonchat-report.html">automation/report/qa-lab-miyonchat-report.html</a></div></div></div><h2 id="map">문서 지도</h2><p>작업을 이어받을 때는 <strong>change-log와 remaining-work를 먼저</strong> 읽습니다. 그 둘이 「지금 어디까지 왔고 다음이 무엇인가」의 정본입니다.</p><div class="tbl-scroll"><table><thead><tr><th>폴더</th><th>무엇이 있나</th><th>지위</th></tr></thead><tbody><tr><td><code>analysis/</code></td><td>역분석 조사 기록 — 행동 인벤토리 3종 + 공통 트리</td><td>조사 자료 (TC 기대값 출처 아님)</td></tr><tr><td><code>reference/</code></td><td>조사에서 채택한 기능 목록</td><td>판단 기록</td></tr><tr><td><code>spec/</code></td><td>기능 골격 · design 명세 · SUT 설계(청사진·결함 주입·mock·세이브 스키마)</td><td><strong>정본</strong></td></tr><tr><td><code>spec/rationale/</code></td><td>왜 이렇게 정했나 — 추가·SUT 설계의 근거</td><td>근거 기록 (기대값 출처 아님)</td></tr><tr><td><code>spec/archive/</code></td><td>골격 변경 이력</td><td>기본 참조 금지 — 행방을 물을 때만</td></tr><tr><td><code>sut/</code></td><td>검증 대상 (단일 HTML + JS)</td><td><strong>구현</strong></td></tr><tr><td><code>test-case/</code></td><td>TC 입력 · 제외 사유 · 이슈 · xlsx</td><td><strong>정본</strong>은 json, xlsx는 파생</td></tr><tr><td><code>automation/</code></td><td>테스트 · 매트릭스 기대표 · 실행 결과 · 리포트</td><td>리포트·매트릭스 결과는 파생</td></tr></tbody></table></div><h2 id="canon">정본과 파생물</h2><div class="callout warn"><strong>파생물은 손으로 고치지 않습니다.</strong> 고치면 정본과 갈라지는데 아무 에러도 나지 않아 오래 발견되지 않습니다. 정본을 고치고 다시 만드는 것이 유일한 경로이며, CI가 「커밋본이 최신인가」를 확인합니다.</div><div class="tbl-scroll"><table><thead><tr><th>파생물</th><th>정본</th><th>만드는 도구</th></tr></thead><tbody><tr><td><code>qa-lab-miyonchat-feature-tree.html</code></td><td><code>qa-lab-miyonchat-feature-tree.md</code></td><td><code>gen_feature_tree_html.py</code></td></tr><tr><td><code>qa-lab-miyonchat-tc-v1.0.xlsx</code></td><td><code>qa-lab-miyonchat-tc-input-v1.0.json</code></td><td><code>build_tc_template_xlsx.py</code></td></tr><tr><td><code>result/matrix/fault-matrix.md</code></td><td><code>테스트 실행 + qa-lab-miyonchat-fault-matrix.json</code></td><td><code>run_fault_matrix.py</code></td></tr><tr><td><code>report/qa-lab-miyonchat-report.html</code></td><td><code>위의 정본 전부</code></td><td><code>gen_qa_report_html.py</code></td></tr><tr><td><code>index.html (이 문서)</code></td><td><code>위의 정본 전부</code></td><td><code>gen_project_hub_html.py</code></td></tr></tbody></table></div><h3>현재 규모</h3><div class="tbl-scroll"><table><thead><tr><th>축</th><th class="num">값</th><th>뜻</th></tr></thead><tbody><tr><td>기능 단위</td><td class="num">86</td><td>골격에서 구현 범위로 확정된 검증 단위</td></tr><tr><td>화면 요소</td><td class="num">258</td><td>청사진에 등재된 조작 가능한 요소(testid)</td></tr><tr><td>TC</td><td class="num">153</td><td>결정적 111 · 금칙 39 · 확률적 2 · 루브릭 1</td></tr><tr><td>사람 전용 TC</td><td class="num">1</td><td>자동화가 판정 기준을 세울 수 없는 것 — 루브릭 채점</td></tr><tr><td>검증 제외</td><td class="num">7</td><td>누락이 아니라 판단. 사유와 근거를 기계가 확인</td></tr><tr><td>검출 이슈</td><td class="num">3</td><td>TC를 수행하다 나온 것</td></tr></tbody></table></div><h2 id="rules">이 프로젝트가 세운 규칙</h2><p>진행하다 막힌 자리에서 나온 것들입니다. 프로젝트 안에 묻어 두면 다음 프로젝트가 같은 자리에서 다시 막히므로, 워크스페이스 규칙(<code>project-process/rules/</code>)으로 올렸습니다.</p><div class="card-grid"><div class="card"><h3>TN은 연쇄에만</h3><p>스텝 하나를 떼어 내도 나머지가 성립하면 그건 나열입니다. 나열을 TN으로 묶으면 어느 대상이 깨졌는지 ID로 읽히지 않습니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/depth-and-tn.md">depth-and-tn.md</a></p></div><div class="card"><h3>케이스는 사전조건의 묶음</h3><p>뎁스 마지막 칸은 요약이 아닙니다. 「무엇을 보는가」를 적으면 기대 결과와 중복되고, 값이 행마다 달라 뎁스 색이 묶음이 아니라 소음이 됩니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md">tc-sheet-format.md</a></p></div><div class="card"><h3>차단은 도달 경로마다</h3><p>판정 지점이 하나여도 그 상태를 만드는 코드가 경로마다 다르면 케이스를 나눕니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>기능 단위를 겸해 덮지 않음</h3><p>covers는 자기 신고라, 기능 단위 둘을 적고 하나만 검증해도 대조기가 통과시킵니다. 빠진 것보다 나쁩니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>판단은 낡는다</h3><p>제외 사유에 기계가 확인할 조건을 붙입니다. 근거가 사라지면 대조가 실패합니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md">case-expansion.md</a></p></div><div class="card"><h3>담당은 주입 지점으로</h3><p>「돌려 보니 깨졌다」를 담당으로 삼으면 매트릭스는 항상 통과하고 아무것도 증명하지 않습니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md">sut-automation.md</a></p></div><div class="card"><h3>고정 대기 금지</h3><p>브라우저가 타이머를 늦추면 sleep 기반 대기가 환경에 따라 깨집니다. 상태 표식이 바뀌는 것을 기다립니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md">sut-automation.md</a></p></div><div class="card"><h3>내부 식별자 금지</h3><p>「계정 A」는 저장소 안에서만 통하는 이름입니다. 사전조건은 그 밖에서도 읽힙니다.</p><p class="foot"><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md">tc-sheet-format.md</a></p></div></div><h2>산출물 바로 가기</h2><div class="card-grid"><div class="card"><h3><a href="automation/report/qa-lab-miyonchat-report.html">QA 검증 리포트</a></h3><p>검증유형별 집계 · 결함 주입 매트릭스 · SUT 한계</p></div><div class="card"><h3><a href="automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a></h3><p>기능 단위 → TC → 자동화 함수 → 이슈를 한 줄로</p></div><div class="card"><h3><a href="spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a></h3><p>구현 기능 단위 86개 · 검증유형 판정</p></div><div class="card"><h3><a href="sut/index.html">SUT</a></h3><p>검증 대상을 직접 실행해 봅니다</p></div><div class="card"><h3><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx">TC 시트</a></h3><p>xlsx — GitHub에서는 내려받아 엽니다</p></div></div><div class="doc-footer">이 문서는 파생물입니다 — <code>gen_project_hub_html.py</code>로 재생성합니다. 수치는 전부 정본에서 읽습니다.</div></div></body></html>

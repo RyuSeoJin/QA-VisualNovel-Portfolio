@@ -1,7 +1,7 @@
 # qa-lab-miyonchat — 남은 작업 (remaining-work)
 
 할 일의 정본입니다(규칙: `rules/remaining-work.md`). 완료 항목은 삭제되며, 완료 기록은
-change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스 통과 — 대각선만 FAIL · TC 153건(루브릭 편입) 157건 통과 · RC25 · 리포트·CI 완료 · 다음은 묶기).
+change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스 통과 — 대각선만 FAIL · TC 153건(루브릭 편입) 157건 통과 · RC25 · 허브·추적 매트릭스까지 완료).
 
 ## 지금 상태 (이어받기용 요약)
 
@@ -9,12 +9,13 @@ change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스
 |---|---|
 | SUT 빌드 | `PC웹_Ver1.0_Dev_RC25` (`sut/js/data.js`의 `SUT_BUILD`) |
 | 캐시 무효화 번호 | `sut/index.html`의 `?v=63` |
-| 골격 | **v1.14** — 내부 식별자 제거(표기만, 86잎·128노드) |
+| 골격 | **v1.14** — 내부 식별자 제거(표기만, 기능 단위 86개·128노드) |
 | git | **push 완료 · 미push 없음.** 좌표는 `git log --oneline -1`·`git status -sb`로 확인합니다 |
 | TC·자동화 | TC **153건**(루브릭 1건은 사람 전용) · 자동화 **157건 통과** · 커버리지 3축 통과 · **결함 주입 매트릭스 통과**(담당 14건 전부 잡음·담당 밖 0) |
 | 리포트 | `automation/report/…-report.html` — 단일 파일·외부 요청 0건. `gen_qa_report_html.py`로 재생성만 합니다 |
 | CI | `.github/workflows/qa-lab-miyonchat.yml` — 커버리지 대조 → 매트릭스 → 리포트 재생성 → **커밋본이 최신인지** |
-| 다음 착수 지점 | **묶기** — 추적 매트릭스, 프로젝트 허브·용어집, README 실행 GIF |
+| 산출물 | [프로젝트 허브](index.html) · [QA 리포트](automation/report/qa-lab-miyonchat-report.html) · [추적 매트릭스](automation/report/qa-lab-miyonchat-traceability.html) |
+| 다음 착수 지점 | **남은 묶기** — 프로젝트 용어집 · README 실행 GIF · `structure.svg` 갱신(automation 흐름 누락) |
 
 **매트릭스를 다시 돌리는 법** (SUT나 자동화를 고쳤을 때 반드시 함께 돌립니다)
 
@@ -73,8 +74,8 @@ python project-process/scripts/run_fault_matrix.py \
      **스텝별 배열**로 적습니다 · 영역코드는 `area_codes`가 정본입니다 · **상태(14번째 필드)를
      명시**합니다(생략 시 성인 인증) · covers의 testid는 청사진 §3-1 등재 표에서 골라 적습니다
      (지어내면 오타 검사에 걸립니다)
-   - **커버리지 대조를 영역 끝날 때마다 돌립니다** — `check_tc_coverage.py`가 잎·testid·
-     잎×상태 세 축을 요구합니다. 이미 잡혀 있는 것: 「로그인 필요 화면 직접 접근 차단 ×
+   - **커버리지 대조를 영역 끝날 때마다 돌립니다** — `check_tc_coverage.py`가 기능 단위·testid·
+     기능 단위×상태 세 축을 요구합니다. 이미 잡혀 있는 것: 「로그인 필요 화면 직접 접근 차단 ×
      세션 만료」(만료 상태 URL 직접 진입 케이스가 아직 없음 — 웹 진입 영역에 추가 필요)
    - 규모는 영역 10개 × (정상 흐름 + 경계 + 금칙 + 격리)로 **90~130건** 안팎 예상
    - 한 줄 쓸 때 지켜야 할 것
@@ -112,9 +113,15 @@ python project-process/scripts/run_fault_matrix.py \
    - `deploy-pages`를 쓰지 않습니다(§7). 리포트는 커밋본이 Pages로 서빙되고 CI는 검증만 합니다
    - **자동 커밋하지 않습니다.** 산출물을 고쳤으면 재생성해 함께 커밋해야 4번이 통과합니다
 
-6. **묶기** — **다음 착수 지점**
-   - 추적 매트릭스(트리 잎 ↔ TC ↔ 자동화 ↔ 이슈) · 프로젝트 허브 · 용어집 · README 실행 GIF
-   - 저작권 게이트를 지나 push
+6. **묶기** — **진행 중**
+   - **완료**: 추적 매트릭스(기능 단위↔TC↔자동화↔이슈) · 프로젝트 허브 · 중앙 허브 갱신 · README
+   - **남음**: 프로젝트 용어집 · README 실행 GIF · `structure.svg` 갱신
+     (`automation/` 흐름 — 테스트 → 매트릭스 → 리포트 → CI가 그림에 없습니다)
+   - 재생성
+     ```
+     python project-process/scripts/gen_project_hub_html.py        --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat        --css design-guide/design-guide-master.css        -o projects/qa-lab-miyonchat/index.html
+     python project-process/scripts/gen_traceability_html.py        --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat        --css design-guide/design-guide-master.css        -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html
+     ```
 
 ## TC 입력 형식 (참조)
 
@@ -148,7 +155,7 @@ python project-process/scripts/run_fault_matrix.py \
 |---|---|
 | 뎁스 축 | **도달 경로 뎁스** — 경계 기준 셋(합류점·전역·오버레이) + 소속 규칙(트리거 화면). 1-Depth 10개는 `tc-input`의 `d1_order` |
 | 영역 구분 | **TC ID 접두**가 담습니다. 뎁스는 「어디서 실행하나」, ID는 「무엇을 검증하나」 |
-| 커버리지 보증 | 구현 85잎 ↔ TC 대조를 스크립트로 — 미매핑 잎을 목록으로 출력 |
+| 커버리지 보증 | 구현 기능 단위 85개 ↔ TC 대조를 스크립트로 — 미매핑 기능 단위를 목록으로 출력 |
 | 시트 서식 | 병합은 스텝 범위 하나 · Total Result 행 단위 · 머리 영역 재구성 · 뎁스 채움 색 |
 | 신설 열 | 실행 주체(자동화 전용/공통/사람 전용) · TC ID · 검증유형 (뒤 둘은 Note 우측 참조 블록) |
 | 실행 배분 | **공통은 자동화가 돌리고 사람은 생략.** 현재 프로젝트는 자동화만 수행 |
