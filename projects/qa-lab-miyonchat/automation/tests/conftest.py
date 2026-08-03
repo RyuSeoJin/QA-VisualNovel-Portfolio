@@ -13,9 +13,10 @@ SUT를 왜 서버로 띄우는가
 
 reset을 왜 fixture로 두는가
 ---------------------------
-  이 SUT는 상태를 메모리에만 두므로 앞 테스트가 남긴 방·재화·기억이 다음 테스트로 샌다.
-  격리 계열 검증(계정 간·방 간·슬롯 간)은 시작점이 같아야 성립하므로 매 테스트 전에
-  되돌린다. 페이지를 다시 여는 것보다 빠르고, 실제 conftest 규약과도 같다.
+  앞 테스트가 남긴 방·재화·기억이 다음 테스트로 샌다. 메모리뿐 아니라 저장소로도 새는데,
+  계정 스코프가 새로고침을 넘어 유지되기 때문이다(system-spec §1-3). 격리 계열 검증
+  (계정 간·방 간·슬롯 간)은 시작점이 같아야 성립하므로 매 테스트 전에 되돌린다 —
+  `reset()`이 저장소까지 지우는 것이 그 격리의 유일한 근거다.
 """
 
 import functools
@@ -45,16 +46,43 @@ def sut_url():
         server.server_close()
 
 
+def pytest_addoption(parser):
+    """`--inject={키}` — 결함 주입 매트릭스용 실행 조건.
+
+    매트릭스는 같은 스위트를 주입 키만 바꿔 반복 실행한다. 케이스를 고치지 않고
+    실행 조건만 바꾸므로, 스위치는 테스트가 아니라 여기(실행 인자)에 둔다.
+    """
+    parser.addoption("--inject", action="store", default="",
+                     help="결함 주입 키 (fault-injection 사양 §2). 비우면 주입 없음")
+
+
+@pytest.fixture(scope="session")
+def inject_key(pytestconfig):
+    return pytestconfig.getoption("--inject") or ""
+
+
 @pytest.fixture(autouse=True)
-def sut(page, sut_url):
+def sut(page, sut_url, inject_key):
     """SUT를 열고 상태를 초기값으로 되돌린 뒤 테스트에 넘긴다.
 
     시드는 기본값(1)로 고정한다 — mock 응답 경로가 시드로 정해지므로,
     시드를 명시하지 않으면 기대값이 실행마다 달라질 여지가 생긴다.
+
+    주입을 왜 두 번 여는가
+    ----------------------
+      주입은 URL로만 켜지고(fault-injection §1), `reset()`은 실행 조건까지 초기값으로
+      되돌리므로 주입도 함께 꺼진다. 그래서 주입 실행에서는 되돌린 **뒤에** 다시 연다 —
+      `reset()`이 저장소를 비워 둔 참이라 두 번째 부팅은 복원할 것이 없고, 결과는
+      되돌린 상태 + 주입 켜짐이 된다. reset을 건너뛰고 한 번만 열면 앞 테스트가
+      저장소에 남긴 계정이 복원되어 격리가 깨진다.
     """
-    page.goto(sut_url + "?seed=1")
+    query = "?seed=1" + ("&inject=" + inject_key if inject_key else "")
+    page.goto(sut_url + query)
     page.wait_for_function("() => !!window.__VN__")
     page.evaluate("() => window.__VN__.reset()")
+    if inject_key:
+        page.goto(sut_url + query)
+        page.wait_for_function("() => !!window.__VN__")
     page.set_default_timeout(RUN["wait_timeout_ms"])
     return page
 
@@ -97,8 +125,13 @@ def room(sut):
     """
     def _open(profile_name="자동화", char_id="c1"):
         return sut.evaluate("""([name, cid]) => {
-            const p = addProfile({ name: name });
-            const r = openRoom(cid, p || { name: name });
+            // addProfile은 결과({ok, id})를 돌려준다 — 프로필 자체가 아니다. 그대로 넘기면
+            // 방에 이름 없는 프로필이 고정되어 응답의 호칭이 전부 기본값으로 나가고,
+            // 페르소나 준수 계측이 무엇을 재든 통과한다
+            const res = addProfile({ name: name });
+            const prof = profilesOf().find((x) => x.id === (res && res.id))
+                || { name: name };
+            const r = openRoom(cid, prof);
             VN.screen = 's4';
             window.__VN__.refresh();
             return r;

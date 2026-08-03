@@ -361,8 +361,8 @@ def test_tc_mem_004_고정한_기억은_간략화_제외(sut, gate, room, send):
     assert sut.evaluate("(id) => activeRoom().memories.find(m => m.id === id).pinned", mid)
 
 
-def test_tc_mem_005_기억_삭제와_재등장_차단(sut, gate, room, send):
-    """참조 차단은 삭제뿐 아니라 되돌림·분기·로드로 없어진 경우에도 적용된다."""
+def test_tc_mem_005_기억_삭제(sut, gate, room, send):
+    """여기까지가 삭제(결정적)다 — 지운 기억이 응답에 나오지 않는 것은 007~009가 본다."""
     gate("성인 인증"); room()
     send("지울 기억")
     sut.click('[data-testid="s4-msg-1-user-remember"]')
@@ -372,6 +372,112 @@ def test_tc_mem_005_기억_삭제와_재등장_차단(sut, gate, room, send):
     sut.evaluate("(id) => deleteMemory(activeRoom(), id)", mid)
     assert sut.evaluate("(id) => !activeRoom().memories.some(m => m.id === id)", mid)
     assert sut.evaluate("() => (activeRoom().forgotten || []).length") > 0
+
+
+# ── 삭제 기억 재등장 차단 (case-expansion.md §차단은 도달 경로마다 확인합니다) ─────────
+# 판정은 한 곳에서 한다 — 응답 후보가 참조하는 기억이 지금 목록에 있는지만 본다. 그런데 그
+# 목록에서 빠지는 길이 여럿이고, 지운 기억 명단을 다음 방으로 옮기는 일은 경로마다 다른
+# 코드가 한다. 그래서 경로별로 케이스를 나눈다.
+#
+# 시트 좌표(어느 턴에 쌓이고 어느 턴에 참조되는가)는 테스트에 베끼지 않고 시트에서 읽는다.
+# 베껴 두면 시트가 바뀔 때 조용히 어긋나고, 참조 후보를 지나치지 않았는데도 통과한다.
+
+MEM_ID = "m1"
+
+
+def _memory_turns(sut, mid):
+    """그 기억이 쌓이는 턴과 참조되는 턴 — mock 시트에서 직접 읽는다."""
+    return sut.evaluate("""(mid) => {
+        const r = activeRoom();
+        const set = mockSetFor(r.charId, r.scenarioId);
+        let add = null, ref = null;
+        (set.turns || []).forEach((t) => (t.candidates || []).forEach((c) => {
+            if (c.memoryAdd && c.memoryAdd.id === mid && add === null) add = t.turn;
+            if ((c.memoryRefs || []).indexOf(mid) >= 0 && ref === null) ref = t.turn;
+        }));
+        return { add: add, ref: ref };
+    }""", mid)
+
+
+def _ref_texts(sut, mid):
+    """그 기억을 참조하는 응답의 고정 문구 — 슬롯은 방마다 값이 달라지므로 뺀다."""
+    return sut.evaluate("""(mid) => {
+        const r = activeRoom();
+        const set = mockSetFor(r.charId, r.scenarioId);
+        const out = [];
+        (set.turns || []).forEach((t) => (t.candidates || []).forEach((c) => {
+            if ((c.memoryRefs || []).indexOf(mid) < 0) return;
+            const lit = String(c.text).split(/\\{[^}]*\\}/)
+                .map((s) => s.trim()).sort((a, b) => b.length - a.length)[0];
+            if (lit && lit.length >= 6) out.push(lit);
+        }));
+        return out;
+    }""", mid)
+
+
+def _advance_to(sut, send, turn):
+    """그 턴을 지날 때까지 보낸다 — 참조 후보가 걸리는 턴을 실제로 밟아야 검증이 성립한다."""
+    for _ in range(turn * 2 + 4):
+        if sut.evaluate("() => activeRoom().turn") > turn:
+            return
+        send("진행")
+    raise AssertionError(f"{turn}턴에 도달하지 못했다")
+
+
+def _assert_no_ref(sut, banned):
+    texts = sut.evaluate(
+        "() => activeRoom().messages.filter(m => m.role === 'ai').map(m => m.text)")
+    for b in banned:
+        hit = [t for t in texts if b in t]
+        assert not hit, f"지운 기억을 참조하는 응답이 나왔다: {hit}"
+
+
+def test_tc_mem_007_지운_기억_재등장_차단(sut, gate, room, send):
+    """삭제 경로 — 지운 뒤 참조 후보가 걸리는 턴을 지나도 그 응답이 나오지 않아야 한다."""
+    gate("성인 인증"); room()
+    at = _memory_turns(sut, MEM_ID)
+    _advance_to(sut, send, at["add"])
+    assert sut.evaluate("(id) => activeRoom().memories.some(m => m.id === id)", MEM_ID)
+
+    banned = _ref_texts(sut, MEM_ID)
+    assert banned, "참조 후보가 시트에 없으면 이 검증은 성립하지 않는다"
+    sut.evaluate("(id) => deleteMemory(activeRoom(), id)", MEM_ID)
+
+    _advance_to(sut, send, at["ref"])
+    _assert_no_ref(sut, banned)
+
+
+def test_tc_mem_008_로드_분기_뒤_재등장_차단(sut, gate, room, send):
+    """지운 기억 명단을 새 방으로 옮기는 코드는 따로 있다 — 007로는 그 줄이 빠져도 안 잡힌다."""
+    gate("성인 인증"); room()
+    at = _memory_turns(sut, MEM_ID)
+    _advance_to(sut, send, at["add"])
+    banned = _ref_texts(sut, MEM_ID)
+    sut.evaluate("(id) => deleteMemory(activeRoom(), id)", MEM_ID)
+    sut.evaluate("() => saveSlot(activeRoom(), 1)")
+
+    assert sut.evaluate("() => !!loadSlotToNewRoom(activeRoom(), 1)"), "새 방으로 로드 실패"
+    assert sut.evaluate("(id) => (activeRoom().forgotten || []).indexOf(id) >= 0", MEM_ID), \
+        "지운 기억 명단이 새 방으로 이어지지 않았다"
+    assert sut.evaluate("(id) => !activeRoom().memories.some(m => m.id === id)", MEM_ID)
+
+    _advance_to(sut, send, at["ref"])
+    _assert_no_ref(sut, banned)
+
+
+def test_tc_mem_009_원본이_사라진_기억_참조_차단(sut, gate, room, send):
+    """기억은 대화 기록에서 파생된다 — 원본이 사라지면 명단을 거치지 않고 목록에서 빠진다."""
+    gate("성인 인증"); room()
+    at = _memory_turns(sut, MEM_ID)
+    _advance_to(sut, send, at["add"] + 1)      # 뒤에 턴을 남겨 둔다 — 지운 턴이 다시 진행되지 않도록
+    banned = _ref_texts(sut, MEM_ID)
+
+    sut.evaluate("(t) => removeExchange(activeRoom(), t)", at["add"])
+    assert sut.evaluate("(id) => !activeRoom().memories.some(m => m.id === id)", MEM_ID), \
+        "원본이 사라졌는데 기억이 목록에 남아 있다"
+
+    _advance_to(sut, send, at["ref"])
+    _assert_no_ref(sut, banned)
 
 
 def test_tc_mem_006_단기_맥락_창_경계(sut, gate, room):

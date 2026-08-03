@@ -126,7 +126,10 @@ def test_tc_prf_010_응답_내_이름_호칭_반영률(sut, gate, room, send):
         send("이름을 불러 줘")
         text = sut.evaluate("() => { const m = activeRoom().messages.filter(x => x.role === 'ai'); "
                             "return m[m.length - 1].text; }")
-        if "반영확인" in text or "너" in text or "당신" in text:
+        # 방에 고정된 프로필 이름만 준수로 센다. 기본 폴백 호칭(「당신」)까지 인정하면
+        # 치환을 통째로 무시하는 결함(persona-drift)이 만점으로 통과한다 — 준수율이
+        # 무슨 값이든 100%가 되어 계측 자체가 성립하지 않는다
+        if "반영확인" in text:
             hits += 1
     assert hits / runs >= SPEC["context_pass_rate"], f"반영률 {hits}/{runs}"
 
