@@ -64,19 +64,18 @@
 - **개수 하드코딩 금지** — 문서가 늘어도 설명이 낡지 않도록, 구조 설명·다이어그램·README에서 "규칙 5종" 같은 개수 표기 대신 역할로 서술합니다("방법론·운영 규칙 정의").
 - 용어집 이원화: 중앙 `qa-dictionary.md`에는 범용 QA 용어만 두고(색인이며 정의 정본은 rules/ 문서), 프로젝트 `{프로젝트}-dictionary.html`에는 해당 프로젝트 고유명사를 허용합니다. 배치 기준은 "정의 문장에서 프로젝트 이름을 지워도 성립하는가?"입니다.
 
-## 산출물 출력 방식
+## 산출물 출력 방식 (필수)
 
-- 단독 열람을 보장하기 위해, HTML 산출물(분석 문서·허브·용어집·feature-tree.html)은 생성 시점의 마스터 CSS를 `<style>`에 **inline한 자기완결 단일 파일**로 만듭니다. 기준 마스터 버전은 파일 상단 CHANGELOG 주석과 footer에 기록합니다.
-- `<link>` 참조는 디자인 규칙서(design-guide-master.html, design-template의 템플릿)에만 허용합니다.
-- SUT(`sut/`)는 문서가 아니라 프로그램이므로 자기완결 단일 파일 규칙의 예외입니다. HTML·JS·CSS를 파일로 나눠 쓰고, 테스트가 붙잡을 `data-testid`와 상태 조회 훅을 처음부터 심어 만듭니다.
-- **구조도의 정본은 `structure.svg` 하나입니다.** `index.html`의 인라인 사본은 파생이므로 직접 고치지 않고 `project-process/scripts/inline_structure_svg.py`로만 갱신하며, 커밋 전 `--check`로 동기를 확인합니다. 규칙 정의는 `rules/html-report-guide.md` §다이어그램에 있습니다.
-- **GitHub Pages 링크 규칙** — 이 저장소는 Pages로 공개됩니다(https://ryuseojin.github.io/QA-VisualNovel-Portfolio/). Pages에서 `.md`는 원본 텍스트로 뜨고 폴더 경로는 404가 되므로, HTML 문서 안에서 **md·폴더로 거는 링크는 GitHub 저장소 절대 URL**(`https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob|tree/main/…`)로, **HTML 문서 링크는 상대 경로**로 적습니다.
-- HTML은 만들고 나서 렌더해 눈으로 확인합니다 — 콘솔 에러 0, 라벨 충돌·글자 깨짐 없음.
+- HTML 산출물은 생성 시점 마스터를 `<style>`·`<script>`에 **inline한 자기완결 단일 파일**입니다(네트워크 요청 0건). 링크 예외·다이어그램 정본·렌더 확인 등 세부 규칙의 정본은 `rules/html-report-guide.md`입니다.
+- **Pages 링크 규칙** — HTML 문서 안에서 **md·폴더·xlsx는 GitHub 저장소 절대 URL**(`https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob|tree/main/…`), **HTML 문서는 상대 경로**로 겁니다. Pages에서 md는 원본 텍스트로 뜨고 폴더는 404가 되기 때문입니다.
+- SUT(`sut/`)는 문서가 아니라 프로그램이라 이 규칙의 예외입니다 — `rules/sut-automation.md` §1.
 
 ## 저작권 게이트 (필수)
 
 역분석 대상 자료(스크린샷·원문 텍스트·상표)는 **처음 다루는 작업 시점부터** 저작권 점검 체크리스트(`qa-doc-playbook.md` 참조)를 적용합니다. 이 저장소는 public이므로 push 전 점검은 `qa-git-rules.md` §5를 따릅니다.
 
-## 트랙별 허브 갱신 (필수)
+## 진입 층과 허브 (필수)
 
-문서를 만들 때마다 중앙 허브 `index.html`에는 프로젝트·워크스페이스 문서 목록을, 프로젝트 허브 `{프로젝트}-index.html`에는 그 프로젝트 문서 목록을 갱신합니다(중앙 허브에는 프로젝트당 행 1개만 둡니다). 어려운 용어는 배치 기준에 맞는 용어집에 추가합니다.
+루트 `index.html`(포트폴리오 랜딩)·`intro/`(소개)·프로젝트 허브는 **전부 생성기가 만드는 파생물**이라 직접 고치지 않습니다. 문서 목록도 손으로 갱신하지 않습니다 — 생성기가 폴더를 훑어 실재하는 파일에서 제목을 읽으므로, 새 문서는 **규칙대로 된 자리에 두기만** 하면 목록에 나타납니다.
+
+배치 규칙(세 층·셸·사이드바 항목의 정본·용어집 배치)의 정본은 `rules/site-structure.md`입니다.
