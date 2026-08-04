@@ -30,6 +30,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import shell  # noqa: E402
 from check_tc_coverage import tree_leaves, blueprint_testids  # noqa: E402
 
 REPO = "https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main"
@@ -59,6 +60,7 @@ def main():
     ap.add_argument("--project-dir", required=True)
     ap.add_argument("--slug", required=True)
     ap.add_argument("--css", required=True)
+    ap.add_argument("--js", help="동작 정본(생략 시 CSS 옆의 design-guide-master.js)")
     ap.add_argument("--diagrams", help="설명 다이어그램 SVG 폴더")
     ap.add_argument("-o", "--output", required=True)
     args = ap.parse_args()
@@ -93,14 +95,16 @@ def main():
         by_vt[t[6]] = by_vt.get(t[6], 0) + 1
     manual = sum(1 for t in tcs if t[7] == "사람 전용")
 
-    css = io.open(args.css, encoding="utf-8").read()
+    css, js = shell.assets(args.css, args.js)
     O = []
     w = O.append
 
-    w('<!doctype html><html lang="ko"><head><meta charset="utf-8">')
-    w('<meta name="viewport" content="width=device-width,initial-scale=1">')
-    w('<title>%s — 프로젝트 허브</title><style>%s</style></head><body><div class="wrap">'
-      % (esc(S), css))
+    TOC = (("pipe", "파이프라인"), ("logic", "검증 로직"), ("map", "문서 지도"),
+           ("canon", "정본과 파생물"), ("rules", "이 프로젝트가 세운 규칙"))
+
+    w(shell.head("%s — 프로젝트 허브" % S, css, js))
+    w(shell.open_body(S, "hub", rel, "프로젝트 허브", TOC,
+                      "골격 v%s%s" % (tree_version, " · " + build if build else "")))
 
     w('<div class="doc-header"><h1>%s — 프로젝트 허브</h1>' % esc(S))
     w('<p class="doc-lead">미연시 AI 챗 서비스를 역분석해 <strong>기능 골격</strong>을 세우고, '
@@ -112,11 +116,6 @@ def main():
                  ("TC", "%d건" % len(tcs)), ("자동화", "%d건" % n_auto),
                  ("결함 주입", "%d종" % len(faults))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
-    w('</div><div class="toc">')
-    for aid, name in (("pipe", "파이프라인"), ("logic", "검증 로직"),
-                      ("map", "문서 지도"), ("canon", "정본과 파생물"),
-                      ("rules", "이 프로젝트가 세운 규칙")):
-        w('<a href="#%s">%s</a>' % (aid, esc(name)))
     w('</div></div>')
 
     demo = os.path.join(P, "docs", "sut-demo.gif")
@@ -306,7 +305,7 @@ def main():
 
     w('<div class="doc-footer">이 문서는 파생물입니다 — <code>gen_project_hub_html.py</code>로 '
       '재생성합니다. 수치는 전부 정본에서 읽습니다.</div>')
-    w('</div></body></html>')
+    w(shell.close_body())
 
     with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
         f.write("".join(O))

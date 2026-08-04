@@ -94,6 +94,8 @@ def main():
     css_path = os.path.join(repo, "design-guide", "design-guide-master.css")
     with io.open(css_path, encoding="utf-8") as f:
         css = f.read()
+    js_path = os.path.join(repo, "design-guide", "design-guide-master.js")
+    js = io.open(js_path, encoding="utf-8").read() if os.path.exists(js_path) else ""
     css_ver = "v1.0"
     for line in css.splitlines():
         if line.strip().startswith("v") and "(" in line:
@@ -146,11 +148,15 @@ def main():
 <style>
 {css}
 </style>
+<script>
+{js}
+</script>
 </head>
 <body>
 <div class="wrap">
 
 <header class="doc-header">
+  <button class="icon-btn" data-theme-toggle>다크</button>
   <h1>{proj} 기능 골격 v{ver}</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>

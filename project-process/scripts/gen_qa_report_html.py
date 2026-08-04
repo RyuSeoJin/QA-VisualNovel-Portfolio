@@ -45,6 +45,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import shell  # noqa: E402
 from check_tc_coverage import tree_leaves, blueprint_testids  # noqa: E402
 
 VT_FULL = ("결정적", "금칙")          # 완전 검증 — 통과/실패가 그대로 사실
@@ -124,6 +125,7 @@ def main():
     ap.add_argument("--project-dir", required=True)
     ap.add_argument("--slug", required=True)
     ap.add_argument("--css", required=True)
+    ap.add_argument("--js", help="동작 정본(생략 시 CSS 옆의 design-guide-master.js)")
     ap.add_argument("-o", "--output", required=True)
     args = ap.parse_args()
 
@@ -194,14 +196,20 @@ def main():
                      for f in faults}
     base_fail = failed_ids(os.path.join(matrix_dir, "junit-none.xml"))
 
-    css = io.open(args.css, encoding="utf-8").read()
+    css, js = shell.assets(args.css, args.js)
     O = []
     w = O.append
 
-    w("<!doctype html><html lang=\"ko\"><head><meta charset=\"utf-8\">")
-    w("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">")
-    w("<title>%s — QA 검증 리포트</title><style>%s</style></head><body><div class=\"wrap\">"
-      % (esc(S), css))
+    TOC = (("vt", "검증유형별 집계"), ("area", "영역별 결과"),
+           ("matrix", "결함 주입 매트릭스"), ("cov", "커버리지 3축"),
+           ("rubric", "수동 채점"), ("limit", "SUT 한계와 검증 범위"),
+           ("issue", "검출 이슈"), ("repro", "재현 방법"))
+    rel = os.path.relpath(P, os.path.dirname(os.path.abspath(args.output)))
+    rel = "" if rel == "." else rel.replace("\\", "/") + "/"
+
+    w(shell.head("%s — QA 검증 리포트" % S, css, js))
+    w(shell.open_body(S, "report", rel, "QA 리포트", TOC,
+                      "골격 v%s%s" % (tree_version, " · " + build if build else "")))
 
     # ── 헤더
     w('<div class="doc-header"><h1>%s — QA 검증 리포트</h1>' % esc(S))
@@ -215,27 +223,27 @@ def main():
                  ("TC", "%d건" % len(tcs)), ("자동화", "%d건" % (len(auto) + smoke)),
                  ("이슈", "%d건" % len(issues))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
-    w('</div>')
-    w('<div class="toc">')
-    for aid, name in (("vt", "검증유형별 집계"), ("area", "영역별 결과"),
-                      ("matrix", "결함 주입 매트릭스"), ("cov", "커버리지 3축"),
-                      ("rubric", "수동 채점"), ("limit", "SUT 한계와 검증 범위"),
-                      ("issue", "검출 이슈"), ("repro", "재현 방법")):
-        w('<a href="#%s">%s</a>' % (aid, esc(name)))
     w('</div></div>')
 
-    # ── 스탯 타일
+    # ── 스탯 타일 — 비율이 있는 수치에는 막대를 단다(숫자만으로는 많고 적음이 안 잡힌다)
     total_auto = len(auto) + smoke
     passed = sum(1 for v in auto.values() if v == "pass") + smoke
     w('<div class="stats">')
-    for num, lbl in ((len(tcs), "설계한 TC"),
-                     ("%d/%d" % (passed, total_auto), "자동화 통과"),
-                     ("%d/%d" % (len(leaves), len(leaves)), "덮인 기능 단위"),
-                     ("%d/%d" % (len(testids), len(testids)), "덮인 화면 요소"),
-                     ("%d종" % len(faults), "주입한 결함"),
-                     (len(issues), "검출한 이슈")):
-        w('<div class="stat"><div class="num">%s</div><div class="lbl">%s</div></div>'
+    for num, lbl, ratio in ((len(tcs), "설계한 TC", None),
+                            ("%d/%d" % (passed, total_auto), "자동화 통과",
+                             (passed, total_auto, "ok")),
+                            ("%d/%d" % (len(leaves), len(leaves)), "덮인 기능 단위",
+                             (len(leaves), len(leaves), "ok")),
+                            ("%d/%d" % (len(testids), len(testids)), "덮인 화면 요소",
+                             (len(testids), len(testids), "ok")),
+                            ("%d종" % len(faults), "주입한 결함", None),
+                            (len(issues), "검출한 이슈", None)):
+        w('<div class="stat"><div class="num">%s</div><div class="lbl">%s</div>'
           % (esc(num), esc(lbl)))
+        if ratio and ratio[1]:
+            w('<div class="bar"><i class="%s" style="width:%.0f%%"></i></div>'
+              % (ratio[2], 100.0 * ratio[0] / ratio[1]))
+        w('</div>')
     w('</div>')
 
     # ── ① 검증유형별 집계
@@ -454,7 +462,7 @@ def main():
 
     w('<div class="doc-footer">기능 골격 v%s · SUT %s · 이 문서는 정본(TC 입력·실행 결과·'
       '청사진)에서 생성된 파생물입니다.</div>' % (esc(tree_version), esc(build)))
-    w('</div></body></html>')
+    w(shell.close_body())
 
     # newline을 고정합니다 — 기본값은 플랫폼 줄바꿈으로 바꿔 써서, 같은 입력인데 OS마다
     # 파일이 달라집니다. CI가 「커밋본이 낡았는가」를 재생성 결과와 비교하므로 그 차이가

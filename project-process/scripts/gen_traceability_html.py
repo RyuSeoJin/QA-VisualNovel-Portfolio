@@ -35,6 +35,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import shell  # noqa: E402
 from check_tc_coverage import tree_leaves  # noqa: E402
 
 VT_CHIP = {"결정적": "det", "확률적": "prob", "루브릭": "rub", "금칙": "ban"}
@@ -70,6 +71,7 @@ def main():
     ap.add_argument("--project-dir", required=True)
     ap.add_argument("--slug", required=True)
     ap.add_argument("--css", required=True)
+    ap.add_argument("--js", help="동작 정본(생략 시 CSS 옆의 design-guide-master.js)")
     ap.add_argument("-o", "--output", required=True)
     args = ap.parse_args()
     try:
@@ -109,14 +111,17 @@ def main():
     areas = cfg.get("area_codes") or {}
     code_of = {v["code"]: k for k, v in areas.items() if isinstance(v, dict)}
 
-    css = io.open(args.css, encoding="utf-8").read()
+    css, js = shell.assets(args.css, args.js)
     O = []
     w = O.append
 
-    w('<!doctype html><html lang="ko"><head><meta charset="utf-8">')
-    w('<meta name="viewport" content="width=device-width,initial-scale=1">')
-    w('<title>%s — 추적 매트릭스</title><style>%s</style></head><body><div class="wrap">'
-      % (esc(S), css))
+    TOC = (("chain", "케이스별 사슬"), ("leaf", "기능 단위 기준"))
+    rel = os.path.relpath(P, os.path.dirname(os.path.abspath(args.output)))
+    rel = "" if rel == "." else rel.replace("\\", "/") + "/"
+
+    w(shell.head("%s — 추적 매트릭스" % S, css, js))
+    w(shell.open_body(S, "trace", rel, "추적 매트릭스", TOC,
+                      "골격 v%s · TC %d건" % (tree_version, len(tcs))))
 
     w('<div class="doc-header"><h1>%s — 추적 매트릭스</h1>' % esc(S))
     w('<p class="doc-lead">기능 단위 하나가 어떤 테스트 케이스가 되고, 그 케이스가 어떤 '
@@ -128,8 +133,7 @@ def main():
                  ("TC", "%d건" % len(tcs)), ("자동화", "%d건" % len(auto)),
                  ("이슈", "%d건" % len(issues))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
-    w('</div><div class="toc"><a href="#chain">케이스별 사슬</a>'
-      '<a href="#leaf">기능 단위 기준</a></div></div>')
+    w('</div></div>')
 
     linked = sum(1 for t in tcs if tc_leaves[t[0]])
     covered = sum(1 for f in leaf_full if leaf_tcs[f])
@@ -148,15 +152,17 @@ def main():
 
     # ── 케이스별 사슬
     w('<h2 id="chain">케이스별 사슬</h2>')
-    w('<div class="filters" id="f-vt">')
-    w('<button class="fbtn on" data-vt="">전체</button>')
-    for vt in ("결정적", "금칙", "확률적", "루브릭"):
-        w('<button class="fbtn" data-vt="%s">%s</button>' % (esc(vt), esc(vt)))
-    w('<button class="fbtn" data-vt="__issue">이슈 있음</button></div>')
+    # 표 도구는 마스터 동작 정본이 붙인다 — 검색·필터·정렬을 문서마다 다시 짜지 않는다
+    w(shell.table_tools(
+        "chain-tbl", "TC ID · 기능 단위 · 함수명 검색",
+        tuple(("검증유형 " + vt, "col", 2, vt) for vt in ("결정적", "금칙", "확률적", "루브릭"))
+        + (("이슈 있음", "attr", "issue", "1"),)))
 
     w('<div class="tbl-scroll"><table id="chain-tbl"><thead><tr>'
-      '<th>TC</th><th>영역</th><th>검증유형</th><th>덮는 기능 단위</th>'
-      '<th>자동화 함수</th><th>결과</th><th>이슈</th></tr></thead><tbody>')
+      '<th class="sortable">TC</th><th class="sortable">영역</th>'
+      '<th class="sortable">검증유형</th><th>덮는 기능 단위</th>'
+      '<th class="sortable">자동화 함수</th><th class="sortable">결과</th>'
+      '<th class="sortable">이슈</th></tr></thead><tbody>')
     for t in tcs:
         tid, vt, actor = t[0], t[6], t[7]
         code = tid.split("-")[1]
@@ -188,8 +194,11 @@ def main():
     w('<h2 id="leaf">기능 단위 기준</h2>')
     w('<p>반대 방향입니다 — 골격의 기능 단위마다 어떤 케이스가 붙었는지 봅니다. '
       '<strong>빈 행이 하나도 없어야</strong> 「빠짐없이 봤다」가 성립합니다.</p>')
-    w('<div class="tbl-scroll"><table><thead><tr><th>기능 단위</th>'
-      '<th class="num">TC</th><th>케이스</th></tr></thead><tbody>')
+    w(shell.table_tools("leaf-tbl", "기능 단위 검색",
+                        (("덮이지 않음", "col", 2, "덮이지 않음"),)))
+    w('<div class="tbl-scroll"><table id="leaf-tbl"><thead><tr>'
+      '<th class="sortable">기능 단위</th><th class="num sortable">TC</th>'
+      '<th>케이스</th></tr></thead><tbody>')
     for f in leaf_full:
         got = leaf_tcs[f]
         w('<tr><td>%s</td><td class="num">%d</td><td>%s</td></tr>'
@@ -202,24 +211,8 @@ def main():
       '<code>gen_traceability_html.py</code>로 재생성합니다. 조인 키는 covers · TC ID · '
       'detections이며 전부 정본에 이미 있는 값입니다.</div>')
 
-    # 필터 — 표 위 한 줄에서 전체에 적용 (html-report-guide.md §컴포넌트 패턴)
-    w("""<script>
-(function(){
-  var bar=document.getElementById('f-vt'), rows=[].slice.call(
-    document.querySelectorAll('#chain-tbl tbody tr'));
-  bar.addEventListener('click', function(e){
-    var b=e.target.closest('.fbtn'); if(!b) return;
-    [].forEach.call(bar.querySelectorAll('.fbtn'), function(x){x.classList.remove('on');});
-    b.classList.add('on');
-    var v=b.dataset.vt;
-    rows.forEach(function(r){
-      var show = !v || (v==='__issue' ? r.dataset.issue==='1' : r.dataset.vt===v);
-      r.style.display = show ? '' : 'none';
-    });
-  });
-})();
-</script>""")
-    w('</div></body></html>')
+
+    w(shell.close_body())
 
     with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
         f.write("".join(O))
