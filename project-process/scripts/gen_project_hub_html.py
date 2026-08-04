@@ -230,6 +230,7 @@ def main():
     for deriv, canon, tool in (
         ("%s-feature-tree.html" % S, "%s-feature-tree.md" % S, "gen_feature_tree_html.py"),
         ("%s-tc-v1.0.xlsx" % S, "%s-tc-input-v1.0.json" % S, "build_tc_template_xlsx.py"),
+        ("%s-dictionary.html" % S, "%s-dictionary.md" % S, "gen_dictionary_html.py"),
         ("result/matrix/fault-matrix.md", "테스트 실행 + %s-fault-matrix.json" % S,
          "run_fault_matrix.py"),
         ("report/%s-report.html" % S, "위의 정본 전부", "gen_qa_report_html.py"),

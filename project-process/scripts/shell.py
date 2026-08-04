@@ -30,6 +30,7 @@ NAV = (
     ("report", "QA 리포트", "automation/report/{S}-report.html"),
     ("trace", "추적 매트릭스", "automation/report/{S}-traceability.html"),
     ("tree", "기능 골격", "spec/{S}-feature-tree.html"),
+    ("dict", "용어집", "{S}-dictionary.html"),
     ("sut", "SUT 실행", "sut/index.html"),
 )
 

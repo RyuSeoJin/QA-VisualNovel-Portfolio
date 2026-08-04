@@ -1,7 +1,7 @@
 # qa-lab-miyonchat — 남은 작업 (remaining-work)
 
 할 일의 정본입니다(규칙: `rules/remaining-work.md`). 완료 항목은 삭제되며, 완료 기록은
-change-log가 담당합니다. 갱신일: 2026-08-04 (산출물 재생성 완료 — 디자인 v2.0이 파일에 실림 · TC 시트 재빌드 153건 296행 · 라이트·다크 렌더 확인).
+change-log가 담당합니다. 갱신일: 2026-08-04 (프로젝트 용어집 신설로 **작업 큐 1~8번이 전부 닫혔습니다** — 남은 것은 백로그뿐입니다).
 
 ## 지금 상태 (이어받기용 요약)
 
@@ -14,9 +14,9 @@ change-log가 담당합니다. 갱신일: 2026-08-04 (산출물 재생성 완료
 | TC·자동화 | TC **153건**(루브릭 1건은 사람 전용) · 자동화 **157건 통과** · 커버리지 3축 통과 · **결함 주입 매트릭스 통과**(담당 14건 전부 잡음·담당 밖 0) |
 | 리포트 | `automation/report/…-report.html` — 단일 파일·외부 요청 0건. `gen_qa_report_html.py`로 재생성만 합니다 |
 | CI | `.github/workflows/qa-lab-miyonchat.yml` — 커버리지 대조 → 매트릭스 → 리포트 재생성 → **커밋본이 최신인지** |
-| 산출물 | [프로젝트 허브](index.html) · [QA 리포트](automation/report/qa-lab-miyonchat-report.html) · [추적 매트릭스](automation/report/qa-lab-miyonchat-traceability.html) |
+| 산출물 | [프로젝트 허브](index.html) · [QA 리포트](automation/report/qa-lab-miyonchat-report.html) · [추적 매트릭스](automation/report/qa-lab-miyonchat-traceability.html) · [용어집](qa-lab-miyonchat-dictionary.html) |
 | 설명 다이어그램 | `structure.svg`(전체 구조) + `diagrams/` 3종(커버리지 3축 · 결함 주입 · 자동화 격리) |
-| 다음 착수 지점 | **프로젝트 용어집**(아래 6번) — 묶기의 마지막 한 칸입니다 |
+| 다음 착수 지점 | **작업 큐가 비었습니다** — 1~8번 전부 완료. 다음은 §백로그에서 고릅니다 |
 
 **매트릭스를 다시 돌리는 법** (SUT나 자동화를 고쳤을 때 반드시 함께 돌립니다)
 
@@ -120,7 +120,10 @@ python project-process/scripts/run_fault_matrix.py \
      `diagrams/` 3종. ①은 `inline_structure_svg.py`로 주입, ②③④는 허브 생성기가 읽어 넣음
    - **완료(2026-08-04)**: 실행 GIF — `docs/sut-demo.gif`, 생성기 `gen_sut_demo_gif.py`
      (Pillow 필요. 문서 자산 도구라 `automation/requirements.txt`에는 넣지 않습니다)
-   - **남음**: 프로젝트 용어집
+   - **완료(2026-08-04)**: 프로젝트 용어집 — 정본 `…-dictionary.md` + 생성기
+     `gen_dictionary_html.py`. 고유명사만 담고 정의는 정본 자리를 가리킵니다.
+     `shell.py`에 사이드바 항목을 넣어 셸이 붙은 문서와 소개 층을 함께 재생성했습니다
+   - **묶기 완료** — 다음 착수 지점은 §백로그에서 고릅니다
    - 재생성
      ```
      python project-process/scripts/gen_project_hub_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css --diagrams diagrams \n       -o projects/qa-lab-miyonchat/index.html
