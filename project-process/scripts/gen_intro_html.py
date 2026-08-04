@@ -1434,7 +1434,7 @@ def main():
 
     side = shell.sidebar_from(
         groups, rel["root"] + "index.html", "QA-VisualNovel-Portfolio",
-        "QA 포트폴리오 · 류서진", toc,
+        "QA 포트폴리오", toc,   # 만든 사람 정보는 넣지 않는다(2026-08-04 사용자 확정)
         "골격 v%s%s" % (d["tree_version"], " · " + d["build"] if d["build"] else ""))
 
     html_out = "".join([
