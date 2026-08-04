@@ -1,0 +1,717 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA-VisualNovel-Portfolio — 저장소 구조</title><style>/* ============================================================
+   design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
+   ------------------------------------------------------------
+   CHANGELOG
+   v2.0 (2026-08-04) 라이트를 기본 테마로 삼고 다크를 토글로 내렸다.
+     산출물이 늘어 「읽는 문서」 하나로는 부족해졌고, 지표를 한눈에 보여줄
+     대시보드 셸이 필요했다(참고: Gentelella v4의 레이아웃 언어 —
+     코드는 가져오지 않고 값만 참고했다).
+     · 색 토큰을 두 벌로: :root(라이트) + :root[data-theme="dark"].
+       역할 이름은 그대로라 기존 컴포넌트·생성기 마크업은 손대지 않는다
+     · 셸 신설 — .app / .side(고정 사이드바·모바일 드로어) / .topbar / .main
+     · 스탯 타일에 비율 막대(.stat .bar)와 보조 문구(.stat .sub)
+     · 표 도구 신설 — .tbl-tools(검색·필터·건수)와 헤더 클릭 정렬(th.sortable)
+     · --on-accent 신설 — 인디고 채움 위 글자색(라이트에서 잉크를 쓰면 안 읽힌다)
+     · 셸이 없는 문서의 테마 토글 자리 — .doc-header 오른쪽. 버튼이 상단 바에만
+       있으면 기능 트리·중앙 허브에서는 테마를 바꿀 수단이 사라진다
+     · 구조도(.sd) 덮어쓰기를 다크일 때만 적용 — 정본 SVG가 밝은 배경 기준이라
+       라이트에서는 원본 색이 그대로 맞는다
+   v1.1 (2026-08-04) 구조도(.sd) 규칙을 index.html에서 옮겨 왔다 — 문서마다
+     복사해 두면 한쪽만 고쳤을 때 갈라진다. 경고 계열(grp-warn·nd-warn)과
+     화살표 색(arrow-green·arrow-red), 그림별 마커 id를 더했다.
+   v1.0 (2026-07-31) 최초 수립 — rules/html-report-guide.md의
+     다크 테마·인디고 포인트 체계를 마스터로 승격.
+     색 토큰 / 타이포 / 레이아웃 / 카드·표·칩·콜아웃·스탯 타일 /
+     상태·우선순위·검증유형 시맨틱 칩 / 트리·파이프라인 컴포넌트.
+   ------------------------------------------------------------
+   규칙: 원색 hex를 본문에 흩뿌리지 않는다 — 역할 변수로만 참조.
+   갱신은 Case B/C 승인 후에만, 기존 토큰 제거는 별도 승인.
+   테마: 라이트가 기본이다. 다크는 <html data-theme="dark">로 켜며,
+   스크립트가 없으면 라이트로 남는다(기본값이 안전한 쪽이다).
+   ============================================================ */
+
+/* ---------- 1. 색 토큰 (라이트 = 기본) ---------- */
+:root{
+  --page:#f4f6fa;        /* 페이지 바탕 */
+  --surface:#ffffff;     /* 카드·표 표면 */
+  --surface-2:#eef1f7;   /* 표면 위 한 단 (표 헤더·코드) */
+  --ink:#1f2328;         /* 본문 */
+  --ink-2:#414a56;       /* 보조 텍스트 */
+  --muted:#6e7781;       /* 축·라벨·각주 */
+  --grid:#e2e7ef;        /* 표 구분선 */
+  --axis:#cdd4de;        /* 축·경계 */
+  --hair:rgba(31,35,40,.10);    /* 헤어라인 테두리 */
+  --shadow:0 1px 2px rgba(31,35,40,.06),0 1px 8px rgba(31,35,40,.04);
+  --accent:#4f46e5;      /* 인디고 포인트 (제목 마커·링크·강조) */
+  --accent-dim:#4338ca;  /* 눌린 상태·채움 */
+  --on-accent:#ffffff;   /* 인디고 채움 위 글자 */
+
+  /* 셸 — 사이드바는 두 테마 모두 어둡게 둔다(본문과 역할이 갈린다) */
+  --side-bg:#212a3a;
+  --side-ink:#c2cbdb;
+  --side-ink-strong:#ffffff;
+  --side-hair:rgba(255,255,255,.10);
+  --side-active:rgba(129,140,248,.22);
+  --side-w:238px;
+  --top-h:54px;
+
+  /* 차트 카테고리 (고정 순서 — 필터로 빠져도 재배정 금지) */
+  --cat-1:#3987e5;  /* 파랑 */
+  --cat-2:#d95926;  /* 주황 */
+  --cat-3:#199e70;  /* 청록 */
+  --cat-4:#c98500;  /* 노랑 */
+
+  /* 상태 (지원 표기 O/X/△/? · 실행 결과) — 카테고리 색과 분리 */
+  --ok:#15803d;      /* O · Pass */
+  --no:#c9302c;      /* X · Fail */
+  --part:#b45309;    /* △ · Blocked */
+  --unk:#6e7781;     /* ? · N/A · Skip */
+  --ok-bg:rgba(21,128,61,.12);
+  --no-bg:rgba(201,48,44,.11);
+  --part-bg:rgba(180,83,9,.12);
+  --unk-bg:rgba(110,119,129,.12);
+
+  /* 우선순위 */
+  --pri-high:#c9302c;
+  --pri-mid:#b45309;
+  --pri-low:#6e7781;
+
+  /* 검증유형 */
+  --vt-det:#2f6fc4;   /* 결정적 */
+  --vt-prob:#a76a00;  /* 확률적 */
+  --vt-rub:#15803d;   /* 루브릭 */
+  --vt-ban:#c9302c;   /* 금칙 */
+  --vt-det-bg:rgba(47,111,196,.12);
+  --vt-prob-bg:rgba(167,106,0,.12);
+  --vt-rub-bg:rgba(21,128,61,.12);
+  --vt-ban-bg:rgba(201,48,44,.11);
+}
+
+/* ---------- 1-2. 다크 토큰 (토글로만 켜진다) ---------- */
+:root[data-theme="dark"]{
+  --page:#0d0d0d;
+  --surface:#16161a;
+  --surface-2:#1c1c21;
+  --ink:#f4f4f5;
+  --ink-2:#c3c2b7;
+  --muted:#898781;
+  --grid:#2c2c2a;
+  --axis:#383835;
+  --hair:rgba(255,255,255,.10);
+  --shadow:none;
+  --accent:#818cf8;
+  --accent-dim:#4f46e5;
+  --on-accent:#f4f4f5;
+
+  --side-bg:#121215;
+  --side-ink:#b8b7af;
+  --side-ink-strong:#f4f4f5;
+  --side-hair:rgba(255,255,255,.08);
+  --side-active:rgba(129,140,248,.18);
+
+  --ok:#34d399;
+  --no:#f87171;
+  --part:#fbbf24;
+  --unk:#9ca3af;
+  --ok-bg:rgba(52,211,153,.14);
+  --no-bg:rgba(248,113,113,.14);
+  --part-bg:rgba(251,191,36,.14);
+  --unk-bg:rgba(156,163,175,.14);
+
+  --pri-high:#f87171;
+  --pri-mid:#fbbf24;
+  --pri-low:#9ca3af;
+
+  --vt-det:#3987e5;
+  --vt-prob:#c98500;
+  --vt-rub:#199e70;
+  --vt-ban:#e24b4a;
+  --vt-det-bg:rgba(57,135,229,.14);
+  --vt-prob-bg:rgba(201,133,0,.14);
+  --vt-rub-bg:rgba(25,158,112,.14);
+  --vt-ban-bg:rgba(226,75,74,.14);
+}
+
+/* ---------- 2. 베이스·타이포 ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--page);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:26px;line-height:1.35;margin:0 0 8px}
+h2{font-size:19px;margin:48px 0 12px;padding-left:12px;border-left:3px solid var(--accent);
+  scroll-margin-top:calc(var(--top-h) + 16px)}
+h3{font-size:16px;margin:28px 0 8px;color:var(--ink)}
+p{margin:8px 0;color:var(--ink-2)}
+strong{color:var(--ink)}
+small,.foot{color:var(--muted);font-size:12.5px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:var(--surface-2);border:1px solid var(--grid);border-radius:4px;
+  padding:1px 6px;font-size:13px;font-family:ui-monospace,Consolas,monospace;color:var(--ink)}
+pre{background:var(--surface-2);border:1px solid var(--grid);border-radius:8px;
+  padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.6}
+pre code{background:none;border:none;padding:0}
+hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
+
+/* ---------- 3. 셸 (사이드바 + 상단 바) ----------
+   산출물이 여럿이라 문서마다 따로 놓이면 서로를 못 찾는다.
+   셸을 쓰는 문서는 body 바로 아래 .app > (.side + .main) 구조를 만든다. */
+.app{display:grid;grid-template-columns:var(--side-w) 1fr;min-height:100vh}
+.main{min-width:0}
+.app .wrap{padding-top:24px}
+
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+  background:var(--side-bg);color:var(--side-ink);overflow-y:auto;z-index:30}
+.side-head{padding:16px 18px 14px;border-bottom:1px solid var(--side-hair)}
+.side-head a{display:block;color:var(--side-ink-strong);font-weight:700;font-size:15px}
+.side-head a:hover{text-decoration:none;opacity:.85}
+.side-head .sub{display:block;color:var(--side-ink);font-size:12px;opacity:.75;margin-top:2px}
+.side-nav{flex:1;padding:10px 0 20px}
+.nav-sec{padding:14px 18px 6px;font-size:11.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--side-ink);opacity:.55}
+.nav-i,.nav-sub{display:block;padding:7px 18px;color:var(--side-ink);font-size:13.5px;
+  border-left:3px solid transparent}
+.nav-i:hover,.nav-sub:hover{background:var(--side-active);color:var(--side-ink-strong);
+  text-decoration:none}
+.nav-i.on{background:var(--side-active);color:var(--side-ink-strong);
+  border-left-color:var(--accent);font-weight:600}
+.nav-off{opacity:.4;cursor:default}   /* 아직 만들지 않은 페이지 — 자리는 보이되 눌리지 않는다 */
+.nav-sub{padding-left:32px;font-size:13px;opacity:.85}
+.nav-sub.on{color:var(--side-ink-strong);border-left-color:var(--accent);opacity:1}
+.nav-i .tag{float:right;font-size:11.5px;opacity:.6}
+.side-foot{padding:12px 18px 18px;border-top:1px solid var(--side-hair);
+  font-size:12px;color:var(--side-ink);opacity:.7}
+
+.topbar{position:sticky;top:0;z-index:20;height:var(--top-h);display:flex;align-items:center;
+  gap:12px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--grid)}
+.topbar .crumb{font-size:13.5px;color:var(--muted);min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.topbar .crumb b{color:var(--ink);font-weight:600}
+.topbar .sp{margin-left:auto}
+.icon-btn{background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  color:var(--ink-2);padding:5px 12px;font-size:13px;cursor:pointer;line-height:1.6}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.side-toggle{display:none}
+.backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:25}
+.backdrop.on{display:block}
+
+/* ---------- 4. 헤더·메타 ---------- */
+.doc-header{position:relative;padding:8px 0 20px;border-bottom:1px solid var(--grid);margin-bottom:8px}
+/* 셸이 없는 문서(기능 트리·중앙 허브·분석 문서)의 테마 토글 자리.
+   버튼이 상단 바에만 있으면 그 문서들에서는 테마를 바꿀 수단이 사라진다. */
+.doc-header .icon-btn[data-theme-toggle]{position:absolute;top:6px;right:0}
+.doc-header:has(.icon-btn[data-theme-toggle]) h1{padding-right:76px}
+.doc-lead{color:var(--ink-2);max-width:72ch}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{display:inline-block;background:var(--surface);border:1px solid var(--hair);
+  border-radius:999px;padding:3px 12px;font-size:12.5px;color:var(--ink-2)}
+.badge b{color:var(--ink);font-weight:600}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px}
+
+/* ---------- 5. 스탯 타일 ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+.stat{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:16px 18px;
+  box-shadow:var(--shadow)}
+.stat .num{font-size:26px;font-weight:700;color:var(--ink);line-height:1.2}
+.stat .num em{font-style:normal;color:var(--accent)}
+.stat .lbl{font-size:12.5px;color:var(--muted);margin-top:4px}
+.stat .sub{font-size:12px;color:var(--ink-2);margin-top:6px}
+.stat .bar{height:4px;border-radius:999px;background:var(--surface-2);margin-top:10px;overflow:hidden}
+.stat .bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.stat .bar i.ok{background:var(--ok)}
+.stat .bar i.no{background:var(--no)}
+.stat .bar i.part{background:var(--part)}
+
+/* ---------- 6. 카드 ---------- */
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:20px;
+  margin:14px 0;box-shadow:var(--shadow)}
+.card h3{margin-top:0}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card-grid .card{margin:0}
+
+/* ---------- 7. 표 ---------- */
+.tbl-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:10px;margin:14px 0;
+  background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+thead th{background:var(--surface-2);color:var(--ink-2);text-align:left;
+  padding:9px 12px;position:sticky;top:0;white-space:nowrap;font-weight:600}
+tbody td{padding:8px 12px;border-top:1px solid var(--grid);color:var(--ink-2);vertical-align:top}
+tbody tr:nth-child(even){background:rgba(31,35,40,.022)}
+:root[data-theme="dark"] tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* 표 도구 — 행이 수십 줄을 넘으면 눈으로 찾는 비용이 검증 비용을 넘는다 */
+.tbl-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 8px}
+.tbl-search{background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  color:var(--ink);padding:6px 12px;font-size:13px;min-width:220px;font-family:inherit}
+.tbl-search:focus{outline:none;border-color:var(--accent)}
+.tbl-count{margin-left:auto;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable::after{content:"↕";margin-left:6px;opacity:.35;font-size:11px}
+th.sort-asc::after{content:"↑";opacity:1;color:var(--accent)}
+th.sort-desc::after{content:"↓";opacity:1;color:var(--accent)}
+tbody tr.row-hide{display:none}
+
+/* ---------- 8. 칩 (상태·우선순위·검증유형) ---------- */
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-size:12px;
+  font-weight:600;color:var(--ink);border:1px solid transparent;white-space:nowrap}
+.chip-ok{background:var(--ok-bg);border-color:var(--ok)}
+.chip-no{background:var(--no-bg);border-color:var(--no)}
+.chip-part{background:var(--part-bg);border-color:var(--part)}
+.chip-unk{background:var(--unk-bg);border-color:var(--unk)}
+.chip-high{background:var(--no-bg);border-color:var(--pri-high)}
+.chip-mid{background:var(--part-bg);border-color:var(--pri-mid)}
+.chip-low{background:var(--unk-bg);border-color:var(--pri-low)}
+.chip-det{background:var(--vt-det-bg);border-color:var(--vt-det)}
+.chip-prob{background:var(--vt-prob-bg);border-color:var(--vt-prob)}
+.chip-rub{background:var(--vt-rub-bg);border-color:var(--vt-rub)}
+.chip-ban{background:var(--vt-ban-bg);border-color:var(--vt-ban)}
+
+/* ---------- 9. 필터 버튼 ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.fbtn{background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  color:var(--ink-2);padding:5px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.fbtn:hover{border-color:var(--accent)}
+.fbtn.on{background:var(--accent-dim);border-color:var(--accent-dim);color:var(--on-accent)}
+
+/* ---------- 10. 콜아웃 ---------- */
+.callout{border-left:3px solid var(--accent);background:var(--surface);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--ink-2)}
+.callout.warn{border-left-color:var(--part);background:var(--part-bg)}
+.callout.danger{border-left-color:var(--no);background:var(--no-bg)}
+
+/* ---------- 11. 기능 트리 ---------- */
+.tree{list-style:none;padding-left:0;margin:12px 0;font-size:13.5px}
+.tree ul{list-style:none;padding-left:22px;border-left:1px solid var(--grid);margin:2px 0 2px 7px}
+.tree li{padding:3px 0;color:var(--ink-2)}
+.tree .node{color:var(--ink)}
+.tree .depth-tag{color:var(--muted);font-size:11.5px;margin-right:6px;
+  font-family:ui-monospace,Consolas,monospace}
+.tree .note{color:var(--muted);font-size:12px;margin-left:8px}
+
+/* ---------- 12. 파이프라인·단계 ---------- */
+.steps{display:flex;flex-direction:column;gap:10px;margin:16px 0;counter-reset:step}
+.step{display:flex;gap:14px;background:var(--surface);border:1px solid var(--hair);
+  border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+.step::before{counter-increment:step;content:counter(step);flex:0 0 26px;height:26px;
+  border-radius:50%;background:var(--accent-dim);color:var(--on-accent);font-size:13px;
+  font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .body{color:var(--ink-2)}
+.step .body b{color:var(--ink)}
+
+/* ---------- 13. footer ---------- */
+.doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--grid);
+  color:var(--muted);font-size:12.5px}
+
+/* ---------- 14. 구조도·설명 다이어그램 (SVG 인라인) ----------
+   정본은 저장소 루트 structure.svg와 diagrams/*.svg이며 색은 밝은 배경 기준으로 그린다.
+   라이트 테마에서는 원본 색이 그대로 맞으므로 덮지 않고, 다크에서만 표면에 맞춘다 —
+   그림 파일을 테마마다 따로 두지 않기 위해서다. */
+.sd{width:100%;height:auto;display:block}
+:root[data-theme="dark"] .sd .grp-entry{fill:#131316;stroke:#3a3a3f}
+:root[data-theme="dark"] .sd .nd-entry{fill:#1c1c21;stroke:#565660}
+:root[data-theme="dark"] .sd .grp-proc{fill:#0e1a24;stroke:#3987e5}
+:root[data-theme="dark"] .sd .nd-proc{fill:#152634;stroke:#3987e5}
+:root[data-theme="dark"] .sd .grp-form{fill:#16161f;stroke:#6b74d6}
+:root[data-theme="dark"] .sd .nd-form{fill:#1e1f2e;stroke:#6b74d6}
+:root[data-theme="dark"] .sd .grp-out{fill:#0f1c17;stroke:#199e70}
+:root[data-theme="dark"] .sd .nd-out{fill:#132923;stroke:#199e70}
+:root[data-theme="dark"] .sd .grp-warn{fill:#241a12;stroke:#c2410c}
+:root[data-theme="dark"] .sd .nd-warn{fill:#33241a;stroke:#c2410c}
+:root[data-theme="dark"] .sd text.t{fill:var(--ink)}
+:root[data-theme="dark"] .sd text.s{fill:var(--ink-2)}
+:root[data-theme="dark"] .sd text.lbl{fill:var(--ink-2)}
+:root[data-theme="dark"] .sd rect.pill{fill:var(--surface-2);stroke:var(--grid)}
+:root[data-theme="dark"] .sd path.arrow-gray{stroke:#8b8f98}
+:root[data-theme="dark"] .sd path.arrow-green{stroke:var(--ok)}
+:root[data-theme="dark"] .sd path.arrow-red{stroke:#fb923c}
+:root[data-theme="dark"] .sd marker#ar-gray path,
+:root[data-theme="dark"] .sd marker#cv-ar-gray path,
+:root[data-theme="dark"] .sd marker#fm-ar-gray path,
+:root[data-theme="dark"] .sd marker#ai-ar-gray path{fill:#8b8f98}
+:root[data-theme="dark"] .sd marker#cv-ar-green path,
+:root[data-theme="dark"] .sd marker#ai-ar-green path{fill:var(--ok)}
+:root[data-theme="dark"] .sd marker#cv-ar-red path,
+:root[data-theme="dark"] .sd marker#fm-ar-red path{fill:#fb923c}
+
+/* ---------- 15. 반응형 ----------
+   좁은 화면에서는 사이드바를 서랍으로 내린다. 문서가 먼저 보여야 한다. */
+@media (max-width:980px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;top:0;left:0;width:var(--side-w);transform:translateX(-100%);
+    transition:transform .18s ease}
+  .side.open{transform:none}
+  .side-toggle{display:inline-block}
+  .app .wrap{padding-left:18px;padding-right:18px}
+  .topbar{padding:0 16px}
+}
+@media print{
+  .side,.topbar,.tbl-tools,.filters,.backdrop{display:none!important}
+  .app{display:block}
+}
+</style><script>/* ============================================================
+   design-guide-master.js — 셸 동작 정본 (v2.0 · 2026-08-04)
+   ------------------------------------------------------------
+   테마 토글 · 사이드바 서랍 · 표 도구(검색·필터·정렬)를 담습니다.
+   CSS와 같은 방식으로 다룹니다 — 규칙서는 <script src>로 참조하고,
+   산출물은 생성 시점 사본을 <script>에 inline합니다(네트워크 요청 0건).
+
+   <head>에서 동기로 불러야 합니다. 테마는 첫 페인트 전에 적용되고,
+   DOM을 만지는 나머지는 DOMContentLoaded 뒤에 붙습니다.
+
+   마크업 약속
+   · 테마 토글 버튼      <button data-theme-toggle>
+   · 사이드바 서랍       .side / .backdrop / .side-toggle
+   · 표 도구            <div class="tbl-tools" data-table="표id">
+                          <input class="tbl-search">
+                          <button class="fbtn" data-col="3" data-val="Fail">
+                          <button class="fbtn" data-attr="issue" data-val="1">
+                          <span class="tbl-count"></span>
+                        </div>
+                        data-col은 그 열의 글자를, data-attr은 행의 data-* 값을
+                        봅니다. 화면에 안 적힌 기준으로 거를 때 뒤엣것을 씁니다
+   · 정렬               <th class="sortable">   (숫자 열은 class="num sortable")
+   ============================================================ */
+(function () {
+  var KEY = 'qavn-theme';
+  var root = document.documentElement;
+
+  function applyTheme(t) { root.setAttribute('data-theme', t); }
+
+  /* 기본값은 라이트 고정입니다. OS 설정을 따라가면 처음 여는 사람마다 다른 화면을
+     보게 되고, 문서에 첨부한 화면과도 어긋납니다. 다크는 고른 사람에게만 남습니다. */
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  applyTheme(saved === 'dark' ? 'dark' : 'light');
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') { fn(); }
+    else { document.addEventListener('DOMContentLoaded', fn); }
+  }
+
+  function each(sel, fn, ctx) {
+    var list = (ctx || document).querySelectorAll(sel);
+    for (var i = 0; i < list.length; i++) { fn(list[i], i); }
+  }
+
+  /* ---------- 테마 토글 ---------- */
+  function initTheme() {
+    var btn = document.querySelector('[data-theme-toggle]');
+    if (!btn) { return; }
+    function label() {
+      var dark = root.getAttribute('data-theme') === 'dark';
+      btn.textContent = dark ? '라이트' : '다크';
+      btn.setAttribute('aria-label', dark ? '라이트 테마로 전환' : '다크 테마로 전환');
+    }
+    label();
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+      label();
+    });
+  }
+
+  /* ---------- 사이드바 서랍 (좁은 화면) ---------- */
+  function initDrawer() {
+    var side = document.querySelector('.side');
+    var back = document.querySelector('.backdrop');
+    var tog = document.querySelector('.side-toggle');
+    if (!side) { return; }
+    function close() {
+      side.classList.remove('open');
+      if (back) { back.classList.remove('on'); }
+    }
+    if (tog) {
+      tog.addEventListener('click', function () {
+        side.classList.toggle('open');
+        if (back) { back.classList.toggle('on'); }
+      });
+    }
+    if (back) { back.addEventListener('click', close); }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { close(); }
+    });
+    each('.side a', function (a) {
+      a.addEventListener('click', function () {
+        if (window.innerWidth <= 980) { close(); }
+      });
+    });
+  }
+
+  /* ---------- 사이드바 목차 — 지금 읽는 절 표시 ---------- */
+  function initScrollSpy() {
+    var subs = [];
+    each('.nav-sub[href^="#"]', function (a) {
+      var el = document.getElementById(a.getAttribute('href').slice(1));
+      if (el) { subs.push({ a: a, el: el }); }
+    });
+    if (!subs.length) { return; }
+    function mark() {
+      var y = window.scrollY + 90, cur = subs[0];
+      for (var i = 0; i < subs.length; i++) {
+        if (subs[i].el.offsetTop <= y) { cur = subs[i]; }
+      }
+      for (var j = 0; j < subs.length; j++) {
+        subs[j].a.classList.toggle('on', subs[j] === cur);
+      }
+    }
+    mark();
+    window.addEventListener('scroll', mark, { passive: true });
+  }
+
+  /* ---------- 표 도구 — 검색·필터·정렬 ---------- */
+  function cellText(row, i) {
+    var td = row.cells[i];
+    return td ? (td.textContent || '').trim() : '';
+  }
+
+  function numOf(s) {
+    var m = String(s).replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
+  }
+
+  function initTable(tools) {
+    var table = document.getElementById(tools.getAttribute('data-table'));
+    if (!table) { return; }
+    var body = table.tBodies[0];
+    if (!body) { return; }
+    var rows = [].slice.call(body.rows);
+    var search = tools.querySelector('.tbl-search');
+    var count = tools.querySelector('.tbl-count');
+    var buttons = [].slice.call(tools.querySelectorAll('.fbtn[data-col],.fbtn[data-attr]'));
+    var active = null;
+
+    function refresh() {
+      var q = search ? search.value.trim().toLowerCase() : '';
+      var shown = 0;
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var okText = !q || (row.textContent || '').toLowerCase().indexOf(q) >= 0;
+        var okFilter = true;
+        if (active) {
+          var want = active.getAttribute('data-val');
+          var attr = active.getAttribute('data-attr');
+          okFilter = attr
+            ? row.getAttribute('data-' + attr) === want
+            : cellText(row, parseInt(active.getAttribute('data-col'), 10)).indexOf(want) >= 0;
+        }
+        var show = okText && okFilter;
+        row.classList.toggle('row-hide', !show);
+        if (show) { shown++; }
+      }
+      if (count) {
+        count.textContent = shown === rows.length
+          ? rows.length + '건'
+          : shown + ' / ' + rows.length + '건';
+      }
+    }
+
+    if (search) { search.addEventListener('input', refresh); }
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (active === btn) { active = null; } else { active = btn; }
+        buttons.forEach(function (b) { b.classList.toggle('on', b === active); });
+        refresh();
+      });
+    });
+
+    each('th.sortable', function (th, idx) {
+      var col = th.cellIndex;
+      th.addEventListener('click', function () {
+        var asc = !th.classList.contains('sort-asc');
+        each('th.sortable', function (o) {
+          o.classList.remove('sort-asc', 'sort-desc');
+        }, table);
+        th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        var sorted = rows.slice().sort(function (a, b) {
+          var x = cellText(a, col), y = cellText(b, col);
+          var nx = numOf(x), ny = numOf(y);
+          var r = (nx !== null && ny !== null) ? nx - ny : x.localeCompare(y, 'ko');
+          return asc ? r : -r;
+        });
+        for (var i = 0; i < sorted.length; i++) { body.appendChild(sorted[i]); }
+      });
+    }, table);
+
+    refresh();
+  }
+
+  ready(function () {
+    initTheme();
+    initDrawer();
+    initScrollSpy();
+    each('.tbl-tools[data-table]', initTable);
+  });
+})();
+</script></head><body><div class="app"><aside class="side"><div class="side-head"><a href="../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오 · 류서진</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../index.html">포트폴리오 홈</a><a class="nav-i on" href="../intro/repo-structure.html">저장소 구조</a><a class="nav-i" href="../intro/foundation.html">토대 — 작업 규칙</a><a class="nav-i" href="../intro/miyonchat-making.html">제작 과정</a><a class="nav-i" href="../intro/tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../intro/automation.html">자동화 설계와 결과</a><div class="nav-sec">산출물</div><a class="nav-i" href="../projects/qa-lab-miyonchat/index.html">프로젝트 허브</a><a class="nav-i" href="../projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html">QA 리포트</a><a class="nav-i" href="../projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i" href="../projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a><a class="nav-i" href="../projects/qa-lab-miyonchat/sut/index.html">SUT 실행</a><div class="nav-sec">저장소</div><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx">TC 시트<span class="tag">xlsx</span></a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.md">기능 골격 정본<span class="tag">md</span></a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio">저장소<span class="tag">git</span></a><div class="nav-sec">이 문서</div><a class="nav-sub" href="#map">전체 그림</a><a class="nav-sub" href="#layer">세 층</a><a class="nav-sub" href="#rule">폴더별 참조 규칙</a><a class="nav-sub" href="#doc">작업 규칙 문서</a><a class="nav-sub" href="#proj">프로젝트</a></nav><div class="side-foot">골격 v1.14 · PC웹_Ver1.0_Dev_RC25</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>저장소 구조</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap"><div class="doc-header"><h1>저장소 구조 — 폴더 이름이 곧 규칙입니다</h1><p class="doc-lead">조사한 것 · 채택한 것 · 확정한 것 · 지나간 것을 한 폴더에 섞어 두면, 테스트의 기대값을 <strong>아직 확정되지 않은 값에서 가져오는 사고</strong>가 납니다. 그래서 참조 규칙이 같은 것끼리 폴더로 묶고, 폴더 이름만 보고도 「여기 것을 기대값으로 써도 되는가」를 판단할 수 있게 했습니다.</p><div class="meta-row"><span class="badge">저장소 <b>3층</b></span><span class="badge">규칙 문서 <b>11편</b></span></div></div><h2 id="map">전체 그림</h2><p>절차·형식 기준은 <strong>모든 작업 앞에</strong> 있고, 프로젝트 산출물은 조사에서 확정으로 좁혀지며, 확정된 것에서만 테스트가 나옵니다. 아래 그림의 정본은 저장소 루트의 <code>structure.svg</code> 파일 하나이고, 이 페이지는 그 파일을 그대로 읽어 넣습니다.</p><div class="card" style="padding:14px"><svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 790" width="940" height="790" role="img" aria-labelledby="sdt sdd">
+<title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
+<desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다. automation 안에서는 테스트가 돌아 결과가 쌓이고, 그 결과에서 리포트가 나오며, CI가 커버리지 대조·결함 주입 매트릭스·산출물 최신 여부를 반복 확인합니다.</desc>
+<!--
+  CHANGELOG
+  v1.5 (2026-08-04) automation/ 안쪽을 tests·result·report로 펼치고 CI를 추가했다.
+                    검증의 절반(테스트→결과→리포트→CI)이 그림에 통째로 없었다.
+                    세부 판정 로직은 별도 그림으로 나눈다(diagrams/).
+  v1.4 (2026-07-31) 생성 도구 → automation/ 화살표 추가(껍데기·리포트 생성).
+                    test-case/를 관통하지 않도록 오른쪽 여백으로 우회시켰다.
+  v1.3 (2026-07-31) 현재 폴더 구조에 맞춰 재작성 — qa-dictionary 추가,
+                    'TC 생성 도구'를 '생성 도구'로 넓혀 tc-input-master 포함,
+                    automation 내부 표기, archive·history 참조 규칙 각주.
+  v1.2 (2026-07-31) spec/의 두 번째 입력(보강·ADD)을 추가. rules/에 자동화 규칙 포함 표기.
+  v1.1 (2026-07-31) 프로젝트 산출물 행을 조사→채택→확정 파이프라인으로 재배치.
+                    sut/·automation/을 조건부 행으로 분리.
+  v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
+
+  이 파일이 정본이며 사본은 없다. 이 그림을 싣는 페이지의 생성기가 만들 때마다
+  이 파일을 읽어 넣는다(intro/repo-structure.html — gen_intro_html.py --page structure).
+
+  변환 없이 그대로 실리므로 root의 class="sd"와 id(sdt/sdd)는 바꾸지 않는다.
+  색은 밝은 배경 기준이고, 다크 테마에서는 마스터 CSS가 클래스를 덮는다.
+-->
+<defs>
+<marker id="ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7781"/></marker>
+<marker id="ar-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b74d6"/></marker>
+<marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3987e5"/></marker>
+</defs>
+
+<rect class="grp-entry" x="70" y="14" width="800" height="92" rx="8" fill="#f7f8fa" stroke="#c4c9d0"/>
+<text class="t" x="88" y="36" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="13" font-weight="500" fill="#1f2328">진입점</text>
+<g class="nd-entry" fill="#e8eaed" stroke="#9aa0a6">
+<rect x="90" y="44" width="250" height="52" rx="6"/><rect x="350" y="44" width="250" height="52" rx="6"/><rect x="610" y="44" width="250" height="52" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="215" y="66" font-size="12.5" font-weight="500" fill="#1f2328">README.md</text>
+<text class="s" x="215" y="84" font-size="11.5" fill="#1f2328">저장소 소개</text>
+<text class="t" x="475" y="66" font-size="12.5" font-weight="500" fill="#1f2328">index.html</text>
+<text class="s" x="475" y="84" font-size="11.5" fill="#1f2328">중앙 허브</text>
+<text class="t" x="735" y="66" font-size="12.5" font-weight="500" fill="#1f2328">CLAUDE.md</text>
+<text class="s" x="735" y="84" font-size="11.5" fill="#1f2328">클로드 작업 규칙</text>
+</g>
+
+<rect class="grp-proc" x="70" y="140" width="200" height="340" rx="8" fill="#f0f7fd" stroke="#3987e5"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="86" y="162" font-size="12.5" font-weight="500" fill="#1f2328">절차 기준</text>
+<text class="s" x="86" y="179" font-size="11.5" fill="#57606a">project-process/</text>
+</g>
+<g class="nd-proc" fill="#e0eefb" stroke="#3987e5">
+<rect x="86" y="192" width="168" height="62" rx="6"/><rect x="86" y="264" width="168" height="62" rx="6"/><rect x="86" y="336" width="168" height="62" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="170" y="218" font-size="12.5" font-weight="500" fill="#1f2328">qa-doc-playbook</text>
+<text class="s" x="170" y="236" font-size="11.5" fill="#1f2328">절차 확인 문서</text>
+<text class="t" x="170" y="290" font-size="12.5" font-weight="500" fill="#1f2328">rules/</text>
+<text class="s" x="170" y="308" font-size="11.5" fill="#1f2328">방법론 · 운영 · 자동화 규칙</text>
+<text class="t" x="170" y="362" font-size="12.5" font-weight="500" fill="#1f2328">qa-dictionary</text>
+<text class="s" x="170" y="380" font-size="11.5" fill="#1f2328">중앙 용어집 색인</text>
+<text class="s" x="170" y="428" font-size="11.5" fill="#57606a">무엇을 하든</text>
+<text class="s" x="170" y="446" font-size="11.5" fill="#57606a">가장 먼저 확인</text>
+</g>
+
+<rect class="grp-form" x="300" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="316" y="162" font-size="12.5" font-weight="500" fill="#1f2328">형식 기준</text>
+<text class="s" x="316" y="179" font-size="11.5" fill="#57606a">design-guide/ · design-template/</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="316" y="192" width="238" height="42" rx="6"/><rect x="316" y="242" width="238" height="42" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="435" y="218" font-size="12.5" font-weight="500" fill="#1f2328">master css · html</text>
+<text class="t" x="435" y="268" font-size="12.5" font-weight="500" fill="#1f2328">template-catalog</text>
+</g>
+
+<rect class="grp-form" x="600" y="140" width="270" height="150" rx="8" fill="#f2f5fe" stroke="#6b74d6"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="616" y="162" font-size="12.5" font-weight="500" fill="#1f2328">생성 도구</text>
+<text class="s" x="616" y="179" font-size="11.5" fill="#57606a">design-template/ · project-process/scripts/</text>
+</g>
+<g class="nd-form" fill="#e3e9fd" stroke="#6b74d6">
+<rect x="616" y="188" width="238" height="30" rx="6"/><rect x="616" y="222" width="238" height="30" rx="6"/><rect x="616" y="256" width="238" height="30" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="735" y="207" font-size="12.5" font-weight="500" fill="#1f2328">tc-sheet-master.xlsx</text>
+<text class="t" x="735" y="241" font-size="12.5" font-weight="500" fill="#1f2328">tc-input-master.json</text>
+<text class="t" x="735" y="275" font-size="12.5" font-weight="500" fill="#1f2328">scripts/</text>
+</g>
+
+<rect class="grp-out" x="300" y="360" width="570" height="388" rx="8" fill="#eef9f4" stroke="#199e70"/>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="t" x="316" y="382" font-size="12.5" font-weight="500" fill="#1f2328">프로젝트별 산출물</text>
+<text class="s" x="316" y="399" font-size="11.5" fill="#57606a">projects/{프로젝트}/</text>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70">
+<rect x="316" y="412" width="118" height="68" rx="6"/><rect x="456" y="412" width="118" height="68" rx="6"/><rect x="596" y="412" width="118" height="68" rx="6"/><rect x="736" y="412" width="118" height="68" rx="6"/>
+</g>
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70" stroke-dasharray="4 3">
+<rect x="596" y="534" width="118" height="52" rx="6"/><rect x="736" y="534" width="118" height="52" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="375" y="442" font-size="12" font-weight="500" fill="#1f2328">analysis/</text>
+<text class="s" x="375" y="460" font-size="11.5" fill="#1f2328">조사 전량</text>
+<text class="t" x="515" y="442" font-size="12" font-weight="500" fill="#1f2328">reference/</text>
+<text class="s" x="515" y="460" font-size="11.5" fill="#1f2328">채택분</text>
+<text class="t" x="655" y="442" font-size="12" font-weight="500" fill="#1f2328">spec/</text>
+<text class="s" x="655" y="460" font-size="11.5" fill="#1f2328">확정 · 정본</text>
+<text class="t" x="795" y="442" font-size="12" font-weight="500" fill="#1f2328">test-case/</text>
+<text class="s" x="795" y="460" font-size="11.5" fill="#1f2328">TC 시트</text>
+<text class="t" x="655" y="556" font-size="12" font-weight="500" fill="#1f2328">sut/</text>
+<text class="s" x="655" y="574" font-size="11.5" fill="#1f2328">테스트 대상</text>
+<text class="t" x="795" y="556" font-size="12" font-weight="500" fill="#1f2328">automation/</text>
+<text class="s" x="795" y="574" font-size="11.5" fill="#1f2328">검증 실행</text>
+</g>
+
+<g class="nd-out" fill="#d9f2e6" stroke="#199e70" stroke-dasharray="4 3">
+<rect x="316" y="606" width="150" height="46" rx="6"/><rect x="490" y="606" width="150" height="46" rx="6"/><rect x="664" y="606" width="150" height="46" rx="6"/>
+</g>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" text-anchor="middle">
+<text class="t" x="391" y="624" font-size="12" font-weight="500" fill="#1f2328">tests/</text>
+<text class="s" x="391" y="642" font-size="11.5" fill="#1f2328">TC ID = 함수명</text>
+<text class="t" x="565" y="624" font-size="12" font-weight="500" fill="#1f2328">result/</text>
+<text class="s" x="565" y="642" font-size="11.5" fill="#1f2328">실행 결과 · 매트릭스</text>
+<text class="t" x="739" y="624" font-size="12" font-weight="500" fill="#1f2328">report/</text>
+<text class="s" x="739" y="642" font-size="11.5" fill="#1f2328">리포트 · 추적 매트릭스</text>
+</g>
+<path class="arrow arrow-gray" d="M470,629 H484" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M644,629 H658" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M795,586 V600 H818 V606" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M655,586 V596 H391 V600" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<rect class="pill" x="316" y="664" width="498" height="24" rx="9" fill="#f0f7fd" stroke="#3987e5"/>
+<text class="lbl" x="565" y="681" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">.github/workflows/ — 커버리지 대조 · 결함 주입 매트릭스 · 산출물 최신 확인</text>
+<rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>
+<text class="lbl" x="444" y="513" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">보강 (ADD) · 레퍼런스 밖 결정</text>
+<g font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif">
+<text class="s" x="316" y="700" font-size="11.5" fill="#57606a">생성 도구는 spec/의 정본과 test-case/의 입력 json을 읽어 TC 엑셀 · 리포트 · 추적 매트릭스를 만듭니다</text>
+<text class="s" x="316" y="718" font-size="11.5" fill="#57606a">sut/ · automation/은 테스트 대상을 직접 만드는 프로젝트에만 둡니다</text>
+<text class="s" x="316" y="736" font-size="11.5" fill="#57606a">spec/ · test-case/의 archive/는 기본 참조 금지. report/ · result/는 파생물이라 손으로 고치지 않습니다</text>
+</g>
+<path class="arrow arrow-gray" d="M438,446 H450" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M578,446 H590" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M718,446 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M548,509 L612,486" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M655,480 V528" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M795,480 V528" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M718,560 H730" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+
+<path class="arrow" d="M274,335 H296" fill="none" stroke="#3987e5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ar-blue)"/>
+<rect class="pill" x="284" y="303" width="108" height="19" rx="9" fill="#f0f7fd" stroke="#d4e4f5"/>
+<text class="lbl" x="338" y="316" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">모든 작업에 적용</text>
+
+<path class="arrow" d="M435,140 V112" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="444" y="115" width="112" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="450" y="128" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">허브 · 템플릿 형식</text>
+
+<path class="arrow" d="M435,290 V354" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="441" y="313" width="66" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="447" y="326" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">문서 형식</text>
+
+<path class="arrow" d="M795,290 V406" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+<rect class="pill" x="801" y="317" width="90" height="19" rx="9" fill="#f2f5fe" stroke="#dde2fb"/>
+<text class="lbl" x="807" y="330" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">TC 엑셀 생성</text>
+
+<path class="arrow" d="M870,240 H905 V558 H858" fill="none" stroke="#6b74d6" stroke-width="1.6" marker-end="url(#ar-indigo)"/>
+</svg>
+</div><h2 id="layer">세 층으로 나눠 둔 이유</h2><div class="card-grid"><div class="card"><h3>① 절차 — project-process/</h3><p>무엇을 어떤 순서로 할지, 판단이 갈릴 때 무엇을 기준으로 정할지를 담습니다. 프로젝트가 생기기 <strong>전에</strong> 세운 층이라, 프로젝트가 늘어도 같은 방식으로 일하게 됩니다.</p><p class="foot">파이프라인 절차서 · 규칙 문서 · 생성 도구</p></div><div class="card"><h3>② 형식 — design-guide/ · design-template/</h3><p>모든 산출물이 같은 모양으로 나오게 하는 층입니다. 색과 컴포넌트의 정본이 하나라, 문서마다 스타일을 다시 정하지 않습니다.</p><p class="foot">스타일 정본 · 시각 규칙서 · 문서 템플릿 · TC 시트 서식</p></div><div class="card"><h3>③ 산출물 — projects/{프로젝트}/</h3><p>실제 작업이 쌓이는 층입니다. 안에서 다시 <strong>조사 → 채택 → 확정</strong>으로 좁혀지고, 확정된 것에서만 테스트 케이스가 나옵니다.</p><p class="foot">현재 프로젝트 1개 · 기능 86개 · TC 153건</p></div></div><h2 id="rule">폴더마다 다른 참조 규칙</h2><p>같은 프로젝트 안이라도 폴더에 따라 <strong>「기대값으로 써도 되는가」가 다릅니다.</strong> 이 구분이 이 저장소에서 가장 중요한 규칙입니다.</p><div class="tbl-scroll"><table><thead><tr><th>폴더</th><th>무엇이 있나</th><th>기대값으로 쓸 수 있나</th></tr></thead><tbody><tr><td><code>analysis/</code></td><td>출시 서비스를 조사한 전량. 버리지 않고 모읍니다</td><td><span class="chip chip-no">안 됩니다 — 남의 서비스 값입니다</span></td></tr><tr><td><code>reference/</code></td><td>조사분 중 「이건 가져오자」고 고른 것</td><td><span class="chip chip-no">안 됩니다 — 아직 확정 전입니다</span></td></tr><tr><td><code>spec/ (평면)</code></td><td>기능 목록 정본. 손으로 고치는 유일한 파일</td><td><span class="chip chip-ok">됩니다</span></td></tr><tr><td><code>spec/design/</code></td><td>확정 사양 — 상한값·차감량·임계·합격선</td><td><span class="chip chip-ok">됩니다 — 수치의 출처입니다</span></td></tr><tr><td><code>spec/sut-design/</code></td><td>검증 대상 전용 사양 — 청사진·저장 스키마·고장 주입</td><td><span class="chip chip-part">구현·자동화만 — 기획 테스트는 참조하지 않습니다</span></td></tr><tr><td><code>spec/rationale/</code></td><td>왜 그렇게 정했는지의 기록</td><td><span class="chip chip-no">안 됩니다 — 판단 기록이지 확정안이 아닙니다</span></td></tr><tr><td><code>spec/archive/</code></td><td>지나간 것 — 이력과 동결본</td><td><span class="chip chip-no">안 됩니다 — 평상시에는 열지도 않습니다</span></td></tr><tr><td><code>test-case/</code></td><td>테스트 케이스 설계 원본(json)과 시트(xlsx)</td><td><span class="chip chip-ok">설계 결과입니다</span></td></tr><tr><td><code>sut/</code></td><td>검증 대상 그 자체</td><td><span class="chip chip-part">테스트가 조작하는 쪽입니다</span></td></tr><tr><td><code>automation/</code></td><td>테스트 코드 · 실행 결과 · 리포트</td><td><span class="chip chip-part">실행 결과입니다</span></td></tr></tbody></table></div><div class="callout">지나간 것을 <code>archive/</code>로 몰아 두는 이유는 단순합니다 — 삭제된 옛 기능 정보가 평상시 작업에 섞이면, 있지도 않은 기능의 테스트를 쓰게 됩니다. 그래서 기능 목록 정본에는 <strong>현재 상태만</strong> 남기고 삭제 흔적을 두지 않습니다.</div><h2 id="doc">작업 규칙 문서</h2><p>아래 목록은 폴더를 훑어 만들어집니다 — 문서가 늘거나 이름이 바뀌어도 이 페이지가 낡지 않습니다.</p><div class="tbl-scroll"><table id="doc-tbl"><thead><tr><th class="sortable">문서</th><th>무엇을 정하나</th></tr></thead><tbody><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/qa-dictionary.md"><code>qa-dictionary.md</code></a></td><td>중앙 용어집 (색인)</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/qa-doc-playbook.md"><code>qa-doc-playbook.md</code></a></td><td>분석→골격→TC 파이프라인 절차서</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/case-expansion.md"><code>rules/case-expansion.md</code></a></td><td>케이스 전개 규칙</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/depth-and-tn.md"><code>rules/depth-and-tn.md</code></a></td><td>Depth 계층 · TN · 우선순위</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/doc-write-style.md"><code>rules/doc-write-style.md</code></a></td><td>문서 작성 규칙</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/html-report-guide.md"><code>rules/html-report-guide.md</code></a></td><td>HTML 리포트 디자인 가이드</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/qa-git-rules.md"><code>rules/qa-git-rules.md</code></a></td><td>GitHub 커밋·push·브랜치 규칙</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/remaining-work.md"><code>rules/remaining-work.md</code></a></td><td>남은 작업 관리 규칙</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/site-structure.md"><code>rules/site-structure.md</code></a></td><td>문서를 어디에 두고 누가 만드는가</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/sut-automation.md"><code>rules/sut-automation.md</code></a></td><td>SUT 제작·자동화 공통 규칙</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-relations.md"><code>rules/tc-relations.md</code></a></td><td>TC 관계도 (선행 관계)</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/tc-sheet-format.md"><code>rules/tc-sheet-format.md</code></a></td><td>TC 시트 서식</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/rules/verification-types.md"><code>rules/verification-types.md</code></a></td><td>검증유형 4종</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/design-template/template-catalog.md"><code>template-catalog.md</code></a></td><td>템플릿 목록 + 판별 기준</td></tr><tr><td><a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/design-template/xlsx-design-guide.md"><code>xlsx-design-guide.md</code></a></td><td>xlsx 산출물 서식 정본</td></tr><tr><td><a href="../design-guide/design-guide-master.html"><code>design-guide-master.html</code></a></td><td>모든 HTML 산출물이 따르는 색·타이포·컴포넌트 기준</td></tr></tbody></table></div><p class="foot">md 문서와 폴더 링크는 GitHub 저장소에서 열리고, HTML 문서는 이 사이트에서 바로 렌더링됩니다 — GitHub Pages에서는 md가 원본 텍스트로 뜨기 때문입니다.</p><h2 id="proj">프로젝트</h2><div class="card-grid"><div class="card"><h3><a href="../projects/qa-lab-miyonchat/index.html">qa-lab-miyonchat</a></h3><p>출시 서비스 역분석 → 기능 목록 → 확정 사양 → 검증 대상 제작 → 테스트 케이스 → 자동화 → 고장 주입 → 리포트 → CI까지 한 바퀴를 완주한 프로젝트입니다.</p><p class="foot">기능 86개 · TC 153건 · 자동화 157건 · 빌드 PC웹_Ver1.0_Dev_RC25</p></div></div><div class="doc-footer">이 문서는 파생물입니다 — <code>gen_intro_html.py --page structure</code>로 재생성합니다. 구조도는 <code>structure.svg</code>를, 문서 목록은 폴더를 그대로 읽습니다.</div></div></div></div><div class="backdrop"></div></body></html>
