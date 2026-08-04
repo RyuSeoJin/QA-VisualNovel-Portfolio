@@ -77,14 +77,14 @@ jobs:
           python project-process/scripts/gen_qa_report_html.py \
             --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \
             --css design-guide/design-guide-master.css \
-            -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html
+            -o intro/miyonchat-report.html
 
       # ── ④ 커밋본이 낡았는지 — 정본을 고치고 재생성을 잊은 상태를 여기서 잡습니다.
       #    파일을 직접 비교하지 않고 git에 맡깁니다 — 줄바꿈 정규화를 git이 처리하므로
       #    OS 차이로 거짓 실패가 나지 않습니다
       - name: 커밋된 산출물이 최신인지 확인
         run: |
-          paths="projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html \
+          paths="intro/miyonchat-report.html \
                  projects/qa-lab-miyonchat/automation/result/matrix/fault-matrix.md"
           if ! git diff --quiet -- $paths; then
             echo "::error::커밋된 산출물이 정본과 어긋납니다. 재생성해 함께 커밋하세요"
@@ -97,6 +97,6 @@ jobs:
         with:
           name: qa-lab-miyonchat-report
           path: |
-            projects/qa-lab-miyonchat/automation/report/*.html
+            intro/miyonchat-report.html
             projects/qa-lab-miyonchat/automation/result/matrix/*
           retention-days: 30

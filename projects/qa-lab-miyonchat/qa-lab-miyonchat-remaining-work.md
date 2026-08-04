@@ -14,7 +14,7 @@ change-log가 담당합니다. 갱신일: 2026-08-05 (중앙 규칙/프로젝트
 | TC·자동화 | TC **153건**(루브릭 1건은 사람 전용) · 자동화 **157건 통과** · 커버리지 3축 통과 · **결함 주입 매트릭스 통과**(담당 14건 전부 잡음·담당 밖 0) |
 | 리포트 | `automation/report/…-report.html` — 단일 파일·외부 요청 0건. `gen_qa_report_html.py`로 재생성만 합니다 |
 | CI | `.github/workflows/qa-lab-miyonchat.yml` — 커버리지 대조 → 매트릭스 → 리포트 재생성 → **커밋본이 최신인지** |
-| 산출물 | [프로젝트 허브](index.html) · [QA 리포트](automation/report/qa-lab-miyonchat-report.html) · [추적 매트릭스](automation/report/qa-lab-miyonchat-traceability.html) · [용어집](qa-lab-miyonchat-dictionary.html) |
+| 산출물 | 전부 `intro/`에 있습니다(2026-08-05 이동) — [자동화 QA 리포트](../../intro/miyonchat-report.html) · [추적 매트릭스](../../intro/miyonchat-traceability.html) · [기능 골격](../../intro/miyonchat-feature-tree.html) · [용어집](../../intro/miyonchat-dictionary.html). **프로젝트 허브는 폐지했습니다** |
 | 설명 다이어그램 | `structure.svg`(전체 구조) + `diagrams/` 3종(커버리지 3축 · 결함 주입 · 자동화 격리) |
 | 다음 착수 지점 | **작업 큐가 비었습니다** — 1~8번 전부 완료. 다음은 §백로그에서 고릅니다 |
 
@@ -103,7 +103,7 @@ python project-process/scripts/run_fault_matrix.py \
    - `automation/report/…-report.html` · 생성기 `project-process/scripts/gen_qa_report_html.py`
    - 재생성
      ```
-     python project-process/scripts/gen_qa_report_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html
+     python project-process/scripts/gen_qa_report_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o intro/miyonchat-report.html
      ```
    - 파생물이라 손으로 고치지 않습니다. 수치는 전부 정본에서 읽으므로 정본을 고치고 다시 만듭니다
    - 남은 개선: 계열이 늘어 표로 읽기 어려워지면 그때 Chart.js를 인라인합니다(지금은 표+CSS 막대)
@@ -126,8 +126,7 @@ python project-process/scripts/run_fault_matrix.py \
    - **묶기 완료** — 다음 착수 지점은 §백로그에서 고릅니다
    - 재생성
      ```
-     python project-process/scripts/gen_project_hub_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css --diagrams diagrams \n       -o projects/qa-lab-miyonchat/index.html
-     python project-process/scripts/gen_traceability_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html
+     python project-process/scripts/gen_traceability_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o intro/miyonchat-traceability.html
      ```
 
 7. **산출물 디자인 개편 v2.0** — **완료(2026-08-04)** · 재생성까지 끝났습니다

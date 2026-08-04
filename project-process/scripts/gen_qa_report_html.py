@@ -204,7 +204,7 @@ def main():
     rel = "" if rel == "." else rel.replace("\\", "/") + "/"
 
     w(shell.head("%s — QA 검증 리포트" % S, css, js))
-    w(shell.open_body(S, "report", rel, "QA 리포트",
+    w(shell.open_body(S, "report", rel, "자동화 QA 리포트",
                       "골격 v%s%s" % (tree_version, " · " + build if build else ""),
                       out_path=args.output))
 

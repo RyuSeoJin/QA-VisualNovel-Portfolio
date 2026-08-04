@@ -30,6 +30,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import shell  # noqa: E402
 from check_tc_coverage import tree_leaves, blueprint_testids  # noqa: E402
+from parse_feature_tree import parse as parse_tree  # noqa: E402
 
 esc = shell.esc
 BLOB = shell.BLOB
@@ -325,8 +326,9 @@ def page_landing(d, args, rel):
     # ── ④ 검출한 결함
     w('<h2 id="issue">검출한 결함</h2>')
     w('<p>개발 과정에서 정해놓은 시스템 규칙과 다르게 동작하는 현상들에 대해 자동으로 결함을 '
-      '검출하도록 하였습니다. <a href="%sautomation/report/%s-report.html">검증 리포트</a>에서도 '
-      '어떤 결함이 검출되었는지 확인할 수 있습니다.</p>' % (P, S))
+      '검출하도록 하였습니다. <a href="%s%s">자동화 QA 리포트</a>에서도 '
+      '어떤 결함이 검출되었는지 확인할 수 있습니다.</p>'
+      % (rel["root"], dict((k, p) for k, _l, p in shell.INTRO)["report"]))
     w('<div class="tbl-scroll"><table><thead><tr><th>증상</th><th>원인</th>'
       '<th>조치</th></tr></thead><tbody>')
     for iss in d["issues"]:
@@ -364,17 +366,20 @@ def page_landing(d, args, rel):
     w('</div>')
 
     w('<div class="card"><h3>산출물 바로 가기</h3>')
+    paths = dict((k, p) for k, _l, p in shell.INTRO)
+    for key, title, desc in (
+        ("report", "자동화 QA 리포트", "무엇을 얼마나 통과했고, 무엇을 못 봤는지"),
+        ("trace", "추적 매트릭스",
+         "기능 하나가 어떤 케이스·어떤 테스트 함수·어떤 결함으로 이어지는지"),
+        ("tree", "기능 목록", "검증 대상 %d개와 각각의 판정 방식" % n_leaf),
+        ("dict", "용어집", "이 프로젝트에서만 통하는 말"),
+    ):
+        w('<p><a href="%s%s">%s</a><br><span class="foot">%s</span></p>'
+          % (rel["root"], esc(paths[key]), esc(title), esc(desc)))
     for title, desc, link in (
-        ("검증 리포트", "무엇을 얼마나 통과했고, 무엇을 못 봤는지",
-         "%sautomation/report/%s-report.html" % (P, S)),
-        ("추적 매트릭스", "기능 하나가 어떤 케이스·어떤 테스트 함수·어떤 결함으로 이어지는지",
-         "%sautomation/report/%s-traceability.html" % (P, S)),
-        ("기능 목록", "검증 대상 %d개와 각각의 판정 방식" % n_leaf,
-         "%sspec/%s-feature-tree.html" % (P, S)),
-        ("MiyonChat 실행", "검증 대상을 직접 눌러 봅니다", "%ssut/index.html" % P),
+        ("서비스 웹 링크", "검증 대상을 직접 눌러 봅니다", "%ssut/index.html" % P),
         ("TC 시트", "실무 서식 그대로의 엑셀 — 내려받아 엽니다",
          "%s/projects/%s/test-case/%s-tc-v1.0.xlsx" % (BLOB, S, S)),
-        ("프로젝트 허브", "문서가 어디 있는지 모아 둔 지도", "%sindex.html" % P),
     ):
         w('<p><a href="%s">%s</a><br><span class="foot">%s</span></p>'
           % (esc(link), esc(title), esc(desc)))
@@ -722,6 +727,19 @@ def md_rows(path, heading):
     return rows
 
 
+def tree_outline(md_path, max_depth=2):
+    """골격 정본에서 얕은 개요만 뽑는다 — 이름과 뎁스뿐이고 칩·비고는 버린다.
+
+    전부 실으면 「기능 골격」 문서와 같아지므로, 여기서는 「어떤 영역에 어떤 묶음이
+    있나」까지만 보입니다. 더 볼 사람은 기능 골격으로 갑니다.
+    """
+    try:
+        data = parse_tree(io.open(md_path, encoding="utf-8").read())
+    except (OSError, ValueError):
+        return []
+    return [(n["depth"], n["name"]) for n in data["nodes"] if n["depth"] <= max_depth]
+
+
 def tree_scope(md_path):
     """트리에서 범위·출처 태그를 세고, 제외 노드는 사유와 함께 뽑는다."""
     counts = {"구현": 0, "보류": 0, "제외": 0, "REF": 0, "ADD": 0}
@@ -853,6 +871,66 @@ def page_making(d, args, rel):
     w(stat(n_leaf, "검증 대상 기능", "이번 범위에서 만든 것"))
     w(stat(counts["보류"], "보류", "트리에만 두고 만들지 않음"))
     w('</div>')
+
+    # ── 플로우 구조 설계 · 문서 지도 (프로젝트 허브에서 옮겨 옴 — 2026-08-05)
+    w('<h2 id="pipe">플로우 구조 설계</h2>')
+    w('<p>테스트 환경에 필요한 구조를 다음과 같이 설계하였습니다.</p>')
+    outline = tree_outline(tree_md)
+    tree_html = ""
+    if outline:
+        rows = "".join(
+            '<div class="body" style="padding-left:%dpx">%s%s</div>'
+            % (14 * (depth - 1), '<span class="depth-tag">D%d</span> ' % depth, esc(name))
+            for depth, name in outline)
+        tree_html = ('<details class="fold"><summary>기능 골격 요약 보기 — 상위 두 단계 '
+                     '%d줄</summary><div class="fold-body">%s</div></details>'
+                     % (len(outline), rows))
+
+    paths = dict((k, p) for k, _l, p in shell.INTRO)
+
+    def doc_link(key, label):
+        return '<a href="%s%s">%s</a>' % (R, esc(paths[key]), esc(label))
+
+    w('<div class="steps">')
+    for body, extra in (
+        ("<b>기능 골격</b> — 테스트 환경에 들어갈 기능을 Depth 계층으로 정리합니다.", tree_html),
+        ("<b>design 명세</b> — 기능 골격이 <b>어떤 기능이 들어갈 것인가</b>에 대한 정의라면, "
+         "design 명세는 <b>얼마나, 어떤 규칙으로</b> 진행될 것인지 상세 규칙을 설계합니다.", ""),
+        ("<b>테스트 환경(SUT) 제작</b> — 기능 골격과 design 명세를 기반으로 검증 대상을 직접 "
+         "만듭니다. <a href=\"%ssut/index.html\">서비스 웹 링크 →</a>" % P, ""),
+        ("<b>TC 설계</b> — 기능 골격과 design 명세를 기반으로 TC를 설계합니다. TC 설계 규칙은 "
+         "%s 페이지를 참고합니다." % doc_link("tc", "TC 설계 규칙"), ""),
+        ("<b>자동화</b> — 설계된 TC를 기반으로 SUT가 정상적으로 실행되는지 확인합니다.", ""),
+        ("<b>결함 주입</b> — 고의로 결함을 설정했을 때 실제로 깨지는지 확인하여, 실제로 결함 "
+         "발생 시 정상적으로 차단되는지 확인합니다.", ""),
+        ("<b>리포트</b> — 자동화 실행 결과에 대해 정리합니다. %s"
+         % doc_link("report", "QA 리포트 →"), ""),
+    ):
+        w('<div class="step"><div class="body">%s%s</div></div>' % (body, extra))
+    w('</div>')
+
+    w('<h2 id="map">문서 지도</h2>')
+    w('<p>작업을 이어받을 때는 <strong>change-log와 remaining-work를 먼저</strong> 읽습니다. '
+      '그 둘이 「지금 어디까지 왔고 다음이 무엇인가」의 정본입니다.</p>')
+    w('<div class="tbl-scroll"><table><thead><tr><th>폴더</th><th>무엇이 있나</th>'
+      '<th>지위</th></tr></thead><tbody>')
+    for folder, what, status in (
+        ("<code>analysis/</code>", "역분석 조사 기록 — 행동 인벤토리 3종 + 공통 트리",
+         "조사 자료 (TC 기대값 출처 아님)"),
+        ("<code>reference/</code>", "조사에서 채택한 기능 목록", "판단 기록"),
+        ("<code>spec/</code>", "기능 골격 · design 명세 · SUT 설계(청사진·결함 주입·mock·세이브 스키마)",
+         "<strong>정본</strong>"),
+        ("<code>spec/rationale/</code>", "왜 이렇게 정했나 — 추가·SUT 설계의 근거",
+         "근거 기록 (기대값 출처 아님)"),
+        ("<code>spec/archive/</code>", "골격 변경 이력", "기본 참조 금지 — 행방을 물을 때만"),
+        ("<code>sut/</code>", "검증 대상 (단일 HTML + JS)", "<strong>구현</strong>"),
+        ("<code>test-case/</code>", "TC 입력 · 제외 사유 · 이슈 · xlsx",
+         "<strong>정본</strong>은 json, xlsx는 파생"),
+        ("<code>automation/</code>", "테스트 · 매트릭스 기대표 · 실행 결과 · 리포트",
+         "리포트·매트릭스 결과는 파생"),
+    ):
+        w('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (folder, what, status))
+    w('</tbody></table></div>')
 
     # ── 뺀 것
     if excluded:
@@ -1295,7 +1373,8 @@ def page_auto(d, args, rel):
            "않고, 사람 몫으로 남겨 두었습니다."))
     w('</div>')
     w('<p class="foot">검증 범위와 한계의 정본은 프로젝트의 청사진 문서이고, 실행 결과의 정본은 '
-      '<a href="%sautomation/report/%s-report.html">검증 리포트</a>입니다.</p>' % (P, S))
+      '<a href="%s%s">자동화 QA 리포트</a>입니다.</p>'
+      % (rel["root"], dict((k, p) for k, _l, p in shell.INTRO)["report"]))
 
     w('<div class="doc-footer">이 문서는 파생물입니다 — '
       '<code>gen_intro_html.py --page auto</code>로 재생성합니다. 접점 규칙은 '
@@ -1339,13 +1418,16 @@ def main():
     css, js = shell.assets(args.css, args.js)
     # 사이드바는 모든 문서가 같은 것을 씁니다 — 정본은 shell.sidebar 하나입니다
     # (만든 사람 정보는 넣지 않습니다 — 2026-08-04 사용자 확정)
-    # 회색 처리는 「생성기가 없는 페이지」에만 씁니다 — 디스크를 보면 여러 장을 다시 만들 때
-    # 아직 안 만든 장이 회색으로 굳습니다(이름을 바꾸며 실제로 겪었습니다)
+    # 회색 처리는 「아무도 만들지 않는 페이지」에만 씁니다. 판정은 둘 중 하나면 통과입니다 —
+    # ① 이 생성기가 만들 수 있다(--page 키가 있다) ② 파일이 이미 있다(다른 생성기가 만든다).
+    # 디스크만 보면 여러 장을 한꺼번에 다시 만들 때 아직 안 만든 장이 회색으로 굳고,
+    # 키만 보면 리포트·용어집처럼 남이 만드는 문서가 회색이 됩니다. 둘 다 실제로 겪었습니다
     planned = set(path for key, _l, path in shell.INTRO if key in PAGES)
     side = shell.sidebar(
         args.slug, args.page, rel["project"],
         "골격 v%s%s" % (d["tree_version"], " · " + d["build"] if d["build"] else ""),
-        out_path=args.output, exists=lambda p: p in planned)
+        out_path=args.output,
+        exists=lambda p: p in planned or os.path.exists(os.path.join(args.repo_root, p)))
 
     html_out = "".join([
         shell.head("QA-VisualNovel-Portfolio — %s" % crumb, css, js),

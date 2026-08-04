@@ -2,6 +2,9 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.2 (2026-08-05) 접이식 블록(.fold)을 더했다. 본문 흐름을 끊지 않으면서
+     참고 자료(기능 골격 요약 등)를 곁들일 자리가 없었다. 기본은 접힘이고,
+     펼치면 그 자리에서 바로 읽힌다.
    v2.1 (2026-08-05) 사이드바에 카테고리 머리말(.nav-cat)을 더했다.
      워크스페이스 문서와 프로젝트 문서가 한 줄로 섞여 있어 프로젝트가 늘면
      무너지는 구조였다. 묶음(.nav-sec)보다 한 단 위의 머리말을 두어
@@ -240,6 +243,21 @@ hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
 .card h3{margin-top:0}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
 .card-grid .card{margin:0}
+
+/* ---------- 6-1. 접이식 블록 ---------- */
+/* 본문에 곁들이는 참고 자료. 기본은 접힘이라 흐름을 끊지 않는다 */
+.fold{margin:10px 0 2px;border:1px solid var(--hair);border-radius:8px;
+  background:var(--surface-2)}
+.fold>summary{cursor:pointer;padding:8px 12px;font-size:13px;color:var(--ink-2);
+  list-style:none}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::before{content:"▸";margin-right:8px;color:var(--muted)}
+.fold[open]>summary::before{content:"▾"}
+.fold>summary:hover{color:var(--ink)}
+.fold-body{max-height:340px;overflow:auto;padding:4px 12px 10px;
+  border-top:1px solid var(--hair)}
+.fold-body .body{padding:2px 0;font-size:12.5px;color:var(--ink-2)}
+.fold-body .depth-tag{color:var(--muted);font-size:11px;margin-right:4px}
 
 /* ---------- 7. 표 ---------- */
 .tbl-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:10px;margin:14px 0;
@@ -556,7 +574,7 @@ tbody tr.row-hide{display:none}
     each('.tbl-tools[data-table]', initTable);
   });
 })();
-</script></head><body><div class="app"><aside class="side"><div class="side-head"><a href="../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../index.html">포트폴리오 홈</a><a class="nav-i on" href="../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../intro/miyonchat-automation.html">자동화 설계와 결과</a><div class="nav-sec">산출물</div><a class="nav-i" href="../projects/qa-lab-miyonchat/index.html">프로젝트 허브</a><a class="nav-i" href="../projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html">QA 리포트</a><a class="nav-i" href="../projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i" href="../projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a><a class="nav-i" href="../projects/qa-lab-miyonchat/qa-lab-miyonchat-dictionary.html">용어집</a><a class="nav-i" href="../projects/qa-lab-miyonchat/sut/index.html" target="_blank" rel="noopener">SUT 실행</a><div class="nav-sec">원본 파일</div><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx" target="_blank" rel="noopener">TC 시트<span class="tag">xlsx</span></a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.md" target="_blank" rel="noopener">기능 골격 정본<span class="tag">md</span></a></nav><div class="side-foot">골격 v1.14 · PC웹_Ver1.0_Dev_RC25</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>중앙 규칙 구조</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap"><div class="doc-header"><h1>중앙 규칙: 모든 프로젝트가 따라야 하는 규칙</h1><p class="doc-lead">프로젝트를 시작하기 전, <strong>절차와 판단 기준과 형식부터 세웠습니다.</strong> 작업을 진행하는 도중 중앙 규칙 단위로 바뀌어야 하는 규칙이 있다면 유저에게 추가·편집할 것인지 제안하고, 유저는 그에 대한 결정을 내립니다. 이를 기반으로 어긋나는 규칙이 있다면 한쪽으로 일치시킴으로써, <strong>프로젝트를 진행할수록 자라는 구조</strong>로 설계하였습니다.</p><div class="meta-row"><span class="badge">규칙 문서 <b>11편</b></span><span class="badge">생성 도구 <b>13개</b></span><span class="badge">확인 게이트 <b>2곳</b></span></div></div><h2 id="map">중앙 규칙 워크플로우</h2><p>중앙 규칙은 <strong>모든 작업 앞에</strong> 있고, 프로젝트는 그 규칙을 기반으로 삼아 자신만의 프로젝트에 필요한 규칙이나 문서를 추가로 작성해 나갑니다. 아래 그림은 중앙 규칙의 워크플로우를 도식화한 이미지입니다.</p><div class="card" style="padding:14px"><svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 790" width="940" height="790" role="img" aria-labelledby="sdt sdd">
+</script></head><body><div class="app"><aside class="side"><div class="side-head"><a href="../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../index.html">포트폴리오 홈</a><a class="nav-i on" href="../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../intro/miyonchat-automation.html">자동화 설계와 결과</a><a class="nav-i" href="../intro/miyonchat-report.html">자동화 QA 리포트</a><a class="nav-i" href="../intro/miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i" href="../intro/miyonchat-feature-tree.html">기능 골격</a><a class="nav-i" href="../intro/miyonchat-dictionary.html">용어집</a><a class="nav-i" href="../projects/qa-lab-miyonchat/sut/index.html" target="_blank" rel="noopener">서비스 웹 링크</a><div class="nav-sec">내려받기</div><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx" target="_blank" rel="noopener">TC 시트<span class="tag">xlsx</span></a></nav><div class="side-foot">골격 v1.14 · PC웹_Ver1.0_Dev_RC25</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>중앙 규칙 구조</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap"><div class="doc-header"><h1>중앙 규칙: 모든 프로젝트가 따라야 하는 규칙</h1><p class="doc-lead">프로젝트를 시작하기 전, <strong>절차와 판단 기준과 형식부터 세웠습니다.</strong> 작업을 진행하는 도중 중앙 규칙 단위로 바뀌어야 하는 규칙이 있다면 유저에게 추가·편집할 것인지 제안하고, 유저는 그에 대한 결정을 내립니다. 이를 기반으로 어긋나는 규칙이 있다면 한쪽으로 일치시킴으로써, <strong>프로젝트를 진행할수록 자라는 구조</strong>로 설계하였습니다.</p><div class="meta-row"><span class="badge">규칙 문서 <b>11편</b></span><span class="badge">생성 도구 <b>13개</b></span><span class="badge">확인 게이트 <b>2곳</b></span></div></div><h2 id="map">중앙 규칙 워크플로우</h2><p>중앙 규칙은 <strong>모든 작업 앞에</strong> 있고, 프로젝트는 그 규칙을 기반으로 삼아 자신만의 프로젝트에 필요한 규칙이나 문서를 추가로 작성해 나갑니다. 아래 그림은 중앙 규칙의 워크플로우를 도식화한 이미지입니다.</p><div class="card" style="padding:14px"><svg class="sd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 790" width="940" height="790" role="img" aria-labelledby="sdt sdd">
 <title id="sdt">QA-VisualNovel-Portfolio 저장소 구조와 관계</title>
 <desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다. automation 안에서는 테스트가 돌아 결과가 쌓이고, 그 결과에서 리포트가 나오며, CI가 커버리지 대조·결함 주입 매트릭스·산출물 최신 여부를 반복 확인합니다.</desc>
 <!--

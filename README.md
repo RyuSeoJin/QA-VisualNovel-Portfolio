@@ -9,7 +9,7 @@
 📄 **문서 미리보기** — https://ryuseojin.github.io/QA-VisualNovel-Portfolio/
 (HTML 산출물은 GitHub에서 소스로 보이므로, 렌더링된 문서는 이 주소에서 확인하세요.)
 
-> **현재 상태** — 첫 프로젝트 [`qa-lab-miyonchat`](projects/qa-lab-miyonchat/index.html)이
+> **현재 상태** — 첫 프로젝트 [`qa-lab-miyonchat`](intro/miyonchat-overview.html)이
 > 파이프라인을 완주했습니다. 역분석 → 기능 골격 → design 명세 → **SUT 직접 제작** → TC → 자동화
 > → 결함 주입 매트릭스 → 리포트 → CI.
 
@@ -44,9 +44,9 @@ TC를 자동으로 작성하기 위해 세 단계를 거칩니다.
 
 | | |
 |---|---|
-| [프로젝트 허브](projects/qa-lab-miyonchat/index.html) | 파이프라인 8단계 · 문서 지도 · 정본과 파생물 |
-| [QA 검증 리포트](projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-report.html) | 검증유형별 집계 · 결함 주입 매트릭스 · SUT 한계와 검증 범위 |
-| [기능 골격](projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.html) | 구현 기능 단위 86개 · 노드마다 검증유형 판정 |
+| [프로젝트 개요](intro/miyonchat-overview.html) | 왜 직접 만들었나 · 플로우 구조 설계 · 문서 지도 |
+| [자동화 QA 리포트](intro/miyonchat-report.html) | 검증유형별 집계 · 결함 주입 매트릭스 · SUT 한계와 검증 범위 |
+| [기능 골격](intro/miyonchat-feature-tree.html) | 구현 기능 단위 86개 · 노드마다 검증유형 판정 |
 | [SUT](projects/qa-lab-miyonchat/sut/index.html) | 검증 대상을 직접 실행 — 디버그 콘솔로 상태를 만듭니다 |
 
 **SUT를 직접 만든 이유**는 검증 방법 자체를 증명해야 했기 때문입니다. 남의 서비스로는 결함을
@@ -74,7 +74,8 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 
 - [`README.md`](README.md) — 저장소 소개 (이 문서)
 - [`CLAUDE.md`](CLAUDE.md) — 작업 규칙 진입점. 정본 관리·참조 규칙·git 규칙이 여기 명문화되어 있습니다
-- [`index.html`](index.html) — 중앙 허브. 워크스페이스 문서와 프로젝트 목록으로 가는 진입점
+- [`index.html`](index.html) — 포트폴리오 랜딩. 처음 온 사람이 읽는 진입점이며 `intro/`의 소개 문서로 갈라집니다
+- [`intro/`](intro/) — 소개 층. 워크스페이스 문서(`main-` 접두)와 프로젝트 문서(`{프로젝트}-` 접두)가 함께 있습니다
 
 <details>
 <summary><a href="design-guide/"><code>design-guide/</code></a> — 디자인 일관성의 기준</summary>
@@ -122,14 +123,12 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 
 프로젝트가 생기면 아래 구성으로 만들어집니다.
 
-- `{프로젝트}-index.html` — 프로젝트 허브 (이 프로젝트의 문서 목록)
-- `{프로젝트}-dictionary.html` — 프로젝트 용어집 (고유명사 허용)
+- `{프로젝트}-dictionary.md` — 프로젝트 용어집 **정본** (고유명사 허용). 읽는 문서는 `intro/`에 있습니다
 - `{프로젝트}-change-log.md` — 문서 변경 이력. 작업 전 항상 먼저 읽는 파일
 - `analysis/` — 조사 전량. 역분석 산출물과 원자료를 버리지 않고 모으는 곳
 - `reference/` — 채택분. analysis에서 쓰기로 고른 것들의 구체 사양만 추린 자료집
 - `spec/` — 확정 결정. TC의 기대값은 여기서만 가져옵니다
   - `{프로젝트}-feature-tree.md` — **정본.** 손으로 고치는 유일한 파일
-  - `{프로젝트}-feature-tree.html` — 정본에서 재생성하는 트리 시각화 (직접 수정하지 않음)
   - `rationale/` — 레퍼런스에 없어 직접 세운 노드와 직접 정한 수치의 근거
   - `archive/` — 지나간 상태. 골격 변경 이력(`{프로젝트}-tree-change-log.md`)과 큰 개정 직전의 동결 스냅샷이 함께 있고, 평소에는 열지 않습니다
 - `test-case/` — 산출된 TC 엑셀 (기준 골격 버전 기록 + 이슈 관리 시트 내장)

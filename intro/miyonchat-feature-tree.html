@@ -8,13 +8,16 @@
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
   재생성: python project-process/scripts/gen_feature_tree_html.py
-  기준: 템플릿 01-feature-tree v1.0 · design-guide-master v2.1 스냅샷
+  기준: 템플릿 01-feature-tree v1.0 · design-guide-master v2.2 스냅샷
   ============================================================ -->
 <style>
 /* ============================================================
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.2 (2026-08-05) 접이식 블록(.fold)을 더했다. 본문 흐름을 끊지 않으면서
+     참고 자료(기능 골격 요약 등)를 곁들일 자리가 없었다. 기본은 접힘이고,
+     펼치면 그 자리에서 바로 읽힌다.
    v2.1 (2026-08-05) 사이드바에 카테고리 머리말(.nav-cat)을 더했다.
      워크스페이스 문서와 프로젝트 문서가 한 줄로 섞여 있어 프로젝트가 늘면
      무너지는 구조였다. 묶음(.nav-sec)보다 한 단 위의 머리말을 두어
@@ -253,6 +256,21 @@ hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
 .card h3{margin-top:0}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
 .card-grid .card{margin:0}
+
+/* ---------- 6-1. 접이식 블록 ---------- */
+/* 본문에 곁들이는 참고 자료. 기본은 접힘이라 흐름을 끊지 않는다 */
+.fold{margin:10px 0 2px;border:1px solid var(--hair);border-radius:8px;
+  background:var(--surface-2)}
+.fold>summary{cursor:pointer;padding:8px 12px;font-size:13px;color:var(--ink-2);
+  list-style:none}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::before{content:"▸";margin-right:8px;color:var(--muted)}
+.fold[open]>summary::before{content:"▾"}
+.fold>summary:hover{color:var(--ink)}
+.fold-body{max-height:340px;overflow:auto;padding:4px 12px 10px;
+  border-top:1px solid var(--hair)}
+.fold-body .body{padding:2px 0;font-size:12.5px;color:var(--ink-2)}
+.fold-body .depth-tag{color:var(--muted);font-size:11px;margin-right:4px}
 
 /* ---------- 7. 표 ---------- */
 .tbl-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:10px;margin:14px 0;
@@ -575,7 +593,7 @@ tbody tr.row-hide{display:none}
 
 </script>
 </head>
-<body><div class="app"><aside class="side"><div class="side-head"><a href="../../../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../../../index.html">포트폴리오 홈</a><a class="nav-i" href="../../../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../../../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../../../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../../../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../../../intro/miyonchat-automation.html">자동화 설계와 결과</a><div class="nav-sec">산출물</div><a class="nav-i" href="../index.html">프로젝트 허브</a><a class="nav-i" href="../automation/report/qa-lab-miyonchat-report.html">QA 리포트</a><a class="nav-i" href="../automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i on" href="../spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a><a class="nav-i" href="../qa-lab-miyonchat-dictionary.html">용어집</a><a class="nav-i" href="../sut/index.html" target="_blank" rel="noopener">SUT 실행</a><div class="nav-sec">원본 파일</div><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx" target="_blank" rel="noopener">TC 시트<span class="tag">xlsx</span></a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.md" target="_blank" rel="noopener">기능 골격 정본<span class="tag">md</span></a></nav><div class="side-foot">골격 v1.14</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>기능 골격</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap">
+<body><div class="app"><aside class="side"><div class="side-head"><a href="../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../index.html">포트폴리오 홈</a><a class="nav-i" href="../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../intro/miyonchat-automation.html">자동화 설계와 결과</a><a class="nav-i" href="../intro/miyonchat-report.html">자동화 QA 리포트</a><a class="nav-i" href="../intro/miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i on" href="../intro/miyonchat-feature-tree.html">기능 골격</a><a class="nav-i" href="../intro/miyonchat-dictionary.html">용어집</a><a class="nav-i" href="../projects/qa-lab-miyonchat/sut/index.html" target="_blank" rel="noopener">서비스 웹 링크</a><div class="nav-sec">내려받기</div><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx" target="_blank" rel="noopener">TC 시트<span class="tag">xlsx</span></a></nav><div class="side-foot">골격 v1.14</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>기능 골격</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap">
 
 <header class="doc-header">
   <h1>qa-lab-miyonchat 기능 골격 v1.14</h1>
@@ -587,7 +605,7 @@ tbody tr.row-hide{display:none}
     <span class="badge">기준일 <b>2026-08-05</b></span>
   </div>
   <nav class="toc">
-    <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#relations">TC 관계도</a><a href="#unknown">미확인 목록</a>
+    <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#unknown">미확인 목록</a>
   </nav>
 </header>
 
@@ -863,14 +881,11 @@ tbody tr.row-hide{display:none}
 <li><span class="depth-tag">D1</span><span class="node">자연어 지시 이해</span> <span class="chip chip-no">제외</span> <span class="note">「반말 써 줘」처럼 대화로 캐릭터의 행동을 바꾸는 것. 실제 LLM이 없고, 알아듣게 만들면 같은 시드에서 응답이 갈라져 결정성이 깨집니다. 유저 입력이 관여하는 곳은 입력 필터·길이 상한·페르소나 슬롯 치환 셋뿐입니다</span>
 </li></ul>
 
-<h2 id="relations">TC 관계도</h2>
-<div class="callout">TC 설계 전입니다 — 케이스 사이의 선행 관계는 test-case/ 산출 후 이 섹션에서 재생성됩니다.</div>
-
 <h2 id="unknown">미확인 목록</h2>
 <div class="callout">현재 미확인 항목이 없습니다 — 전 항목이 design/에서 확정되었습니다. 값의 정본은 design/이며, 트리 노드는 값을 담지 않고 위임합니다.</div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.14 · 템플릿 01-feature-tree v1.0 · design-guide-master v2.1 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.14 · 템플릿 01-feature-tree v1.0 · design-guide-master v2.2 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
 </div></div></div><div class="backdrop"></div></body></html>

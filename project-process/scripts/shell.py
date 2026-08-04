@@ -24,25 +24,18 @@ import os
 REPO = "https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio"
 BLOB = REPO + "/blob/main"
 
-#: 사이드바 「산출물」 묶음 — (키, 라벨, 프로젝트 폴더 기준 경로)
-NAV = (
-    ("hub", "프로젝트 허브", "index.html"),
-    ("report", "QA 리포트", "automation/report/{S}-report.html"),
-    ("trace", "추적 매트릭스", "automation/report/{S}-traceability.html"),
-    ("tree", "기능 골격", "spec/{S}-feature-tree.html"),
-    ("dict", "용어집", "{S}-dictionary.html"),
-    ("sut", "SUT 실행", "sut/index.html"),
-)
+#: 검증 대상 자체로 가는 링크 — (키, 라벨, 프로젝트 폴더 기준 경로).
+#: 문서가 아니라 조작해 보는 제품이라 「문서」 묶음 끝에 붙되 새 탭으로 연다
+SUT_LINK = ("sut", "서비스 웹 링크", "sut/index.html")
 
 #: 새 탭에서 여는 항목. 기준은 **사이트 밖으로 나가는가**이다 — SUT는 읽는 문서가 아니라
-#: 조작해 보는 제품이고, 「저장소」 묶음은 GitHub으로 나간다. 둘 다 읽던 문서를 덮지 않는다
+#: 조작해 보는 제품이고, 내려받기·GitHub은 저장소 밖으로 나간다. 둘 다 읽던 문서를 덮지 않는다
 NEW_TAB = ("sut",)
 
-#: 사이드바 「원본 파일」 묶음 — Pages에서 404가 나는 md·폴더·xlsx는 절대 URL로 건다.
-#: 프로젝트의 원본이며, 저장소를 벗어나므로 전부 새 탭이다
+#: 사이드바 「내려받기」 묶음 — 열어 보는 문서가 아니라 받아 가는 파일이다.
+#: Pages에서 404가 나므로 절대 URL로 걸고, 저장소를 벗어나므로 새 탭이다
 OUT = (
     ("TC 시트", BLOB + "/projects/{S}/test-case/{S}-tc-v1.0.xlsx", "xlsx"),
-    ("기능 골격 정본", BLOB + "/projects/{S}/spec/{S}-feature-tree.md", "md"),
 )
 
 #: 저장소 자체로 가는 링크. 프로젝트가 아니라 **워크스페이스 전체**를 가리키므로
@@ -52,7 +45,7 @@ REPO_LINK = ("포트폴리오 깃허브 링크", REPO, "git")
 #: 사이드바에서 워크스페이스 이야기와 프로젝트 이야기를 가르는 기준.
 #: 앞은 프로젝트가 늘어도 그대로이고, 뒤는 프로젝트마다 한 벌씩 생긴다
 WORKSPACE_INTRO = ("landing", "central", "project")
-PROJECT_INTRO = ("making", "tc", "auto")
+PROJECT_INTRO = ("making", "tc", "auto", "report", "trace", "tree", "dict")
 
 #: 프로젝트 카테고리에 표시할 이름. 없으면 slug를 그대로 쓴다
 PROJECT_LABEL = {"qa-lab-miyonchat": "MiyonChat"}
@@ -72,6 +65,10 @@ INTRO = (
     ("making", "프로젝트 개요", "intro/miyonchat-overview.html"),
     ("tc", "TC 설계 규칙", "intro/miyonchat-tc-design.html"),
     ("auto", "자동화 설계와 결과", "intro/miyonchat-automation.html"),
+    ("report", "자동화 QA 리포트", "intro/miyonchat-report.html"),
+    ("trace", "추적 매트릭스", "intro/miyonchat-traceability.html"),
+    ("tree", "기능 골격", "intro/miyonchat-feature-tree.html"),
+    ("dict", "용어집", "intro/miyonchat-dictionary.html"),
 )
 
 
@@ -201,7 +198,10 @@ def sidebar(slug, current, rel, foot="", out_path=None, exists=None):
     if out_path is not None:
         root = root_rel(out_path)
         if exists is None:
-            exists = lambda p: os.path.exists(os.path.join(repo_root(), p))  # noqa: E731
+            # 소개 층은 여러 생성기가 나눠 만든다. 디스크만 보면 「아직 안 만든 장」이 회색으로
+            # 굳으므로, 목록에 있는 문서는 있는 것으로 본다 — 목록 자체가 만들겠다는 선언이다
+            planned = set(path for _k, _l, path in INTRO)
+            exists = lambda p: p in planned  # noqa: E731
         ws_title, ws_items = intro_group(current, root, exists=exists, keys=WORKSPACE_INTRO)
         # 저장소 링크는 워크스페이스 전체를 가리키므로 소개 묶음의 끝에 붙는다
         ws_items.append((REPO_LINK[0], REPO_LINK[1], False, REPO_LINK[2], True))
@@ -209,14 +209,15 @@ def sidebar(slug, current, rel, foot="", out_path=None, exists=None):
         head_href = root + "index.html"
         head_title, head_sub = "QA-VisualNovel-Portfolio", "QA 포트폴리오"
         groups.append(("@프로젝트: %s" % PROJECT_LABEL.get(slug, slug), ()))
-        groups.append(intro_group(current, root, exists=exists,
-                                  keys=PROJECT_INTRO, title="문서"))
-    out_items = [(label, rel + path.format(S=slug), key == current, "", key in NEW_TAB)
-                 for key, label, path in NAV]
-    # 「저장소」 묶음은 GitHub으로 나가므로 전부 새 탭이다
+        doc_title, doc_items = intro_group(current, root, exists=exists,
+                                           keys=PROJECT_INTRO, title="문서")
+        # 검증 대상은 문서가 아니지만 이 프로젝트의 것이므로 문서 묶음 끝에 둔다
+        key, label, path = SUT_LINK
+        doc_items.append((label, rel + path.format(S=slug), key == current, "", True))
+        groups.append((doc_title, doc_items))
+    # 「내려받기」는 GitHub으로 나가므로 전부 새 탭이다
     repo_items = [(label, url.format(S=slug), False, tag, True) for label, url, tag in OUT]
-    groups.append(("산출물", out_items))
-    groups.append(("원본 파일", repo_items))
+    groups.append(("내려받기", repo_items))
     return sidebar_from(groups, head_href, head_title, head_sub, foot)
 
 

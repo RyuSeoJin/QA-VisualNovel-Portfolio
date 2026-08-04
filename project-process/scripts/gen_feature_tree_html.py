@@ -11,7 +11,9 @@
     · 신규 CSS 클래스를 만들지 않는다 — 마스터 토큰 재사용:
         유형: chip-det/ban/prob/rub · P: chip-high/mid/low
         범위: 구현=chip-ok · 보류=chip-part · 제외=chip-no · 출처: 기본 chip
-    · TC 관계도 섹션은 TC 설계 전이면 안내 콜아웃만 둔다
+    · TC 관계도 섹션은 두지 않는다(2026-08-05) — 케이스 사이의 선행 관계는 TC 시트의
+      열과 추적 매트릭스가 이미 담는다. 여기 또 두면 같은 관계의 세 번째 사본이 되고,
+      기능 골격은 「기능이 무엇인가」에 집중한다
 
 사용법:
     python gen_feature_tree_html.py spec/…-feature-tree.md -o spec/…-feature-tree.html
@@ -175,7 +177,7 @@ def main():
     <span class="badge">기준일 <b>{today}</b></span>
   </div>
   <nav class="toc">
-    <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#relations">TC 관계도</a><a href="#unknown">미확인 목록</a>
+    <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#unknown">미확인 목록</a>
   </nav>
 </header>
 
@@ -193,9 +195,6 @@ def main():
 상태 칩이 붙은 기능 단위는 선언된 상태 각각에서 최소 한 케이스가 요구됩니다(규칙: rules/depth-and-tn.md §상태 축).
 값이 미정인 항목은 트리에 박지 않고 미확인 목록에 모았습니다 — 확정처는 전부 spec/design/입니다.</p>
 {render_tree(nodes)}
-
-<h2 id="relations">TC 관계도</h2>
-<div class="callout">TC 설계 전입니다 — 케이스 사이의 선행 관계는 test-case/ 산출 후 이 섹션에서 재생성됩니다.</div>
 
 <h2 id="unknown">미확인 목록</h2>
 {unknown_block}
