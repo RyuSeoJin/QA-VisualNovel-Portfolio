@@ -24,6 +24,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import shell  # noqa: E402
 from parse_feature_tree import parse  # noqa: E402
 
 TYPE_CHIP = {"결정적": "chip-det", "금칙": "chip-ban",
@@ -112,6 +113,16 @@ def main():
     today = datetime.date.today().isoformat()
     proj, ver = data["project"], data["version"]
 
+    # 사이드바에서 열리는 문서이므로 셸을 입힌다 — 메뉴로 들어와 메뉴가 사라지면 돌아갈 길이 없다
+    proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(args.input)))
+    rel = os.path.relpath(proj_dir, os.path.dirname(os.path.abspath(args.output)))
+    rel = rel.replace(os.sep, "/")
+    rel = "" if rel == "." else rel + "/"
+    body_open = shell.open_body(
+        proj, "tree", rel, "기능 골격",
+        "골격 v%s" % ver, out_path=args.output)
+    body_close = shell.close_body()
+
     unknown_rows = "\n".join(
         f'    <tr><td>{esc(u["path"])}</td><td>{esc(u["value"])}</td>'
         f'<td>{esc(u["how"])}</td></tr>'
@@ -152,11 +163,9 @@ def main():
 {js}
 </script>
 </head>
-<body>
-<div class="wrap">
+{body_open}
 
 <header class="doc-header">
-  <button class="icon-btn" data-theme-toggle>다크</button>
   <h1>{proj} 기능 골격 v{ver}</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
@@ -195,9 +204,7 @@ def main():
   {proj} 기능 골격 v{ver} · 템플릿 01-feature-tree v1.0 · design-guide-master {css_ver} 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
-</div>
-</body>
-</html>
+{body_close}
 """
     with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
         f.write(doc)

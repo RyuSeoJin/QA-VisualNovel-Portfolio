@@ -245,92 +245,88 @@ def page_landing(d, args, rel):
            "조사 대상: AI 챗 3종 · AI 챗+비주얼노벨 1종 · 미연시 2종"))
     w('</div>')
 
-    # ── ② 프로젝트 진행 과정 — 앞선 작업에서 부딪힌 문제와 그 해결
-    struct_path = dict((k, p) for k, _l, p in shell.INTRO)["structure"]
-    struct_link = ('<a href="%s%s">저장소 구조</a>' % (rel["root"], esc(struct_path))
-                   if os.path.exists(os.path.join(args.repo_root, struct_path))
-                   else "<b>저장소 구조</b>")
+    # ── ② 중앙 규칙과 프로젝트 규칙 — 앞선 작업에서 부딪힌 문제와 그 해결
+    paths = dict((k, p) for k, _l, p in shell.INTRO)
 
-    w('<h2 id="why">프로젝트 진행 과정</h2>')
-    w('<p>이전에도 Claude를 이용해 사이트를 개발하면서 <strong>두 가지 문제를 반복해서 '
-      '겪었습니다.</strong> 그 둘을 먼저 풀고 시작한 것이 이 저장소의 구조입니다.</p>')
+    def intro_link(key, label):
+        path = paths[key]
+        if os.path.exists(os.path.join(args.repo_root, path)):
+            return '<a href="%s%s">%s</a>' % (rel["root"], esc(path), esc(label))
+        return "<b>%s</b>" % esc(label)
+
+    w('<h2 id="why">중앙 규칙과 프로젝트 규칙 설계</h2>')
+    w('<p>이전에 Claude를 이용해 공부하는 사이트를 만드는 과정에서 <strong>두 가지 문제를 '
+      '반복해서 겪었습니다.</strong> 이에 대한 문제를 풀고 시작했습니다.</p>')
     w('<div class="steps">')
     for title, body in (
-        ("규칙이 어느 순간 덮어씌워집니다",
-         "규칙을 문서 하나로 제어하면 작업이 쌓이는 사이에 규칙이 덮어씌워지거나 다르게 바뀌는 "
-         "경우가 많았습니다. → <b>원본과 파생을 갈랐습니다.</b> 원본 규칙은 직접 수정을 요청하지 "
-         "않는 한 바뀌지 않고, 다른 작업은 원본의 규칙을 참고해 진행합니다. 파생된 작업에서 원본과 "
-         "다른 점이 나오면 임의로 맞추지 않고 <b>문제를 제기해 어떤 방향으로 갈지 이야기한 뒤</b> "
-         "원본이든 파생이든 한쪽으로 규칙을 일관화합니다."),
-        ("디자인 가이드가 없으면 결과물이 들쭉날쭉합니다",
-         "기준이 없으면 작업물의 디자인 완성도가 문서마다 천차만별로 달라졌습니다. → "
-         "<b>모든 문서가 공유하는 디자인 가이드</b>를 먼저 세우고, 새로 만드는 화면도 그 가이드 "
-         "안에서 해결하도록 제어했습니다."),
+        ("한 프로젝트의 스펙이 다른 프로젝트로 새어 들어갑니다",
+         "AI에게 디자인 가이드와 지켜야 할 규칙을 설명하고, 대화하면서 그 규칙이 자라는 구조로 "
+         "설계했습니다. 그런데 프로젝트가 여럿이 되자 <b>A 프로젝트의 작업에 B 프로젝트의 스펙이 "
+         "섞여 들어왔습니다.</b> 규칙과 결정이 한자리에 뒤엉켜 있으니 어느 프로젝트 것인지 "
+         "가려낼 방법이 없었습니다."),
+        ("산출물마다 완성도 차이가 존재했습니다",
+         "디자인 가이드가 없다 보니 문서에 대해 작성을 요청할 때마다 가독성이나 구조가 매번 "
+         "달라져서 보기가 힘들었습니다. <b>모든 문서가 공유하는 디자인 가이드</b>를 먼저 세우고, "
+         "새로 만드는 화면도 그 가이드 안에서 해결하도록 제어했습니다."),
     ):
         w('<div class="step"><div class="body"><b>%s</b> — %s</div></div>' % (esc(title), body))
     w('</div>')
-    w('<p>이 둘을 기반으로, 앞으로 여러 테스트 사이트를 만들어도 <strong>일관성이 유지되고 '
-      '이야기를 나누면서 규칙이 자라는 형태</strong>로 저장소의 구조를 설계했습니다. '
-      '자세한 내용은 %s를 참고합니다.</p>' % struct_link)
 
-    # ── ③ 어떻게 일했나
-    w('<h2 id="how">어떻게 일했나</h2>')
-    w('<p>앞 단계의 결과가 뒤 단계의 입력이자 <strong>기대값의 출처</strong>입니다. '
-      '단계마다 그때 내린 판단을 함께 적었습니다.</p>')
+    w('<p>이러한 병목을 없애려고 <strong>폴더 규칙을 두 갈래로 정의했습니다.</strong></p>')
+    w('<div class="card-grid">')
+    w(card("중앙 규칙 — 모든 프로젝트가 따라야 하는 규칙",
+           "무엇을 어떤 순서로 할지(<code>project-process/</code>), 산출물이 어떤 모양이어야 "
+           "하는지(<code>design-guide/</code> · <code>design-template/</code>), 저장소를 어떻게 "
+           "소개할지(<code>intro/</code>)를 담습니다. <b>어떤 프로젝트가 작업을 시작해도 "
+           "일관성 있는 작업을 유지합니다.</b>",
+           intro_link("central", "자세한 구조는 중앙 규칙 구조에서 다룹니다. →")))
+    w(card("프로젝트 규칙 — 프로젝트마다 개별로 기억하는 것",
+           "중앙 규칙에 의거하여 해당 프로젝트 안에서만 다루어야 하는 문서나 규칙이 쌓입니다 — 조사 기록, 채택한 것, "
+           "확정 사양, 테스트 케이스, 그리고 내린 결정과 남은 작업. <b>다른 프로젝트가 참조하지 "
+           "않으므로 한쪽의 결정이 다른 쪽으로 새지 않습니다.</b>",
+           intro_link("project", "자세한 구조는 프로젝트 규칙 구조에서 다룹니다. →")))
+    w('</div>')
+    w('<p>이 둘을 기반으로, 앞으로 여러 테스트 사이트를 만들어도 <strong>일관성이 유지되고 '
+      '이야기를 나누면서 「모든 프로젝트가 따라야 하는 규칙」이 자라는 형태</strong>로 저장소의 '
+      '구조를 설계했습니다.</p>')
+
+    # ── ③ MiyonChat 작업 과정
+    w('<h2 id="how">MiyonChat 작업 과정</h2>')
+    w('<p>AI 서비스를 검증하려면 어떤 것이 필요한지 이해하기 위해 다음과 같은 작업 과정을 '
+      '거쳤습니다.</p>')
     w('<div class="steps">')
     for title, body, link, link_label in (
-        ("출시 서비스를 분해했습니다",
-         "기능 목록이 아니라 <b>행동 목록</b>부터 만들었습니다. 기능 이름은 회사마다 다르지만 "
-         "사용자가 하는 행동은 겹치기 때문입니다.",
-         "%sanalysis/" % P, "조사 기록"),
-        ("공통 기능의 목록을 세웠습니다",
-         "겹치는 행동을 계층으로 정리해 <b>검증 대상 %d개</b>를 확정했습니다. 조사에 없어 직접 "
-         "정한 항목은 왜 그렇게 정했는지를 따로 적립했습니다 — 면접에서 가장 많이 받을 질문이라서입니다."
-         % n_leaf,
-         "%sspec/%s-feature-tree.html" % (P, S), "기능 목록 보기"),
-        ("수치와 합격선을 확정했습니다",
-         "「기능이 있다」와 「얼마부터 통과인가」는 다른 문제입니다. 상한값·차감량·관계 단계의 "
-         "경계·채점 합격선을 확정 문서로 못박고, 테스트의 기대값은 <b>그 문서에서만</b> 가져오게 했습니다.",
+        ("서비스 중인 AI 서비스 사이트를 분석했습니다",
+         "실제 서비스 중인 AI 채팅 서비스 사이트나 프로그램을 6개 분석하였습니다.",
          None, None),
-        ("검증 대상을 만들었습니다",
-         "화면 요소마다 테스트가 붙잡을 이름표를 달고, 상태를 읽고 바꾸는 통로와 <b>고장을 켜는 "
-         "스위치</b>를 처음부터 심었습니다. 나중에 붙이면 테스트가 화면 생김새에 매달리게 됩니다.",
-         "%ssut/index.html" % P, "직접 실행해 보기"),
+        ("공통 기능의 기준을 세웠습니다",
+         "AI 채팅 서비스 프로그램에서 겹치는 행동을 정리하였습니다.",
+         None, None),
+        ("그 외에 필요한 기능을 임시로 판단하여 추가하였습니다",
+         "공통 기능을 제외하고 AI 채팅 서비스에 기본적으로 필요하다고 판단한 기능들을 "
+         "추가하였습니다.",
+         None, None),
+        ("위 내용을 기반으로 검증할 대상인 「MiyonChat」을 설계하였습니다",
+         "화면 요소마다 테스트 환경이 확인할 수 있는 이름표를 달고, 특정 상태를 판정할 수 있도록 "
+         "디버그 환경을 만들어서 테스트 환경을 설계하였습니다.",
+         "%ssut/index.html" % P, "직접 실행해보기"),
         ("테스트 케이스를 설계했습니다",
-         "기능마다 정상·경계·예외·우회 네 갈래로 펼쳐 <b>%d건</b>을 만들고, 케이스마다 무엇을 "
-         "확인하는지 좌표를 적었습니다. 시트는 실무에서 쓰는 서식을 그대로 따랐습니다." % n_tc,
-         "%s/projects/%s/test-case/%s-tc-v1.0.xlsx" % (BLOB, S, S), "TC 시트 내려받기"),
-        ("자동화하고 고장을 심었습니다",
-         "<b>%d건 중 %d건</b>을 자동화했습니다. 테스트 함수 이름이 곧 케이스 번호라 실패한 줄만 "
-         "보고 시트를 찾을 수 있습니다. 그리고 고장 %d종을 하나씩 켜서 <b>담당 케이스만 깨지는지</b> "
-         "확인했습니다." % (n_tc, n_auto_tc, len(d["faults"])),
-         "%sautomation/report/%s-report.html" % (P, S), "검증 리포트 보기"),
+         "기능마다 확인해야 할 TC를 자동으로 설계하였습니다.",
+         None, None),
+        ("자동화 테스트 진행",
+         "테스트 케이스를 기반으로 한 자동화 테스트를 진행하였습니다.",
+         None, None),
     ):
         link_html = (' <a href="%s">%s →</a>' % (esc(link), esc(link_label))) if link else ""
         w('<div class="step"><div class="body"><b>%s</b> — %s%s</div></div>'
           % (esc(title), body, link_html))
     w('</div>')
 
-    # ── ④ 결과
-    w('<h2 id="result">무엇이 나왔나</h2>')
-    w('<div class="stats">')
-    w(stat(n_leaf, "검증 대상 기능", "테스트로 확인할 최소 단위"))
-    w(stat('<em>%d</em>' % n_tc, "테스트 케이스", "%d개 영역 · 시트로 산출" % n_area))
-    w(stat(d["auto"], "자동화 테스트", "사람 손 없이 실행"))
-    w(stat("%d종" % len(d["faults"]), "일부러 심은 고장",
-           "담당 케이스만 깨짐" if d["base_ok"] else "탐지력 확인용"))
-    w(stat(len(d["issues"]), "검출한 결함", "명세와 어긋난 동작 · 전부 수정"))
-    w('</div>')
-
-    if d["base_ok"]:
-        w('<div class="callout">고장을 심지 않은 상태에서는 <strong>전 영역이 통과</strong>하고, '
-          '고장을 하나 켜면 <strong>그 고장을 담당하는 케이스만 실패</strong>합니다. 담당 밖 테스트가 '
-          '함께 흔들리면 그 테스트는 무엇을 보는지 모르는 채 통과하고 있었다는 뜻이라, '
-          '이 둘을 같이 봅니다.</div>')
-
-    w('<h3>검출한 결함</h3>')
-    w('<p>확정 명세가 정한 동작과 구현이 어긋난 건들입니다. 재현 절차와 기대 결과는 '
-      '검증 리포트에 있습니다.</p>')
+    # ── ④ 검출한 결함
+    w('<h2 id="issue">검출한 결함</h2>')
+    w('<p>개발 과정에서 정해놓은 시스템 규칙과 다르게 동작하는 현상들에 대해 자동으로 결함을 '
+      '검출하도록 하였습니다. <a href="%sautomation/report/%s-report.html">검증 리포트</a>에서도 '
+      '어떤 결함이 검출되었는지 확인할 수 있습니다.</p>' % (P, S))
     w('<div class="tbl-scroll"><table><thead><tr><th>증상</th><th>원인</th>'
       '<th>조치</th></tr></thead><tbody>')
     for iss in d["issues"]:
@@ -340,59 +336,21 @@ def page_landing(d, args, rel):
              ('%s에서 수정' % esc(fix)) if fix else esc(iss.get("resolution", ""))))
     w('</tbody></table></div>')
 
-    # ── ⑤ 역량
-    w('<h2 id="skill">이 작업이 보여주는 것</h2>')
+    # ── ⑤ 더 보기 — 읽을 것과 열어 볼 것을 한 절에 좌우로 둔다
+    w('<h2 id="more">더 보기</h2>')
     w('<div class="card-grid">')
-    w(card("기준이 없을 때 기준을 만듭니다",
-           "기획서가 없는 서비스를 분해해 「무엇이 정상인가」를 문서로 세웠습니다. 조사한 값과 "
-           "직접 정한 값을 구분해 두었기 때문에, 나중에 「이 숫자는 어디서 왔나」를 되짚을 수 있습니다."))
-    w(card("자를 수 없는 것에 선을 긋습니다",
-           "AI 응답처럼 매번 달라지는 결과도 판정할 수 있게, 항목마다 판정 방식과 합격선을 먼저 "
-           "정했습니다. 「대충 괜찮아 보인다」를 숫자로 바꾸는 일입니다."))
-    w(card("빠짐없이 봤는지를 사람이 아니라 도구가 확인합니다",
-           "덮이지 않은 기능을 스크립트가 목록으로 냅니다. 검증 대상이 아닌 것은 사유를 파일에 "
-           "적게 하고, 그 사유가 실제로 성립하는지까지 검사합니다."))
-    w(card("테스트가 결함을 잡는지 증명합니다",
-           "테스트가 통과한다는 말과 테스트가 쓸모 있다는 말은 다릅니다. 고장을 심어 담당 테스트만 "
-           "깨지는 것을 보이면, 통과가 곧 근거가 됩니다."))
-    w('</div>')
 
-    # ── ⑥ 용어
-    w('<h2 id="word">이 문서의 말</h2>')
-    w('<p>본문에서 풀어 썼지만, 산출물 안에서는 아래 이름으로 나옵니다.</p>')
-    w('<div class="tbl-scroll"><table><thead><tr><th>여기서 쓴 말</th><th>산출물에서의 이름</th>'
-      '<th>뜻</th></tr></thead><tbody>')
-    for plain, term, mean in (
-        ("검증 대상 기능", "기능 단위",
-         "테스트로 확인하는 최소 단위. 기능 목록의 맨 끝 항목입니다"),
-        ("직접 만든 검증 대상", "SUT (System Under Test)",
-         "테스트를 당하는 쪽. 테스트 코드가 아니라 그 코드가 조작하는 제품입니다"),
-        ("화면 조작 지점", "화면 요소 (data-testid)",
-         "테스트가 버튼·입력창을 찾을 때 쓰는 이름표. 화면 생김새가 바뀌어도 안 흔들립니다"),
-        ("판정 방식", "검증유형",
-         "결정적(1회로 자름) · 확률적(여러 번 돌려 성공률) · 루브릭(채점표) · 금칙(0건이어야 통과)"),
-        ("빠짐없이 봤는지 대조", "커버리지 3축",
-         "기능 목록 · 화면 요소 · 계정 상태 세 기준선과 케이스가 적어 둔 좌표를 맞춰 봅니다"),
-        ("일부러 심은 고장", "결함 주입",
-         "고장을 하나씩 켜고 전체를 다시 돌려, 담당 케이스만 실패하는지 확인하는 방법"),
-    ):
-        w('<tr><td><strong>%s</strong></td><td><code>%s</code></td><td>%s</td></tr>'
-          % (esc(plain), esc(term), esc(mean)))
-    w('</tbody></table></div>')
-
-    # ── ⑦ 더 보기
-    w('<h2 id="read">더 자세히</h2>')
-    w('<p>판단의 근거와 규칙을 단계별로 풀어 둔 문서입니다.</p>')
-    w('<div class="steps">')
+    w('<div class="card"><h3>더 자세히</h3>')
     for key, title, desc in (
-        ("structure", "저장소 구조",
-         "폴더가 곧 규칙입니다 — 조사한 것·채택한 것·확정한 것·지나간 것을 섞지 않으려고 "
-         "폴더로 갈라 두었습니다."),
-        ("foundation", "작업 규칙 — 첫 문서를 쓰기 전에 정한 것",
-         "절차서·규칙 문서·디자인 기준을 먼저 세우고 시작했습니다. 같은 판단이 매번 같게 "
-         "나오도록 고정해 둔 것들입니다."),
-        ("making", "제작 과정 — MiyonChat은 어떻게 나왔나",
-         "레퍼런스 조사에서 시작해 어떤 기능을 왜 넣고 뺐는지를 따라갑니다."),
+        ("central", "중앙 규칙 — 모든 프로젝트가 따르는 것",
+         "절차서·규칙 문서·형식 기준을 프로젝트 밖에 두고, 프로젝트가 늘어도 같은 방식으로 "
+         "일하게 했습니다."),
+        ("project", "프로젝트 규칙 — 프로젝트마다 따로 쌓이는 규칙",
+         "한 프로젝트의 결정이 다른 프로젝트로 새지 않도록, 프로젝트 폴더와 중앙 규칙만 "
+         "보게 했습니다."),
+        ("making", "MiyonChat 프로젝트 개요",
+         "왜 검증 대상을 직접 만들었고, 레퍼런스 조사에서 어떤 기능을 왜 넣고 뺐는지를 "
+         "따라갑니다."),
         ("tc", "테스트 케이스 설계 규칙",
          "케이스를 어떻게 펼쳤고, 시트가 왜 그 서식이며, 무엇을 근거로 「다 봤다」고 하는지."),
         ("auto", "자동화 설계와 결과",
@@ -402,11 +360,10 @@ def page_landing(d, args, rel):
         exists = os.path.exists(os.path.join(args.repo_root, path))
         link = ('<a href="%s%s">%s</a>' % (rel["root"], esc(path), esc(title))
                 if exists else '<b>%s</b> <span class="chip chip-unk">준비 중</span>' % esc(title))
-        w('<div class="step"><div class="body">%s — %s</div></div>' % (link, desc))
+        w('<p>%s<br><span class="foot">%s</span></p>' % (link, esc(desc)))
     w('</div>')
 
-    w('<h2 id="out">산출물 바로 가기</h2>')
-    w('<div class="card-grid">')
+    w('<div class="card"><h3>산출물 바로 가기</h3>')
     for title, desc, link in (
         ("검증 리포트", "무엇을 얼마나 통과했고, 무엇을 못 봤는지",
          "%sautomation/report/%s-report.html" % (P, S)),
@@ -419,17 +376,16 @@ def page_landing(d, args, rel):
          "%s/projects/%s/test-case/%s-tc-v1.0.xlsx" % (BLOB, S, S)),
         ("프로젝트 허브", "문서가 어디 있는지 모아 둔 지도", "%sindex.html" % P),
     ):
-        w('<div class="card"><h3><a href="%s">%s</a></h3><p>%s</p></div>'
+        w('<p><a href="%s">%s</a><br><span class="foot">%s</span></p>'
           % (esc(link), esc(title), esc(desc)))
+    w('</div>')
+
     w('</div>')
 
     w('<div class="doc-footer">이 문서는 파생물입니다 — <code>gen_intro_html.py --page landing</code>으로 '
       '재생성합니다. 수치는 전부 정본에서 읽고, 자동화 결과는 커밋된 매트릭스 표에서 읽습니다.</div>')
 
-    toc = (("what", "무엇을 만들었나요?"), ("why", "프로젝트 진행 과정"), ("how", "어떻게 일했나"),
-           ("result", "무엇이 나왔나"), ("skill", "이 작업이 보여주는 것"),
-           ("word", "이 문서의 말"), ("read", "더 자세히"), ("out", "산출물"))
-    return "".join(o), toc, "포트폴리오 홈"
+    return "".join(o), "포트폴리오 홈"
 
 
 # ────────────────────────────────────────────────────────────────
@@ -448,242 +404,86 @@ def doc_title(path):
     return head
 
 
-def page_structure(d, args, rel):
-    """저장소 구조 — 어디에 무엇이 있고, 그 자리에 있는 이유가 무엇인지.
+def page_central(d, args, rel):
+    """중앙 규칙 구조 — 모든 프로젝트가 따르는 절차·형식·소개가 어디 있고 무엇을 정하는지.
 
-    문서 목록을 손으로 적어 두면 문서가 늘 때마다 낡습니다. 그래서 폴더를 훑어
-    실재하는 파일에서 제목을 읽습니다.
+    목록은 폴더를 훑어 만들고 설명은 각 파일의 첫 문단·첫 줄에서 읽습니다. 여기에 요약을
+    옮겨 적으면 규칙이 바뀔 때 이 페이지만 옛말을 하게 됩니다.
     """
-    S = d["slug"]
-    R, P = rel["root"], rel["project"]
+    R = rel["root"]
+    proc = os.path.join(args.repo_root, "project-process")
+    rules_dir = os.path.join(proc, "rules")
+    scripts_dir = os.path.join(proc, "scripts")
     o = []
     w = o.append
 
-    w('<div class="doc-header"><h1>저장소 구조 — 폴더 이름이 곧 규칙입니다</h1>')
-    w('<p class="doc-lead">조사한 것 · 채택한 것 · 확정한 것 · 지나간 것을 한 폴더에 섞어 두면, '
-      '테스트의 기대값을 <strong>아직 확정되지 않은 값에서 가져오는 사고</strong>가 납니다. '
-      '그래서 참조 규칙이 같은 것끼리 폴더로 묶고, 폴더 이름만 보고도 「여기 것을 기대값으로 써도 '
-      '되는가」를 판단할 수 있게 했습니다.</p>')
-    w('<div class="meta-row"><span class="badge">저장소 <b>3층</b></span>'
-      '<span class="badge">규칙 문서 <b>%d편</b></span></div></div>'
-      % len([n for n in sorted(os.listdir(os.path.join(args.repo_root, "project-process", "rules")))
-             if n.endswith(".md")]))
+    rule_files = sorted(n for n in os.listdir(rules_dir) if n.endswith(".md"))
+    scripts = sorted(n for n in os.listdir(scripts_dir)
+                     if n.endswith(".py") and not n.startswith("_"))
+    proj_path = dict((k, p) for k, _l, p in shell.INTRO)["project"]
+    proj_link = ('<a href="%s%s">프로젝트 규칙 구조</a>' % (R, esc(proj_path))
+                 if os.path.exists(os.path.join(args.repo_root, proj_path))
+                 else "<b>프로젝트 규칙 구조</b>")
+
+    w('<div class="doc-header"><h1>중앙 규칙: 모든 프로젝트가 따라야 하는 규칙</h1>')
+    w('<p class="doc-lead">프로젝트를 시작하기 전, <strong>절차와 판단 기준과 형식부터 '
+      '세웠습니다.</strong> 작업을 진행하는 도중 중앙 규칙 단위로 바뀌어야 하는 규칙이 있다면 '
+      '유저에게 추가·편집할 것인지 제안하고, 유저는 그에 대한 결정을 내립니다. 이를 기반으로 '
+      '어긋나는 규칙이 있다면 한쪽으로 일치시킴으로써, <strong>프로젝트를 진행할수록 자라는 '
+      '구조</strong>로 설계하였습니다.</p>')
+    w('<div class="meta-row"><span class="badge">규칙 문서 <b>%d편</b></span>'
+      '<span class="badge">생성 도구 <b>%d개</b></span>'
+      '<span class="badge">확인 게이트 <b>2곳</b></span></div></div>' % (len(rule_files), len(scripts)))
 
     # ── 전체 그림
-    w('<h2 id="map">전체 그림</h2>')
-    w('<p>절차·형식 기준은 <strong>모든 작업 앞에</strong> 있고, 프로젝트 산출물은 조사에서 확정으로 '
-      '좁혀지며, 확정된 것에서만 테스트가 나옵니다. 아래 그림의 정본은 저장소 루트의 '
-      '<code>structure.svg</code> 파일 하나이고, 이 페이지는 그 파일을 그대로 읽어 넣습니다.</p>')
+    w('<h2 id="map">중앙 규칙 워크플로우</h2>')
+    w('<p>중앙 규칙은 <strong>모든 작업 앞에</strong> 있고, 프로젝트는 그 규칙을 기반으로 삼아 '
+      '자신만의 프로젝트에 필요한 규칙이나 문서를 추가로 작성해 나갑니다. 아래 그림은 중앙 규칙의 '
+      '워크플로우를 도식화한 이미지입니다.</p>')
     svg = os.path.join(args.repo_root, "structure.svg")
     if os.path.exists(svg):
         body = io.open(svg, encoding="utf-8").read()
         body = body[body.index("<svg"):]
         w('<div class="card" style="padding:14px">%s</div>' % body)
 
-    # ── 세 층
-    w('<h2 id="layer">세 층으로 나눠 둔 이유</h2>')
+    # ── 왜 중앙에 모았나
+    w('<h2 id="why">왜 중앙 규칙을 분리했나요?</h2>')
     w('<div class="card-grid">')
-    w(card("① 절차 — project-process/",
-           "무엇을 어떤 순서로 할지, 판단이 갈릴 때 무엇을 기준으로 정할지를 담습니다. "
-           "프로젝트가 생기기 <strong>전에</strong> 세운 층이라, 프로젝트가 늘어도 같은 방식으로 일하게 됩니다.",
-           "파이프라인 절차서 · 규칙 문서 · 생성 도구"))
-    w(card("② 형식 — design-guide/ · design-template/",
-           "모든 산출물이 같은 모양으로 나오게 하는 층입니다. 색과 컴포넌트의 정본이 하나라, "
-           "문서마다 스타일을 다시 정하지 않습니다.",
-           "스타일 정본 · 시각 규칙서 · 문서 템플릿 · TC 시트 서식"))
-    w(card("③ 산출물 — projects/{프로젝트}/",
-           "실제 작업이 쌓이는 층입니다. 안에서 다시 <strong>조사 → 채택 → 확정</strong>으로 "
-           "좁혀지고, 확정된 것에서만 테스트 케이스가 나옵니다.",
-           "현재 프로젝트 1개 · 기능 %d개 · TC %d건" % (len(d["leaves"]), len(d["tcs"]))))
+    w(card("한 프로젝트의 결정이 다른 프로젝트에 유입되지 않도록 사전 차단",
+           "규칙을 프로젝트 안에 두고 대화로 키우면, 프로젝트가 늘었을 때 <strong>A의 스펙이 B에 "
+           "섞여 들어옵니다.</strong> 규칙을 밖으로 빼면 프로젝트는 서로를 참조할 일이 없어지고, "
+           "공유되는 것은 「따라야 하는 기준」뿐입니다."))
+    w(card("매번 같은 판단을 참조",
+           "규칙이 늘어남에 따라 여러 문서에 담길 수 있는 규칙들의 중복을 제거하고, "
+           "<strong>하나의 규칙을 기반으로 동일한 판단을 참조</strong>할 수 있도록 의도하였습니다."))
     w('</div>')
 
-    # ── 폴더별 규칙
-    w('<h2 id="rule">폴더마다 다른 참조 규칙</h2>')
-    w('<p>같은 프로젝트 안이라도 폴더에 따라 <strong>「기대값으로 써도 되는가」가 다릅니다.</strong> '
-      '이 구분이 이 저장소에서 가장 중요한 규칙입니다.</p>')
-    w('<div class="tbl-scroll"><table><thead><tr><th>폴더</th><th>무엇이 있나</th>'
-      '<th>기대값으로 쓸 수 있나</th></tr></thead><tbody>')
-    for path, what, use, cls in (
-        ("analysis/", "출시 서비스를 조사한 전량. 버리지 않고 모읍니다",
-         "안 됩니다 — 남의 서비스 값입니다", "no"),
-        ("reference/", "조사분 중 「이건 가져오자」고 고른 것",
-         "안 됩니다 — 아직 확정 전입니다", "no"),
-        ("spec/ (평면)", "기능 목록 정본. 손으로 고치는 유일한 파일",
-         "됩니다", "ok"),
-        ("spec/design/", "확정 사양 — 상한값·차감량·임계·합격선",
-         "됩니다 — 수치의 출처입니다", "ok"),
-        ("spec/sut-design/", "검증 대상 전용 사양 — 청사진·저장 스키마·고장 주입",
-         "구현·자동화만 — 기획 테스트는 참조하지 않습니다", "part"),
-        ("spec/rationale/", "왜 그렇게 정했는지의 기록",
-         "안 됩니다 — 판단 기록이지 확정안이 아닙니다", "no"),
-        ("spec/archive/", "지나간 것 — 이력과 동결본",
-         "안 됩니다 — 평상시에는 열지도 않습니다", "no"),
-        ("test-case/", "테스트 케이스 설계 원본(json)과 시트(xlsx)",
-         "설계 결과입니다", "ok"),
-        ("sut/", "검증 대상 그 자체",
-         "테스트가 조작하는 쪽입니다", "part"),
-        ("automation/", "테스트 코드 · 실행 결과 · 리포트",
-         "실행 결과입니다", "part"),
-    ):
-        w('<tr><td><code>%s</code></td><td>%s</td>'
-          '<td><span class="chip chip-%s">%s</span></td></tr>'
-          % (esc(path), esc(what), cls, esc(use)))
-    w('</tbody></table></div>')
-    w('<div class="callout">지나간 것을 <code>archive/</code>로 몰아 두는 이유는 단순합니다 — '
-      '삭제된 옛 기능 정보가 평상시 작업에 섞이면, 있지도 않은 기능의 테스트를 쓰게 됩니다. '
-      '그래서 기능 목록 정본에는 <strong>현재 상태만</strong> 남기고 삭제 흔적을 두지 않습니다.</div>')
-
-    # ── 워크스페이스 문서 (폴더를 훑어 만든다)
-    w('<h2 id="doc">작업 규칙 문서</h2>')
-    w('<p>아래 목록은 폴더를 훑어 만들어집니다 — 문서가 늘거나 이름이 바뀌어도 이 페이지가 '
-      '낡지 않습니다.</p>')
-    w('<div class="tbl-scroll"><table id="doc-tbl"><thead><tr><th class="sortable">문서</th>'
-      '<th>무엇을 정하나</th></tr></thead><tbody>')
-    entries = []
-    for rel_dir, label in (("project-process", ""), ("project-process/rules", "rules/"),
-                           ("design-template", "")):
-        abs_dir = os.path.join(args.repo_root, rel_dir)
-        if not os.path.isdir(abs_dir):
-            continue
-        for name in sorted(os.listdir(abs_dir)):
-            if not name.endswith(".md"):
-                continue
-            entries.append((label + name, "%s/%s/%s" % (BLOB, rel_dir, name),
-                            doc_title(os.path.join(abs_dir, name))))
-    entries.append(("design-guide-master.html", R + "design-guide/design-guide-master.html",
-                    "모든 HTML 산출물이 따르는 색·타이포·컴포넌트 기준"))
-    for name, href, desc in entries:
-        w('<tr><td><a href="%s"><code>%s</code></a></td><td>%s</td></tr>'
-          % (esc(href), esc(name), esc(desc)))
-    w('</tbody></table></div>')
-    w('<p class="foot">md 문서와 폴더 링크는 GitHub 저장소에서 열리고, HTML 문서는 이 사이트에서 '
-      '바로 렌더링됩니다 — GitHub Pages에서는 md가 원본 텍스트로 뜨기 때문입니다.</p>')
-
-    # ── 프로젝트
-    w('<h2 id="proj">프로젝트</h2>')
+    # ── 무엇이 중앙 규칙인가
+    w('<h2 id="what">무엇이 중앙 규칙에 포함되나요?</h2>')
+    w('<p>판별 기준은 <strong>「문장에서 프로젝트 이름을 지워도 성립하는가」</strong>입니다. '
+      '성립하면 중앙 규칙이고, 아니면 %s입니다.</p>' % proj_link)
     w('<div class="card-grid">')
-    w(card('<a href="%sindex.html">%s</a>' % (P, esc(S)),
-           "출시 서비스 역분석 → 기능 목록 → 확정 사양 → 검증 대상 제작 → 테스트 케이스 → "
-           "자동화 → 고장 주입 → 리포트 → CI까지 한 바퀴를 완주한 프로젝트입니다.",
-           "기능 %d개 · TC %d건 · 자동화 %d건 · 빌드 %s"
-           % (len(d["leaves"]), len(d["tcs"]), d["auto"], esc(d["build"]))))
-    w('</div>')
-
-    w('<div class="doc-footer">이 문서는 파생물입니다 — '
-      '<code>gen_intro_html.py --page structure</code>로 재생성합니다. 구조도는 '
-      '<code>structure.svg</code>를, 문서 목록은 폴더를 그대로 읽습니다.</div>')
-
-    toc = (("map", "전체 그림"), ("layer", "세 층"), ("rule", "폴더별 참조 규칙"),
-           ("doc", "작업 규칙 문서"), ("proj", "프로젝트"))
-    return "".join(o), toc, "저장소 구조"
-
-
-def doc_intro(path, limit=180):
-    """md 본문의 첫 문단 — 그 문서가 스스로 밝힌 존재 이유를 그대로 가져온다."""
-    try:
-        lines = io.open(path, encoding="utf-8").read().splitlines()
-    except OSError:
-        return ""
-    buf = []
-    for line in lines[1:]:
-        t = line.strip()
-        if t.startswith("#") or t.startswith("|") or t.startswith("---"):
-            if buf:
-                break
-            continue
-        if not t:
-            if buf:
-                break
-            continue
-        buf.append(t)
-    text = re.sub(r"[*`]", "", " ".join(buf))
-    if len(text) > limit:
-        text = text[:limit].rstrip() + "…"
-    return text
-
-
-def script_summary(path):
-    """생성 도구의 모듈 docstring 첫 줄 — 도구가 스스로 적어 둔 한 줄.
-
-    함수 docstring을 집어 오지 않도록, 첫 def/class보다 앞에 있는 문자열만 인정한다.
-    """
-    try:
-        src = io.open(path, encoding="utf-8").read()
-    except OSError:
-        return ""
-    start = src.find('"""')
-    if start < 0:
-        return ""
-    body_start = re.search(r"^(def |class )", src, re.M)
-    if body_start and body_start.start() < start:
-        return ""
-    end = src.find('"""', start + 3)
-    doc = src[start + 3:end if end > 0 else None]
-    for line in doc.splitlines():
-        head = line.strip()
-        if head:
-            return head.split(" — ", 1)[1] if " — " in head else head
-    return ""
-
-
-# ────────────────────────────────────────────────────────────────
-# 페이지 ③ 토대 — 첫 문서를 쓰기 전에 정해 둔 것들
-# ────────────────────────────────────────────────────────────────
-#: 규칙 문서를 묶는 축. 목록에 없는 파일은 「그 밖에」로 떨어지므로 새 문서가 사라지지 않는다
-RULE_GROUPS = (
-    ("무엇을 어떤 순서로 하는가", ("qa-doc-playbook.md", "remaining-work.md", "qa-git-rules.md")),
-    ("테스트를 어떻게 설계하는가",
-     ("depth-and-tn.md", "case-expansion.md", "verification-types.md",
-      "tc-relations.md", "tc-sheet-format.md")),
-    ("만들고 돌리는 규칙", ("sut-automation.md",)),
-    ("문서를 어떻게 쓰고 어디에 두는가",
-     ("doc-write-style.md", "html-report-guide.md", "site-structure.md")),
-)
-
-
-def page_foundation(d, args, rel):
-    """토대 — 프로젝트를 시작하기 전에 규칙부터 세운 이유와 그 목록.
-
-    목록은 폴더를 훑어 만들고, 각 문서의 설명은 그 문서의 첫 문단에서 읽습니다.
-    여기에 요약을 옮겨 적으면 규칙이 바뀔 때 이 페이지만 옛말을 하게 됩니다.
-    """
-    R = rel["root"]
-    proc = os.path.join(args.repo_root, "project-process")
-    rules_dir = os.path.join(proc, "rules")
-    o = []
-    w = o.append
-
-    rule_files = sorted(n for n in os.listdir(rules_dir) if n.endswith(".md"))
-    scripts_dir = os.path.join(proc, "scripts")
-    scripts = sorted(n for n in os.listdir(scripts_dir)
-                     if n.endswith(".py") and not n.startswith("_"))
-
-    w('<div class="doc-header"><h1>토대 — 첫 문서를 쓰기 전에 정해 둔 것들</h1>')
-    w('<p class="doc-lead">비슷한 자료를 보고 그때그때 만들면, 사흘째에 어제와 다른 판단을 하게 됩니다. '
-      '그래서 <strong>프로젝트를 시작하기 전에 절차와 규칙부터 세웠습니다.</strong> '
-      '무엇을 어떤 순서로 하고, 판단이 갈릴 때 무엇을 기준으로 정하며, 산출물을 어떤 형식으로 낼지를 '
-      '먼저 고정해 두면, 작업 중에는 「무엇을 검증할까」에만 집중할 수 있습니다.</p>')
-    w('<div class="meta-row"><span class="badge">규칙 문서 <b>%d편</b></span>'
-      '<span class="badge">생성 도구 <b>%d개</b></span>'
-      '<span class="badge">확인 게이트 <b>2곳</b></span></div></div>' % (len(rule_files), len(scripts)))
-
-    # ── 왜 규칙부터인가
-    w('<h2 id="why">왜 규칙부터 세웠나</h2>')
-    w('<div class="card-grid">')
-    w(card("같은 판단이 매번 같게 나오도록",
-           "「이건 경계값을 몇 개 잡지?」 「이 수치는 어디서 가져오지?」는 작업마다 반복해서 만나는 "
-           "질문입니다. 그때그때 정하면 문서마다 기준이 달라지고, 나중에 왜 다른지 설명하지 못합니다."))
-    w(card("되돌아가는 비용이 크기 때문에",
-           "기능 목록이 흔들린 채로 테스트 케이스를 쓰면 뒤의 산출물을 전부 다시 만들어야 합니다. "
-           "그래서 단계 사이에 <strong>확인 게이트</strong>를 두고, 앞 단계가 확정되기 전에는 "
-           "다음으로 넘어가지 않습니다."))
-    w(card("혼자 해도 규칙이 필요해서",
-           "규칙은 여러 사람이 맞추기 위한 것만은 아닙니다. 사흘 뒤의 나도 남입니다. "
-           "판단의 근거를 문서에 남겨 두지 않으면, 그 판단을 다시 설명할 수 없습니다."))
+    w(card("<code>project-process/</code> — 절차와 판단 기준",
+           "프로젝트의 진행 절차의 규칙을 사전에 정의함으로써, <strong>프로젝트가 늘어도 같은 방식으로 "
+           "일하도록</strong> 유도합니다.",
+           "파이프라인 절차서 · 규칙 문서 %d편 · 중앙 용어집 · 생성 도구" % len(rule_files)))
+    w(card("<code>design-guide/</code> — 형식의 정본",
+           "색·타이포·컴포넌트의 정본이 하나라, 문서마다 스타일을 다시 정하지 않습니다. "
+           "산출물은 만들 때마다 그 사본을 품어 네트워크 요청 없이 혼자 열립니다.",
+           '<a href="%sdesign-guide/design-guide-master.html">시각 규칙서 열기</a>' % R))
+    w(card("<code>design-template/</code> — 새 문서를 만들 때의 틀",
+           "새 문서가 <strong>기존 템플릿으로 되는지, 기준을 고쳐야 하는지, 새로 만들어야 하는지</strong>를 "
+           "세 갈래로 판별합니다. 문서의 목적과 다른 템플릿을 사용하지 않도록 <strong>일관적인 "
+           "템플릿을 유도</strong>합니다.",
+           "TC 시트 서식의 정본은 tc-sheet-master.xlsx의 명세서 시트"))
+    w(card("<code>intro/</code> — 저장소를 소개하는 층",
+           "지금 읽고 계신 문서들입니다. 「프로젝트를 만들기 전에 세운 규칙」처럼 특정 프로젝트 "
+           "소유가 아닌 이야기가 섞이므로 프로젝트 밖에 둡니다.",
+           "전부 생성기가 만드는 파생물입니다"))
     w('</div>')
 
     # ── 절차 (playbook의 STEP 제목을 읽어 온다)
-    w('<h2 id="step">작업 절차</h2>')
+    w('<h2 id="step">중앙 규칙의 작업 절차</h2>')
     w('<p>문서 제작 요청이 오면 아래 순서를 처음부터 끝까지 따릅니다. 단계 이름은 절차서에서 '
       '그대로 읽어 온 것이라, 절차가 바뀌면 이 목록도 함께 바뀝니다.</p>')
     steps = []
@@ -701,9 +501,13 @@ def page_foundation(d, args, rel):
     w('<div class="callout">이 절차의 핵심은 <strong>확인 게이트 두 곳</strong>입니다. '
       '아웃라인을 확인받기 전에는 본문을 쓰지 않고, 어떤 형식으로 낼지 정하기 전에는 만들지 '
       '않습니다. 다 쓰고 나서 방향이 어긋난 것을 알면 그때는 전부 다시 써야 하기 때문입니다.</div>')
+    w('<div class="callout warn">규칙을 파악하는 과정에서 <strong>중앙 규칙과 다른 상태가 '
+      '들어오면 그 자리에서 맞추지 않고 유저에게 되묻습니다</strong> — 이 프로젝트의 예외로 '
+      '둘 것인지, 중앙 규칙을 고칠 것인지. 임의로 한쪽에 맞추면 어느 것이 기준인지 알 수 없게 '
+      '되고, 다음 프로젝트가 그 상태를 물려받습니다.</div>')
 
     # ── 규칙 문서 (폴더를 훑고 첫 문단을 읽는다)
-    w('<h2 id="rule">규칙 문서</h2>')
+    w('<h2 id="doc">규칙 문서</h2>')
     w('<p>각 문서가 스스로 밝힌 존재 이유를 그대로 가져왔습니다 — 여기에 요약을 옮겨 적으면 '
       '규칙이 바뀔 때 이 페이지만 옛말을 하게 됩니다.</p>')
     placed = set()
@@ -738,23 +542,8 @@ def page_foundation(d, args, rel):
               '<code>rules/%s</code></a></td><td>%s</td></tr>'
               % (BLOB, esc(name), esc(name), esc(doc_intro(os.path.join(rules_dir, name)))))
         w('</tbody></table></div>')
-
-    # ── 형식 기준
-    w('<h2 id="form">형식 기준</h2>')
-    w('<p>산출물이 문서마다 다른 모양으로 나오면, 읽는 사람이 매번 새 문서를 배워야 합니다. '
-      '그래서 색·타이포·컴포넌트의 정본을 하나 두고 모든 산출물이 그것을 인라인합니다.</p>')
-    w('<div class="card-grid">')
-    w(card('<a href="%sdesign-guide/design-guide-master.html">디자인 시각 규칙서</a>' % R,
-           "색 토큰과 컴포넌트가 실제로 어떻게 보여야 하는지를 눈으로 확인하는 문서입니다. "
-           "스타일 정본은 <code>design-guide-master.css</code>, 동작 정본은 "
-           "<code>design-guide-master.js</code>이고, 산출물은 만들 때마다 그 사본을 품습니다.",
-           "이 페이지도 같은 기준으로 그려졌습니다"))
-    w(card('<a href="%s/design-template/template-catalog.md">문서 템플릿 카탈로그</a>' % BLOB,
-           "새 문서를 만들 때 <strong>기존 템플릿으로 되는지, 기준을 고쳐야 하는지, 새로 만들어야 "
-           "하는지</strong>를 세 갈래로 판별합니다. 판별 없이 만들기 시작하면 비슷하지만 미묘하게 "
-           "다른 문서가 쌓입니다.",
-           "TC 시트 서식의 정본은 tc-sheet-master.xlsx의 명세서 시트"))
-    w('</div>')
+    w('<p class="foot">md 문서와 폴더 링크는 GitHub 저장소에서 열리고, HTML 문서는 이 사이트에서 '
+      '바로 렌더링됩니다 — GitHub Pages에서는 md가 원본 텍스트로 뜨기 때문입니다.</p>')
 
     # ── 도구 (docstring 첫 줄을 읽는다)
     w('<h2 id="tool">사람이 반복하지 않게 만든 도구</h2>')
@@ -769,12 +558,135 @@ def page_foundation(d, args, rel):
     w('</tbody></table></div>')
 
     w('<div class="doc-footer">이 문서는 파생물입니다 — '
-      '<code>gen_intro_html.py --page foundation</code>으로 재생성합니다. 규칙 목록·절차 단계·'
-      '도구 설명은 전부 실제 파일에서 읽습니다.</div>')
+      '<code>gen_intro_html.py --page central</code>로 재생성합니다. 규칙 목록·절차 단계·'
+      '도구 설명은 전부 실제 파일에서 읽고, 구조도는 <code>structure.svg</code>를 읽습니다.</div>')
 
-    toc = (("why", "왜 규칙부터인가"), ("step", "작업 절차"), ("rule", "규칙 문서"),
-           ("form", "형식 기준"), ("tool", "도구"))
-    return "".join(o), toc, "토대 — 작업 규칙"
+    return "".join(o), "중앙 규칙 구조"
+
+
+def doc_intro(path, limit=230):
+    """md 본문의 첫 문단 — 그 문서가 스스로 밝힌 존재 이유를 그대로 가져온다.
+
+    길면 줄이되 **문장 도중에는 자르지 않는다.** 문장 중간에서 끊긴 설명은 무슨 말인지
+    알 수 없어, 설명을 싣지 않은 것과 다르지 않다.
+    """
+    try:
+        lines = io.open(path, encoding="utf-8").read().splitlines()
+    except OSError:
+        return ""
+    buf = []
+    for line in lines[1:]:
+        t = line.strip()
+        if t.startswith("#") or t.startswith("|") or t.startswith("---"):
+            if buf:
+                break
+            continue
+        if not t:
+            if buf:
+                break
+            continue
+        buf.append(t)
+    text = re.sub(r"[*`]", "", " ".join(buf))
+    if len(text) <= limit:
+        return text
+    # 한도 안에서 마지막으로 끝난 문장까지만 남긴다. 한 문장도 못 담으면 그때만 말줄임한다
+    cut = max(text.rfind(m, 0, limit + 1) for m in ("다.", "요.", "다!", "다?"))
+    if cut > 0:
+        return text[:cut + 2]
+    return text[:limit].rstrip() + "…"
+
+
+def script_summary(path):
+    """생성 도구의 모듈 docstring 첫 줄 — 도구가 스스로 적어 둔 한 줄.
+
+    함수 docstring을 집어 오지 않도록, 첫 def/class보다 앞에 있는 문자열만 인정한다.
+    """
+    try:
+        src = io.open(path, encoding="utf-8").read()
+    except OSError:
+        return ""
+    start = src.find('"""')
+    if start < 0:
+        return ""
+    body_start = re.search(r"^(def |class )", src, re.M)
+    if body_start and body_start.start() < start:
+        return ""
+    end = src.find('"""', start + 3)
+    doc = src[start + 3:end if end > 0 else None]
+    for line in doc.splitlines():
+        head = line.strip()
+        if head:
+            return head.split(" — ", 1)[1] if " — " in head else head
+    return ""
+
+
+# ────────────────────────────────────────────────────────────────
+# 페이지 ③ 프로젝트 규칙 구조 — 프로젝트 안에 무엇이 쌓이는가
+# ────────────────────────────────────────────────────────────────
+#: 규칙 문서를 묶는 축. 목록에 없는 파일은 「그 밖에」로 떨어지므로 새 문서가 사라지지 않는다
+RULE_GROUPS = (
+    ("무엇을 어떤 순서로 하는가", ("qa-doc-playbook.md", "remaining-work.md", "qa-git-rules.md")),
+    ("테스트를 어떻게 설계하는가",
+     ("depth-and-tn.md", "case-expansion.md", "verification-types.md",
+      "tc-relations.md", "tc-sheet-format.md")),
+    ("만들고 돌리는 규칙", ("sut-automation.md",)),
+    ("문서를 어떻게 쓰고 어디에 두는가",
+     ("doc-write-style.md", "html-report-guide.md", "site-structure.md")),
+)
+
+
+def page_project(d, args, rel):
+    """프로젝트 규칙 구조 — 프로젝트 안에 무엇이 쌓이고, 폴더마다 참조 규칙이 어떻게 다른지.
+
+    폴더 목록과 참조 규칙은 이 저장소가 실제로 쓰는 구조 그대로이며, 수치는 정본에서 읽습니다.
+    """
+    S = d["slug"]
+    R, P = rel["root"], rel["project"]
+    o = []
+    w = o.append
+
+    central_path = dict((k, p) for k, _l, p in shell.INTRO)["central"]
+    central_link = ('<a href="%s%s">중앙 규칙</a>' % (R, esc(central_path))
+                    if os.path.exists(os.path.join(args.repo_root, central_path))
+                    else "<b>중앙 규칙</b>")
+
+    w('<div class="doc-header"><h1>프로젝트 규칙: 프로젝트마다 따로 쌓이는 규칙</h1>')
+    w('<p class="doc-lead">%s에 의거하여 <strong>프로젝트마다 실제 작업이 쌓이는 공간</strong>입니다. '
+      '여기서 정한 것은 해당 프로젝트 안에서만 유효하여, 다른 프로젝트가 참조하지 않습니다.</p>'
+      % central_link)
+    w('<div class="meta-row"><span class="badge">현재 프로젝트 <b>%d개</b></span>'
+      '<span class="badge">기능 <b>%d개</b></span>'
+      '<span class="badge">TC <b>%d건</b></span></div></div>'
+      % (1, len(d["leaves"]), len(d["tcs"])))
+
+    # ── 왜 분리하나
+    w('<h2 id="why">왜 프로젝트마다 분리하나요?</h2>')
+    w('<div class="card-grid">')
+    w(card("다른 프로젝트의 규칙 확인 차단",
+           "프로젝트는 본인 프로젝트 폴더와 중앙 규칙만을 확인하게 하여, <strong>다른 프로젝트의 "
+           "규칙을 확인하는 과정 자체를 차단</strong>합니다."))
+    w('</div>')
+    w('<p>폴더를 어떻게 나누고 무엇을 따로 기억하는지는 <strong>프로젝트마다 다를 수 '
+      '있습니다.</strong> 각 프로젝트의 규칙이 어떻게 설계되었는지는 각 프로젝트에서 확인하실 수 '
+      '있습니다.</p>')
+
+    # ── 프로젝트 목록 — 카드 하나가 프로젝트 하나다. 구성과 규칙은 그 프로젝트가
+    #    스스로 설명하므로 여기서는 어디로 가면 되는지만 가리킨다
+    w('<h2 id="proj">프로젝트 목록</h2>')
+    w('<div class="card">')
+    w('<h3><a href="%sindex.html">%s</a></h3>' % (P, esc(S)))
+    w('<p>출시 서비스 역분석 → 기능 목록 → 확정 사양 → 검증 대상 제작 → 테스트 케이스 → '
+      '자동화 → 고장 주입 → 리포트 → CI까지 한 바퀴를 완주한 프로젝트입니다.</p>')
+    w('<p class="foot">기능 %d개 · TC %d건 · 자동화 %d건 · 빌드 %s</p>'
+      % (len(d["leaves"]), len(d["tcs"]), d["auto"], esc(d["build"])))
+
+    w('</div>')
+
+    w('<div class="doc-footer">이 문서는 파생물입니다 — '
+      '<code>gen_intro_html.py --page project</code>로 재생성합니다. 수치는 기능 골격 정본과 '
+      'TC 설계 원본에서 읽습니다.</div>')
+
+    return "".join(o), "프로젝트 규칙 구조"
 
 
 def md_inline(text):
@@ -836,7 +748,7 @@ def tree_scope(md_path):
 # 페이지 ④ 제작 과정 — 무작정 만들지 않았다는 것을 근거로 보인다
 # ────────────────────────────────────────────────────────────────
 def page_making(d, args, rel):
-    """제작 과정 — 조사에서 시작해 무엇을 넣고 뺐는지, 값은 왜 그 숫자인지.
+    """프로젝트 개요 — 왜 직접 만들었고, 조사에서 무엇을 넣고 뺐는지, 값은 왜 그 숫자인지.
 
     근거 표는 판단 기록(rationale)에서 그대로 읽습니다. 이 페이지에 옮겨 적으면
     근거가 바뀔 때 여기만 옛말을 하게 됩니다.
@@ -848,16 +760,15 @@ def page_making(d, args, rel):
     w = o.append
 
     tree_md = os.path.join(PJ, "spec", "%s-feature-tree.md" % S)
-    rat = os.path.join(PJ, "spec", "rationale", "%s-addition-rationale.md" % S)
     counts, excluded = tree_scope(tree_md)
-    add_rows = md_rows(rat, "§1 노드 보강")
-    num_rows = md_rows(rat, "§2 수치 확정")
     n_leaf = len(d["leaves"])
 
-    w('<div class="doc-header"><h1>제작 과정 — MiyonChat은 어떻게 나왔나</h1>')
-    w('<p class="doc-lead">검증 대상을 직접 만들면 <strong>「테스트하기 좋게 만든 장난감」</strong>이 되기 쉽습니다. '
-      '그래서 기능을 상상해서 넣지 않고, 출시된 서비스를 조사해 공통 행동을 뽑은 뒤 그것을 근거로 세웠습니다. '
-      '조사에 없어 직접 정한 것은 <strong>따로 표시하고 이유를 남겼습니다</strong> — 이 페이지는 그 기록입니다.</p>')
+    w('<div class="doc-header"><h1>MiyonChat 프로젝트 개요</h1>')
+    w('<p class="doc-lead">출시된 AI 챗·미연시 서비스를 분석하며 <strong>「이런 서비스를 검증하려면 '
+      '무엇을 중점적으로 봐야 할까」</strong>를 고민했습니다. 레퍼런스로 삼은 서비스의 공통점이나, '
+      '핵심으로 가져올 만한 기능을 골라 AI 캐릭터와 대화하는 서비스 '
+      '<strong>MiyonChat</strong>을 설계해 만들었고, 그 위에서 테스트 케이스를 설계해 '
+      '<strong>자동화 테스트까지 돌려 검증했습니다.</strong></p>')
     w('<div class="meta-row">'
       '<span class="badge">조사에서 채택 <b>%d개</b></span>'
       '<span class="badge">직접 세움 <b>%d개</b></span>'
@@ -865,11 +776,32 @@ def page_making(d, args, rel):
       '<span class="badge">빌드 <b>%s</b></span></div></div>'
       % (counts["REF"], counts["ADD"], len(excluded), esc(d["build"])))
 
+    # ── 왜 이 프로젝트인가 — 검증 대상을 직접 만들기로 한 경위.
+    #    제목 없이 문장만 세운다. 세 항목이 하나의 판단으로 이어지므로 쪼개면 흐름이 끊긴다
+    w('<h2 id="why">왜 해당 프로젝트를 진행했나요?</h2>')
+    w('<div class="steps">')
+    for body in (
+        "출시된 AI 챗·미연시 서비스를 분석하며 <strong>「이런 서비스를 검증하려면 무엇을 "
+        "중점적으로 봐야 할까」</strong>를 고민했습니다.",
+
+        "AI 캐릭터 기반 채팅은 캐릭터마다 검증 범위가 모호하다고 보았고, 서비스의 전체 플로우는 "
+        "어느 서비스든 비슷할 것이라 판단하여, <strong>AI 채팅 기반 서비스의 전체 흐름도를 "
+        "이해하고자</strong> 조사하기로 했습니다.",
+
+        "서비스 중인 사이트에서는 이미 대부분의 결함이 수정된 뒤라 다양한 예외 처리 사항을 "
+        "확인하게 되면 <strong>긍정적인 결과만 확인할 수 있었습니다.</strong> 그 과정을 직접 "
+        "겪어 보며 워크플로우를 더 깊이 이해하고, 그것을 QA의 작업물로 남기기 위해 "
+        "<strong>임시 서비스 사이트를 직접 만들고 그 위에서 테스트하기로</strong> "
+        "결정했습니다.",
+    ):
+        w('<div class="step"><div class="body">%s</div></div>' % body)
+    w('</div>')
+
     # ── 조사
-    w('<h2 id="ref">무엇을 조사했나</h2>')
-    w('<p>기능 목록이 아니라 <strong>행동 목록</strong>부터 만들었습니다. 기능 이름은 회사마다 다르지만 '
-      '「처음 켰을 때부터 사용자가 할 수 있는 행동」은 겹치기 때문입니다. 겹치는 행동이 곧 '
-      '「이런 서비스라면 반드시 있어야 할 것」입니다.</p>')
+    w('<h2 id="ref">첫 시작 작업: 레퍼런스 조사</h2>')
+    w('<p>AI 채팅 기반 서비스가 <strong>어떤 방식으로 운영되는지</strong> 조사했습니다. 회사마다 '
+      '추구하는 핵심 경험은 다르겠지만 서비스가 돌아가는 전체 플로우는 비슷할 것이라 판단하여, '
+      '총 <strong>6개의 레퍼런스</strong>를 조사했습니다.</p>')
     w('<div class="card-grid">')
     w(card("AI 챗 축",
            "캐릭터와 대화하는 서비스 셋. 재화 소모·대화 한도·세이프티처럼 <strong>AI 챗에만 있는 "
@@ -890,22 +822,31 @@ def page_making(d, args, rel):
               % (BLOB, S, esc(name), esc(name),
                  esc(doc_intro(os.path.join(ana, name), 150))))
         w('</tbody></table></div>')
-    w('<div class="callout">조사에는 <strong>지키기로 한 선</strong>이 있었습니다 — 스크린샷 0장, '
-      '원문 대사 인용 없음, 실화폐 결제 없음, 성인 인증 게이트 안쪽 미진입. 확인하지 못한 것은 '
-      '추측으로 채우지 않고 미확인으로 남겨 두었습니다.</div>')
+    w('<div class="callout">AI가 레퍼런스를 조사하는 과정에서 <strong>실제로 확인하지 못하거나 '
+      '저작권에 영향을 받을 만한 내용은 임의로 채우지 못하도록</strong> 설정했습니다 — 성인 인증 '
+      '게이트 안쪽처럼 진입하지 않기로 한 자리, 그리고 각 사이트의 AI 캐릭터 정보처럼 옮겨 적으면 '
+      '안 되는 것입니다. 확인하지 못한 것은 추측으로 채우지 않고 미확인으로 남겼습니다.</div>')
 
     # ── 좁히기
-    w('<h2 id="narrow">조사한 것을 그대로 쓰지 않았습니다</h2>')
-    w('<p>남의 서비스에서 본 값을 그대로 기대값으로 쓰면, 테스트가 <strong>처음부터 틀린 기준</strong>을 '
-      '갖게 됩니다. 우리 서비스가 그렇게 동작하기로 정한 적이 없기 때문입니다. 그래서 세 단계로 좁혔습니다.</p>')
+    w('<h2 id="narrow">조사한 레퍼런스는 그대로 사용하지 못하게 설정했습니다</h2>')
+    w('<p>타 서비스에서 확인한 내용을 곧바로 테스트 환경으로 구현하게 되면, <strong>여러 규칙이 '
+      '섞여 혼란을 일으킬 수도 있다</strong>고 판단했습니다. 그래서 다음과 같은 단계로 테스트 환경을 '
+      '구축하기로 결정했습니다.</p>')
     w('<div class="steps">')
     for title, body in (
-        ("조사 전량", "본 것을 버리지 않고 전부 모읍니다. 나중에 「이 값은 어디서 왔나」를 되짚을 수 있어야 합니다."),
-        ("채택분", "그중 「우리도 갖자」고 고른 것만 남깁니다. 아직 확정은 아닙니다."),
-        ("확정 결정", "우리 서비스의 규칙으로 못박습니다. <strong>테스트의 기대값은 여기서만</strong> 가져옵니다."),
+        ("<code>analysis/</code> 폴더",
+         "조사한 레퍼런스에서 확인한 것들을 <b>전부 모아 놓습니다.</b>"),
+        ("<code>reference/</code> 폴더",
+         "그중 <b>테스트 환경에 적용할 기능을 확정</b>합니다."),
+        ("<code>spec/</code> 폴더",
+         "reference에서 확정한 기능과 추가해야 할 기능에 대한 <b>구조나 규칙을 설계</b>합니다."),
+        ("테스트 환경 설계",
+         "<b><code>spec/</code> 폴더의 문서만 바라보며</b> 테스트 환경을 설계합니다."),
     ):
-        w('<div class="step"><div class="body"><b>%s</b> — %s</div></div>' % (esc(title), body))
+        w('<div class="step"><div class="body"><b>%s</b> — %s</div></div>' % (title, body))
     w('</div>')
+    w('<p>다음과 같은 구조를 통해 테스트 환경에 들어가야 할 기능에, <strong>기존의 조사한 레퍼런스 '
+      '데이터가 혼용되지 않도록</strong> 설계하였습니다.</p>')
     w('<div class="stats">')
     w(stat(counts["REF"], "조사에서 채택", "본 것을 근거로 세운 항목"))
     w(stat('<em>%d</em>' % counts["ADD"], "직접 세움", "조사에 없어 판단으로 채운 항목"))
@@ -913,42 +854,10 @@ def page_making(d, args, rel):
     w(stat(counts["보류"], "보류", "트리에만 두고 만들지 않음"))
     w('</div>')
 
-    # ── ADD 근거
-    if add_rows:
-        w('<h2 id="add">직접 세운 기능과 그 근거</h2>')
-        w('<p>조사에 없는데도 넣기로 한 것들입니다. <strong>「조사에 없다」는 사실과 그래도 넣는 이유를 '
-          '함께</strong> 적어 두었습니다 — 면접에서 가장 많이 받을 질문이 여기이기 때문입니다.</p>')
-        w(shell.table_tools("add-tbl", "기능 이름 · 근거 검색"))
-        w('<div class="tbl-scroll"><table id="add-tbl"><thead><tr>'
-          '<th class="sortable">기능</th><th>왜 넣었나</th></tr></thead><tbody>')
-        for row in add_rows:
-            if len(row) >= 2:
-                w('<tr><td>%s</td><td>%s</td></tr>' % (md_inline(row[0]), md_inline(row[1])))
-        w('</tbody></table></div>')
-
-    # ── 수치 근거
-    if num_rows:
-        w('<h2 id="num">값은 왜 그 숫자인가</h2>')
-        w('<p>기능이 있다는 것과 「얼마부터 통과인가」는 다른 문제입니다. 공개되지 않은 값은 직접 정해야 하는데, '
-          '그 숫자가 <strong>검증하기 좋은 크기인지</strong>까지 함께 봤습니다 — 경계가 ±1로 잡히지 않으면 '
-          '경계 테스트가 성립하지 않습니다.</p>')
-        w(shell.table_tools("num-tbl", "값 검색",
-                            (("직접 정함", "col", 1, "ADD"),)))
-        w('<div class="tbl-scroll"><table id="num-tbl"><thead><tr><th class="sortable">값</th>'
-          '<th class="sortable">출처</th><th>근거</th></tr></thead><tbody>')
-        for row in num_rows:
-            if len(row) >= 3:
-                w('<tr><td>%s</td><td><span class="chip chip-%s">%s</span></td><td>%s</td></tr>'
-                  % (md_inline(row[0]),
-                     "det" if row[1].startswith("REF") else "rub",
-                     esc(row[1]), md_inline(row[2])))
-        w('</tbody></table></div>')
-
     # ── 뺀 것
     if excluded:
-        w('<h2 id="drop">무엇을 뺐나</h2>')
-        w('<p>넣지 않기로 한 것도 판단입니다. <strong>검증 축이 늘지 않는 기능</strong>은 만들어도 '
-          '테스트가 늘지 않고 시간만 씁니다. 뺀 이유를 남겨 두면 나중에 「왜 이건 없나」에 답할 수 있습니다.</p>')
+        w('<h2 id="drop">검증 범위 제외 영역</h2>')
+        w('<p>다음과 같은 기능은 검증 범위에서 제외했습니다.</p>')
         w('<div class="tbl-scroll"><table><thead><tr><th>뺀 것</th><th>이유</th>'
           '</tr></thead><tbody>')
         for name, why in excluded:
@@ -977,13 +886,10 @@ def page_making(d, args, rel):
     w('</div>')
 
     w('<div class="doc-footer">이 문서는 파생물입니다 — '
-      '<code>gen_intro_html.py --page making</code>으로 재생성합니다. 근거 표는 판단 기록에서, '
-      '수치는 기능 목록 정본에서 그대로 읽습니다.</div>')
+      '<code>gen_intro_html.py --page making</code>으로 재생성합니다. 수치와 제외 사유는 '
+      '기능 목록 정본에서 그대로 읽습니다.</div>')
 
-    toc = (("ref", "무엇을 조사했나"), ("narrow", "그대로 쓰지 않았습니다"),
-           ("add", "직접 세운 기능"), ("num", "값의 근거"), ("drop", "무엇을 뺐나"),
-           ("make", "만들 때 지킨 조건"))
-    return "".join(o), toc, "제작 과정"
+    return "".join(o), "프로젝트 개요"
 
 
 # ────────────────────────────────────────────────────────────────
@@ -1010,11 +916,10 @@ def page_tc(d, args, rel):
                                      "%s-coverage-waiver.json" % S))["waivers"]
     n_manual = sum(1 for t in tcs if t[7] == "사람 전용")
 
-    w('<div class="doc-header"><h1>테스트 케이스를 어떻게 설계했나</h1>')
-    w('<p class="doc-lead">기능 하나에 케이스 하나를 쓰면 <strong>정상 동작만 확인하고 끝납니다.</strong> '
-      '결함은 대개 경계와 예외, 그리고 막아 둔 길을 돌아가는 자리에서 나옵니다. 그래서 기능마다 네 갈래로 '
-      '펼치고, 케이스마다 <strong>어떻게 판정할지</strong>와 <strong>무엇을 확인하는지</strong>를 함께 '
-      '적었습니다.</p>')
+    w('<div class="doc-header"><h1>테스트 케이스 설계 규칙</h1>')
+    w('<p class="doc-lead">테스트 환경에서 <strong>Happy path</strong>(계획대로 완벽히 돌아가는 최상의 '
+      '상황)만 체크하면 <strong>결함을 놓칠 가능성이 높습니다.</strong> 그래서 테스트 항목의 기준을 '
+      '어떻게 판정할지, 무엇을 확인해야 할지를 정의하였습니다.</p>')
     w('<div class="meta-row">'
       '<span class="badge">케이스 <b>%d건</b></span>'
       '<span class="badge">영역 <b>%d개</b></span>'
@@ -1023,7 +928,8 @@ def page_tc(d, args, rel):
       % (len(tcs), len(areas), n_manual))
 
     # ── 네 갈래 전개
-    w('<h2 id="expand">기능 하나를 네 갈래로 폅니다</h2>')
+    w('<h2 id="expand">테스트 항목의 기준 분류</h2>')
+    w('<p>테스트 항목의 기준에 따라 다음과 같이 테스트하도록 유도했습니다.</p>')
     w('<div class="card-grid">')
     w(card("정상", "설계대로 동작하는가. 이것만 있으면 「되는 것만 확인한」 테스트가 됩니다."))
     w(card("경계", "제한이 있는 곳마다 <strong>경계−1 · 경계 · 경계+1</strong> 세 점을 찍습니다. "
@@ -1035,10 +941,8 @@ def page_tc(d, args, rel):
     w('</div>')
 
     # ── 판정 방식
-    w('<h2 id="vt">판정 방식을 먼저 정합니다</h2>')
-    w('<p>AI가 만드는 응답은 같은 입력에도 매번 다릅니다. 그래서 케이스를 쓰기 전에 '
-      '<strong>이 항목을 무엇으로 통과·실패라 부를지</strong>부터 정했습니다. 판정 방식이 정해지면 '
-      '몇 번 돌려야 하는지도 따라 정해집니다.</p>')
+    w('<h2 id="vt">테스트 판정 방식 결정</h2>')
+    w('<p>테스트 항목에 따라 <strong>무엇을 기준으로 통과 처리할 것인지</strong> 정해집니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>판정 방식</th><th>어떤 항목인가</th>'
       '<th>어떻게 판정하나</th><th class="num">건수</th></tr></thead><tbody>')
     for vt, what, how in (
@@ -1138,8 +1042,7 @@ def page_tc(d, args, rel):
     w(stat(len(waivers), "검증 대상 제외", "사유를 적고 그 사유까지 검사"))
     w('</div>')
     w('<h3>검증 대상에서 뺀 것</h3>')
-    w('<p>덮이지 않은 것을 <strong>덮은 척하지 않으려고</strong>, 뺄 때는 무엇을 왜 빼는지 파일에 '
-      '적습니다. 대조 스크립트는 그 사유의 종류와 대상이 실재하는지까지 확인합니다.</p>')
+    w('<p>대조하는 과정에서 아래 대상은 검증 대상에서 제외하였습니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>대상</th><th>종류</th><th>이유</th>'
       '</tr></thead><tbody>')
     for wv in waivers:
@@ -1171,10 +1074,7 @@ def page_tc(d, args, rel):
       '<code>gen_intro_html.py --page tc</code>로 재생성합니다. 건수·영역·제외 사유는 TC 설계 '
       '원본에서, 커버리지 그림은 <code>diagrams/coverage-axes.svg</code>에서 읽습니다.</div>')
 
-    toc = (("expand", "네 갈래 전개"), ("vt", "판정 방식"), ("depth", "도달 경로 뎁스"),
-           ("case", "실제 케이스"), ("area", "영역별 규모"), ("cov", "커버리지"),
-           ("sheet", "시트 서식"))
-    return "".join(o), toc, "TC 설계 규칙"
+    return "".join(o), "TC 설계 규칙"
 
 
 # ────────────────────────────────────────────────────────────────
@@ -1249,10 +1149,16 @@ def page_auto(d, args, rel):
     n_auto_tc = sum(1 for t in d["tcs"] if t[7] != "사람 전용")
 
     w('<div class="doc-header"><h1>자동화 설계와 결과</h1>')
-    w('<p class="doc-lead">테스트가 <strong>통과한다</strong>는 말과 테스트가 <strong>쓸모 있다</strong>는 '
-      '말은 다릅니다. 아무것도 확인하지 않는 테스트도 통과하기 때문입니다. 그래서 자동화를 짤 때 두 가지를 '
-      '함께 설계했습니다 — 화면이 바뀌어도 살아남는 구조, 그리고 <strong>고장을 심었을 때 실제로 '
-      '깨지는지</strong> 확인하는 절차입니다.</p>')
+    w('<p class="doc-lead">테스트는 <strong>아무것도 확인하지 않았을 때도 통과하게 됩니다.</strong> '
+      '그래서 자동화를 짤 때 두 가지를 기반으로 설계했습니다.</p>')
+    w('<div class="steps">')
+    for body in (
+        "고의로 결함을 설정했을 때 <strong>실제로 깨지는지 확인</strong>하여, 실제로 결함 발생 시 "
+        "정상적으로 차단되는지 확인",
+        "<strong>화면이 바뀌어도 자동으로 화면을 읽고 확인</strong>할 수 있도록 설정",
+    ):
+        w('<div class="step"><div class="body">%s</div></div>' % body)
+    w('</div>')
     w('<div class="meta-row">'
       '<span class="badge">자동화 <b>%d건</b></span>'
       '<span class="badge">자동화 대상 케이스 <b>%d건</b></span>'
@@ -1396,14 +1302,11 @@ def page_auto(d, args, rel):
       '<code>rules/sut-automation.md</code>에서, 담당 근거는 결함 기대표에서, 실행 결과는 커밋된 '
       '매트릭스 표에서, CI 단계는 워크플로 파일에서 읽습니다.</div>')
 
-    toc = (("iface", "테스트가 붙잡을 접점"), ("name", "이름이 곧 케이스 번호"),
-           ("stable", "가짜 실패 막기"), ("fault", "고장을 심어 증명"),
-           ("result", "결과"), ("ci", "반복 검사"), ("limit", "확인하지 않는 것"))
-    return "".join(o), toc, "자동화 설계와 결과"
+    return "".join(o), "자동화 설계와 결과"
 
 
-PAGES = {"landing": page_landing, "structure": page_structure,
-         "foundation": page_foundation, "making": page_making,
+PAGES = {"landing": page_landing, "central": page_central,
+         "project": page_project, "making": page_making,
          "tc": page_tc, "auto": page_auto}
 
 
@@ -1431,23 +1334,18 @@ def main():
     rel = {"root": prefix(args.repo_root), "project": prefix(args.project_dir)}
 
     d = load(args)
-    body, toc, crumb = PAGES[args.page](d, args, rel)
+    body, crumb = PAGES[args.page](d, args, rel)
 
     css, js = shell.assets(args.css, args.js)
-    groups = [shell.intro_group(
-        args.page, rel["root"],
-        exists=lambda p: os.path.exists(os.path.join(args.repo_root, p)))]
-    out_items = [(label, rel["project"] + path.format(S=args.slug), False, "")
-                 for _k, label, path in shell.NAV]
-    groups.append(("산출물", out_items))
-    groups.append(("저장소",
-                   [(label, url.format(S=args.slug), False, tag)
-                    for label, url, tag in shell.OUT]))
-
-    side = shell.sidebar_from(
-        groups, rel["root"] + "index.html", "QA-VisualNovel-Portfolio",
-        "QA 포트폴리오", toc,   # 만든 사람 정보는 넣지 않는다(2026-08-04 사용자 확정)
-        "골격 v%s%s" % (d["tree_version"], " · " + d["build"] if d["build"] else ""))
+    # 사이드바는 모든 문서가 같은 것을 씁니다 — 정본은 shell.sidebar 하나입니다
+    # (만든 사람 정보는 넣지 않습니다 — 2026-08-04 사용자 확정)
+    # 회색 처리는 「생성기가 없는 페이지」에만 씁니다 — 디스크를 보면 여러 장을 다시 만들 때
+    # 아직 안 만든 장이 회색으로 굳습니다(이름을 바꾸며 실제로 겪었습니다)
+    planned = set(path for key, _l, path in shell.INTRO if key in PAGES)
+    side = shell.sidebar(
+        args.slug, args.page, rel["project"],
+        "골격 v%s%s" % (d["tree_version"], " · " + d["build"] if d["build"] else ""),
+        out_path=args.output, exists=lambda p: p in planned)
 
     html_out = "".join([
         shell.head("QA-VisualNovel-Portfolio — %s" % crumb, css, js),

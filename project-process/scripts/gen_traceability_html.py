@@ -115,13 +115,13 @@ def main():
     O = []
     w = O.append
 
-    TOC = (("chain", "케이스별 사슬"), ("leaf", "기능 단위 기준"))
     rel = os.path.relpath(P, os.path.dirname(os.path.abspath(args.output)))
     rel = "" if rel == "." else rel.replace("\\", "/") + "/"
 
     w(shell.head("%s — 추적 매트릭스" % S, css, js))
-    w(shell.open_body(S, "trace", rel, "추적 매트릭스", TOC,
-                      "골격 v%s · TC %d건" % (tree_version, len(tcs))))
+    w(shell.open_body(S, "trace", rel, "추적 매트릭스",
+                      "골격 v%s · TC %d건" % (tree_version, len(tcs)),
+                      out_path=args.output))
 
     w('<div class="doc-header"><h1>%s — 추적 매트릭스</h1>' % esc(S))
     w('<p class="doc-lead">기능 단위 하나가 어떤 테스트 케이스가 되고, 그 케이스가 어떤 '

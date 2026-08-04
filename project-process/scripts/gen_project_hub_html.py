@@ -99,12 +99,11 @@ def main():
     O = []
     w = O.append
 
-    TOC = (("pipe", "파이프라인"), ("logic", "검증 로직"), ("map", "문서 지도"),
-           ("canon", "정본과 파생물"), ("rules", "이 프로젝트가 세운 규칙"))
 
     w(shell.head("%s — 프로젝트 허브" % S, css, js))
-    w(shell.open_body(S, "hub", rel, "프로젝트 허브", TOC,
-                      "골격 v%s%s" % (tree_version, " · " + build if build else "")))
+    w(shell.open_body(S, "hub", rel, "프로젝트 허브",
+                      "골격 v%s%s" % (tree_version, " · " + build if build else ""),
+                      out_path=args.output))
 
     w('<div class="doc-header"><h1>%s — 프로젝트 허브</h1>' % esc(S))
     w('<p class="doc-lead">미연시 AI 챗 서비스를 역분석해 <strong>기능 골격</strong>을 세우고, '

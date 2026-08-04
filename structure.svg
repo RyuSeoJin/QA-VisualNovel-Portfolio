@@ -3,6 +3,10 @@
 <desc id="sdd">절차 기준은 모든 작업에 적용되고, 형식 기준은 중앙 허브와 프로젝트 문서의 형식을 정하며, 생성 도구는 TC 엑셀을 만들어 냅니다. 프로젝트 산출물은 조사 전량(analysis)에서 채택분(reference)을 거쳐 확정 결정(spec)으로 좁혀지고, 레퍼런스에 없는 보강 결정도 spec으로 들어옵니다. 확정된 정본에서 TC 시트가 나오며, 테스트 대상을 직접 만드는 프로젝트는 sut과 automation을 더합니다. automation 안에서는 테스트가 돌아 결과가 쌓이고, 그 결과에서 리포트가 나오며, CI가 커버리지 대조·결함 주입 매트릭스·산출물 최신 여부를 반복 확인합니다.</desc>
 <!--
   CHANGELOG
+  v1.6 (2026-08-05) automation 구간 화살표 둘을 바로잡았다. automation→report는 상자
+                    오른쪽 밖을 가리키고 있었고, sut→tests는 마지막 세로 구간이 화살표
+                    머리보다 짧아 꼬리가 모서리에 얹혀 보였다. 둘 다 세로 구간을 12로
+                    맞추고 상자 중앙에 꽂았다.
   v1.5 (2026-08-04) automation/ 안쪽을 tests·result·report로 펼치고 CI를 추가했다.
                     검증의 절반(테스트→결과→리포트→CI)이 그림에 통째로 없었다.
                     세부 판정 로직은 별도 그림으로 나눈다(diagrams/).
@@ -17,7 +21,7 @@
   v1.0 (2026-07-31) 최초 수립. README·index.html 공용 구조도.
 
   이 파일이 정본이며 사본은 없다. 이 그림을 싣는 페이지의 생성기가 만들 때마다
-  이 파일을 읽어 넣는다(intro/repo-structure.html — gen_intro_html.py --page structure).
+  이 파일을 읽어 넣는다(intro/main-central-rules.html — gen_intro_html.py --page central).
 
   변환 없이 그대로 실리므로 root의 class="sd"와 id(sdt/sdd)는 바꾸지 않는다.
   색은 밝은 배경 기준이고, 다크 테마에서는 마스터 CSS가 클래스를 덮는다.
@@ -127,8 +131,8 @@
 </g>
 <path class="arrow arrow-gray" d="M470,629 H484" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <path class="arrow arrow-gray" d="M644,629 H658" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
-<path class="arrow arrow-gray" d="M795,586 V600 H818 V606" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
-<path class="arrow arrow-gray" d="M655,586 V596 H391 V600" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M795,586 V594 H739 V606" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
+<path class="arrow arrow-gray" d="M655,586 V594 H391 V606" fill="none" stroke="#6e7781" stroke-width="1.6" marker-end="url(#ar-gray)"/>
 <rect class="pill" x="316" y="664" width="498" height="24" rx="9" fill="#f0f7fd" stroke="#3987e5"/>
 <text class="lbl" x="565" y="681" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#1f2328">.github/workflows/ — 커버리지 대조 · 결함 주입 매트릭스 · 산출물 최신 확인</text>
 <rect class="pill" x="344" y="500" width="200" height="19" rx="9" fill="#eef9f4" stroke="#bde3d2"/>

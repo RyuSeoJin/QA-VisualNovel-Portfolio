@@ -8,13 +8,18 @@
   파생 문서 — 직접 수정 금지.
   정본: spec/qa-lab-miyonchat-feature-tree.md (md 형식 v2)
   재생성: python project-process/scripts/gen_feature_tree_html.py
-  기준: 템플릿 01-feature-tree v1.0 · design-guide-master v2.0 스냅샷
+  기준: 템플릿 01-feature-tree v1.0 · design-guide-master v2.1 스냅샷
   ============================================================ -->
 <style>
 /* ============================================================
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.1 (2026-08-05) 사이드바에 카테고리 머리말(.nav-cat)을 더했다.
+     워크스페이스 문서와 프로젝트 문서가 한 줄로 섞여 있어 프로젝트가 늘면
+     무너지는 구조였다. 묶음(.nav-sec)보다 한 단 위의 머리말을 두어
+     「이 아래는 이 프로젝트의 것」을 구분한다. 문서 안 절 목록(.nav-sub)은
+     사이드바에서 걷어냈다 — 본문 제목과 겹쳐 항목만 두 배로 늘었다.
    v2.0 (2026-08-04) 라이트를 기본 테마로 삼고 다크를 토글로 내렸다.
      산출물이 늘어 「읽는 문서」 하나로는 부족해졌고, 지표를 한눈에 보여줄
      대시보드 셸이 필요했다(참고: Gentelella v4의 레이아웃 언어 —
@@ -186,6 +191,9 @@ hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
 .side-nav{flex:1;padding:10px 0 20px}
 .nav-sec{padding:14px 18px 6px;font-size:11.5px;letter-spacing:.04em;
   text-transform:uppercase;color:var(--side-ink);opacity:.55}
+/* 카테고리 머리말 — 아래 묶음들이 한 프로젝트에 속함을 보인다. 묶음 이름보다 한 단 위다 */
+.nav-cat{margin:18px 0 0;padding:14px 18px 2px;border-top:1px solid var(--side-hair);
+  font-size:12.5px;font-weight:700;color:var(--side-ink-strong)}
 .nav-i,.nav-sub{display:block;padding:7px 18px;color:var(--side-ink);font-size:13.5px;
   border-left:3px solid transparent}
 .nav-i:hover,.nav-sub:hover{background:var(--side-active);color:var(--side-ink-strong);
@@ -567,18 +575,16 @@ tbody tr.row-hide{display:none}
 
 </script>
 </head>
-<body>
-<div class="wrap">
+<body><div class="app"><aside class="side"><div class="side-head"><a href="../../../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../../../index.html">포트폴리오 홈</a><a class="nav-i" href="../../../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../../../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../../../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../../../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../../../intro/miyonchat-automation.html">자동화 설계와 결과</a><div class="nav-sec">산출물</div><a class="nav-i" href="../index.html">프로젝트 허브</a><a class="nav-i" href="../automation/report/qa-lab-miyonchat-report.html">QA 리포트</a><a class="nav-i" href="../automation/report/qa-lab-miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i on" href="../spec/qa-lab-miyonchat-feature-tree.html">기능 골격</a><a class="nav-i" href="../qa-lab-miyonchat-dictionary.html">용어집</a><a class="nav-i" href="../sut/index.html" target="_blank" rel="noopener">SUT 실행</a><div class="nav-sec">원본 파일</div><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/test-case/qa-lab-miyonchat-tc-v1.0.xlsx" target="_blank" rel="noopener">TC 시트<span class="tag">xlsx</span></a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/projects/qa-lab-miyonchat/spec/qa-lab-miyonchat-feature-tree.md" target="_blank" rel="noopener">기능 골격 정본<span class="tag">md</span></a></nav><div class="side-foot">골격 v1.14</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>기능 골격</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap">
 
 <header class="doc-header">
-  <button class="icon-btn" data-theme-toggle>다크</button>
   <h1>qa-lab-miyonchat 기능 골격 v1.14</h1>
   <p class="doc-lead">SUT(MiyonChat — 자동화 테스트 대상 HTML 미연시 AI 챗)의 기획 정본을 시각화한 파생 문서입니다.
   레퍼런스 6종 조사와 채택(reference/)을 거쳐 확정된 기능 골격이며, 범위 태그가 구현(이번 검증 대상)·보류(트리에만)·제외(사유만)를 가릅니다.</p>
   <div class="meta-row">
     <span class="badge">골격 버전 <b>v1.14</b></span>
     <span class="badge">정본 <b>qa-lab-miyonchat-feature-tree.md</b></span>
-    <span class="badge">기준일 <b>2026-08-04</b></span>
+    <span class="badge">기준일 <b>2026-08-05</b></span>
   </div>
   <nav class="toc">
     <a href="#stats">개요</a><a href="#tree">기능 트리</a><a href="#relations">TC 관계도</a><a href="#unknown">미확인 목록</a>
@@ -864,9 +870,7 @@ tbody tr.row-hide{display:none}
 <div class="callout">현재 미확인 항목이 없습니다 — 전 항목이 design/에서 확정되었습니다. 값의 정본은 design/이며, 트리 노드는 값을 담지 않고 위임합니다.</div>
 
 <footer class="doc-footer">
-  qa-lab-miyonchat 기능 골격 v1.14 · 템플릿 01-feature-tree v1.0 · design-guide-master v2.0 스냅샷 · 파생 문서(직접 수정 금지)
+  qa-lab-miyonchat 기능 골격 v1.14 · 템플릿 01-feature-tree v1.0 · design-guide-master v2.1 스냅샷 · 파생 문서(직접 수정 금지)
 </footer>
 
-</div>
-</body>
-</html>
+</div></div></div><div class="backdrop"></div></body></html>

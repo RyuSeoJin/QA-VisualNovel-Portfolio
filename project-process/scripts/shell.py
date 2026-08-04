@@ -13,9 +13,9 @@
 
 쓰는 곳
 -------
-  셸을 입히는 문서는 **여러 장이 서로를 참조하는 산출물**입니다 — 프로젝트 허브 ·
-  QA 리포트 · 추적 매트릭스. 한 장으로 끝나는 문서(기능 골격 트리 등)는 셸 없이
-  `head()`만 쓰고 테마 토글은 문서 머리말에 답니다(`header_toggle()`).
+  **사이드바에서 열리는 문서에는 전부 입힙니다**(2026-08-05 개정). 메뉴로 들어간 페이지에
+  그 메뉴가 없으면 돌아갈 길이 사라지기 때문입니다. 예외는 SUT 하나로, 검증 대상은 문서가
+  아니라 테스트가 조작하는 제품이라 화면 구조를 건드리지 않습니다.
 """
 import html
 import io
@@ -34,22 +34,44 @@ NAV = (
     ("sut", "SUT 실행", "sut/index.html"),
 )
 
-#: 사이드바 「저장소」 묶음 — Pages에서 404가 나는 md·폴더·xlsx는 절대 URL로 건다
+#: 새 탭에서 여는 항목. 기준은 **사이트 밖으로 나가는가**이다 — SUT는 읽는 문서가 아니라
+#: 조작해 보는 제품이고, 「저장소」 묶음은 GitHub으로 나간다. 둘 다 읽던 문서를 덮지 않는다
+NEW_TAB = ("sut",)
+
+#: 사이드바 「원본 파일」 묶음 — Pages에서 404가 나는 md·폴더·xlsx는 절대 URL로 건다.
+#: 프로젝트의 원본이며, 저장소를 벗어나므로 전부 새 탭이다
 OUT = (
     ("TC 시트", BLOB + "/projects/{S}/test-case/{S}-tc-v1.0.xlsx", "xlsx"),
     ("기능 골격 정본", BLOB + "/projects/{S}/spec/{S}-feature-tree.md", "md"),
-    ("저장소", REPO, "git"),
 )
 
+#: 저장소 자체로 가는 링크. 프로젝트가 아니라 **워크스페이스 전체**를 가리키므로
+#: 프로젝트 묶음이 아니라 「소개」 끝에 붙인다
+REPO_LINK = ("포트폴리오 깃허브 링크", REPO, "git")
+
+#: 사이드바에서 워크스페이스 이야기와 프로젝트 이야기를 가르는 기준.
+#: 앞은 프로젝트가 늘어도 그대로이고, 뒤는 프로젝트마다 한 벌씩 생긴다
+WORKSPACE_INTRO = ("landing", "central", "project")
+PROJECT_INTRO = ("making", "tc", "auto")
+
+#: 프로젝트 카테고리에 표시할 이름. 없으면 slug를 그대로 쓴다
+PROJECT_LABEL = {"qa-lab-miyonchat": "MiyonChat"}
+
+#: 프로젝트를 파일명에서 부르는 짧은 이름. 폴더는 slug(qa-lab-miyonchat)를 쓰지만
+#: 파일 접두는 짧게 간다 — 이름이 길어지면 파일 목록에서 뒤쪽 구분이 안 보인다
+PROJECT_PREFIX = {"qa-lab-miyonchat": "miyonchat"}
+
 #: 사이드바 「소개」 묶음 — (키, 라벨, 저장소 루트 기준 경로)
-#: 랜딩에서 갈라지는 읽기 순서 그대로이며, 아직 없는 페이지는 링크 없이 회색으로 남는다
+#: 파일명 규칙: 워크스페이스 문서는 `main-`, 프로젝트 문서는 `{프로젝트}-` 접두.
+#: 프로젝트가 늘었을 때 같은 이름이 부딪히지 않게 하려는 것이다.
+#: 루트 `index.html`만 예외 — Pages의 진입점이라 이름을 바꿀 수 없다
 INTRO = (
     ("landing", "포트폴리오 홈", "index.html"),
-    ("structure", "저장소 구조", "intro/repo-structure.html"),
-    ("foundation", "토대 — 작업 규칙", "intro/foundation.html"),
-    ("making", "제작 과정", "intro/miyonchat-making.html"),
-    ("tc", "TC 설계 규칙", "intro/tc-design.html"),
-    ("auto", "자동화 설계와 결과", "intro/automation.html"),
+    ("central", "중앙 규칙 구조", "intro/main-central-rules.html"),
+    ("project", "프로젝트 규칙 구조", "intro/main-project-rules.html"),
+    ("making", "프로젝트 개요", "intro/miyonchat-overview.html"),
+    ("tc", "TC 설계 규칙", "intro/miyonchat-tc-design.html"),
+    ("auto", "자동화 설계와 결과", "intro/miyonchat-automation.html"),
 )
 
 
@@ -87,30 +109,43 @@ def header_toggle():
 
 
 def nav_group(title, items):
-    """items: (라벨, href 또는 None, 활성 여부, 태그). href가 None이면 링크 없이 회색으로."""
+    """items: (라벨, href 또는 None, 활성 여부, 태그[, 새 탭 여부]).
+
+    href가 None이면 링크 없이 회색으로 남습니다. 다섯 번째 값이 참이면 새 탭에서 엽니다.
+    """
     o = ['<div class="nav-sec">%s</div>' % esc(title)]
-    for label, href, active, tag in items:
+    for item in items:
+        label, href, active, tag = item[:4]
+        blank = bool(item[4]) if len(item) > 4 else False
         tag_html = ('<span class="tag">%s</span>' % esc(tag)) if tag else ""
         if href:
-            o.append('<a class="nav-i%s" href="%s">%s%s</a>'
-                     % (" on" if active else "", esc(href), esc(label), tag_html))
+            o.append('<a class="nav-i%s" href="%s"%s>%s%s</a>'
+                     % (" on" if active else "", esc(href),
+                        ' target="_blank" rel="noopener"' if blank else "",
+                        esc(label), tag_html))
         else:
             o.append('<span class="nav-i nav-off">%s%s</span>' % (esc(label), tag_html))
     return "".join(o)
 
 
-def sidebar_from(groups, head_href, head_title, head_sub, toc=(), foot=""):
-    """묶음을 그대로 받아 사이드바를 만든다. groups: (제목, items) 목록."""
+def sidebar_from(groups, head_href, head_title, head_sub, foot=""):
+    """묶음을 그대로 받아 사이드바를 만든다.
+
+    groups: (제목, items) 목록. 제목 앞에 "@"를 붙이면 **카테고리 머리말**로 나가고,
+    그 아래 묶음들이 그 카테고리에 속한 것으로 읽힙니다.
+
+    문서 안의 절 목록(「이 문서」)은 넣지 않습니다 — 본문 제목이 이미 그 역할을 하고,
+    사이드바에 겹쳐 두면 항목이 두 배로 늘어 메뉴가 읽히지 않습니다.
+    """
     o = ['<aside class="side">']
     o.append('<div class="side-head"><a href="%s">%s</a><span class="sub">%s</span></div>'
              % (esc(head_href), esc(head_title), esc(head_sub)))
     o.append('<nav class="side-nav">')
     for title, items in groups:
+        if title.startswith("@"):
+            o.append('<div class="nav-cat">%s</div>' % esc(title[1:]))
+            continue
         o.append(nav_group(title, items))
-    if toc:
-        o.append('<div class="nav-sec">이 문서</div>')
-        for anchor, label in toc:
-            o.append('<a class="nav-sub" href="#%s">%s</a>' % (esc(anchor), esc(label)))
     o.append('</nav>')
     if foot:
         o.append('<div class="side-foot">%s</div>' % esc(foot))
@@ -118,24 +153,71 @@ def sidebar_from(groups, head_href, head_title, head_sub, toc=(), foot=""):
     return "".join(o)
 
 
-def intro_group(current, root, exists=None):
+def intro_group(current, root, exists=None, keys=None, title="소개"):
     """소개 묶음. root = 저장소 루트로 가는 상대 경로 접두("" 또는 "../").
-    exists(경로)가 False면 링크 없이 회색으로 남긴다 — 아직 안 만든 페이지."""
+
+    keys를 주면 그 키만 순서대로 뽑는다 — 워크스페이스 문서와 프로젝트 문서를 갈라
+    두기 위해서다. exists(경로)가 False면 링크 없이 회색으로 남긴다(아직 안 만든 페이지).
+    """
+    picked = [(k, l, p) for k, l, p in INTRO if keys is None or k in keys]
+    if keys is not None:
+        picked.sort(key=lambda t: list(keys).index(t[0]))
     items = []
-    for key, label, path in INTRO:
+    for key, label, path in picked:
         # 지금 만들고 있는 페이지는 아직 파일이 없다 — 자기 자신은 항상 있는 것으로 본다
         ok = key == current or exists is None or bool(exists(path))
         items.append((label, (root + path) if ok else None, key == current, ""))
-    return ("소개", items)
+    return (title, items)
 
 
-def sidebar(slug, current, rel, toc=(), foot=""):
-    """산출물 문서용 — rel = 출력 파일에서 프로젝트 폴더로 가는 상대 경로 접두."""
-    out_items = [(label, rel + path.format(S=slug), key == current, "")
+def repo_root():
+    """shell.py 자리에서 저장소 루트를 되짚는다 — project-process/scripts/shell.py 기준."""
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def root_rel(out_path):
+    """출력 파일에서 저장소 루트로 가는 상대 경로 접두."""
+    r = os.path.relpath(repo_root(), os.path.dirname(os.path.abspath(out_path)))
+    r = r.replace(os.sep, "/")
+    return "" if r == "." else r + "/"
+
+
+def sidebar(slug, current, rel, foot="", out_path=None, exists=None):
+    """모든 문서가 쓰는 사이드바 — rel = 출력 파일에서 프로젝트 폴더로 가는 상대 경로 접두.
+
+    구성은 두 덩어리다. 위는 **워크스페이스**(포트폴리오 홈과 규칙 구조), 아래는
+    **프로젝트 하나**(그 프로젝트를 설명하는 문서 · 산출물 · 원본 파일)이다. 프로젝트가
+    늘면 아래 덩어리가 하나 더 붙는 형태라, 지금 구조가 그대로 자란다.
+
+    out_path를 주면 소개 묶음까지 붙어 어느 문서에서나 같은 메뉴가 나온다. 사이드바에서
+    들어간 페이지에 사이드바가 없으면 돌아갈 길이 사라지므로, 새 문서는 반드시 준다.
+
+    exists(경로)는 「그 소개 페이지가 있는가」의 판정이다. 기본값은 디스크 확인인데,
+    소개 페이지를 여러 장 한꺼번에 다시 만들 때는 **아직 안 만든 장이 회색으로 굳으므로**
+    생성기가 「만들 수 있는 페이지」 기준을 대신 넘긴다.
+    """
+    groups = []
+    head_href, head_title, head_sub = rel + "index.html", slug, "QA 검증 워크스페이스"
+    if out_path is not None:
+        root = root_rel(out_path)
+        if exists is None:
+            exists = lambda p: os.path.exists(os.path.join(repo_root(), p))  # noqa: E731
+        ws_title, ws_items = intro_group(current, root, exists=exists, keys=WORKSPACE_INTRO)
+        # 저장소 링크는 워크스페이스 전체를 가리키므로 소개 묶음의 끝에 붙는다
+        ws_items.append((REPO_LINK[0], REPO_LINK[1], False, REPO_LINK[2], True))
+        groups.append((ws_title, ws_items))
+        head_href = root + "index.html"
+        head_title, head_sub = "QA-VisualNovel-Portfolio", "QA 포트폴리오"
+        groups.append(("@프로젝트: %s" % PROJECT_LABEL.get(slug, slug), ()))
+        groups.append(intro_group(current, root, exists=exists,
+                                  keys=PROJECT_INTRO, title="문서"))
+    out_items = [(label, rel + path.format(S=slug), key == current, "", key in NEW_TAB)
                  for key, label, path in NAV]
-    repo_items = [(label, url.format(S=slug), False, tag) for label, url, tag in OUT]
-    return sidebar_from((("산출물", out_items), ("저장소", repo_items)),
-                        rel + "index.html", slug, "QA 검증 워크스페이스", toc, foot)
+    # 「저장소」 묶음은 GitHub으로 나가므로 전부 새 탭이다
+    repo_items = [(label, url.format(S=slug), False, tag, True) for label, url, tag in OUT]
+    groups.append(("산출물", out_items))
+    groups.append(("원본 파일", repo_items))
+    return sidebar_from(groups, head_href, head_title, head_sub, foot)
 
 
 def topbar(crumb_root, crumb_doc):
@@ -147,10 +229,12 @@ def topbar(crumb_root, crumb_doc):
         % (esc(crumb_root), esc(crumb_doc)))
 
 
-def open_body(slug, current, rel, crumb_doc, toc=(), foot=""):
+def open_body(slug, current, rel, crumb_doc, foot="", out_path=None):
     """<body>부터 본문 시작(.wrap 열림)까지."""
+    crumb_root = "QA-VisualNovel-Portfolio" if out_path is not None else slug
     return ('<body><div class="app">%s<div class="main">%s<div class="wrap">'
-            % (sidebar(slug, current, rel, toc, foot), topbar(slug, crumb_doc)))
+            % (sidebar(slug, current, rel, foot, out_path),
+               topbar(crumb_root, crumb_doc)))
 
 
 def close_body():

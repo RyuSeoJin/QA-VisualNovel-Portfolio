@@ -126,12 +126,17 @@ def main():
     extra = ("#dict td:first-child,#dict td:nth-child(2){white-space:nowrap}"
              "#dict td:first-child{color:var(--muted)}")
 
+    # 사이드바에서 열리는 문서이므로 셸을 입힌다 — 메뉴로 들어와 메뉴가 사라지면 돌아갈 길이 없다
+    rel = os.path.relpath(os.path.dirname(os.path.abspath(args.input)),
+                          os.path.dirname(os.path.abspath(args.output))).replace(os.sep, "/")
+    rel = "" if rel == "." else rel + "/"
+
     o = []
     w = o.append
     w(shell.head(title, css, js, extra))
-    w('<body><div class="wrap">')
+    w(shell.open_body(slug, "dict", rel, "용어집",
+                      "수록 %d개" % total, out_path=args.output))
     w('<header class="doc-header">')
-    w(shell.header_toggle())
     w("<h1>%s — 이 프로젝트에서만 통하는 말</h1>" % esc(slug))
     for p in lead[:2]:
         w('<p class="doc-lead">%s</p>' % inline(p))
@@ -141,7 +146,7 @@ def main():
     w('<span class="badge">기준일 <b>%s</b></span>' % datetime.date.today().isoformat())
     w("</div>")
     w('<nav class="toc"><a href="%s/project-process/qa-dictionary.md">중앙 용어집(범용 QA 용어)</a>'
-      '<a href="index.html">프로젝트 허브</a></nav>' % shell.BLOB)
+      '<a href="%sindex.html">프로젝트 허브</a></nav>' % (shell.BLOB, rel))
     w("</header>")
 
     w('<h2 id="terms">용어</h2>')
@@ -160,7 +165,7 @@ def main():
     w('<footer class="doc-footer">%s 용어집 · 정본 %s-dictionary.md · '
       'design-guide-master %s 스냅샷 · 파생 문서(직접 수정 금지)</footer>'
       % (esc(slug), esc(slug), esc(css_version(css))))
-    w("</div></body></html>")
+    w(shell.close_body())
 
     with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(o))

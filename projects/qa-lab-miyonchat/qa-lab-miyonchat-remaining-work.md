@@ -1,7 +1,7 @@
 # qa-lab-miyonchat — 남은 작업 (remaining-work)
 
 할 일의 정본입니다(규칙: `rules/remaining-work.md`). 완료 항목은 삭제되며, 완료 기록은
-change-log가 담당합니다. 갱신일: 2026-08-04 (프로젝트 용어집 신설로 **작업 큐 1~8번이 전부 닫혔습니다** — 남은 것은 백로그뿐입니다).
+change-log가 담당합니다. 갱신일: 2026-08-05 (중앙 규칙/프로젝트 규칙 축 신설 · 소개 층 재편과 사이드바 통일 — 작업 큐는 비어 있고 남은 것은 백로그뿐입니다).
 
 ## 지금 상태 (이어받기용 요약)
 
@@ -158,15 +158,15 @@ python project-process/scripts/run_fault_matrix.py \
    - 랜딩의 서술 기준(사용자 확정): 만든 사람 정보는 넣지 않음 · 검출 결함은 **히어로에서 빼고
      결과 절에서** 증상·원인·조치로 · 내부 용어는 문장에서 풀고 「이 문서의 말」 절에 한 줄 사전 ·
      「자기가 만든 걸 자기가 찾았다」에 대한 변론 문단은 넣지 않음
-   - **완료**: ①랜딩(`index.html`) · ②저장소 구조(`intro/repo-structure.html`) ·
-     ③토대(`intro/foundation.html` — 절차 단계는 playbook의 STEP 제목을, 규칙 설명은 각 md의
+   - **완료**: ①랜딩(`index.html`) · ②중앙 규칙 구조(`intro/main-central-rules.html`) ·
+     ③프로젝트 규칙 구조(`intro/main-project-rules.html` — 절차 단계는 playbook의 STEP 제목을, 규칙 설명은 각 md의
      첫 문단을, 도구 설명은 각 스크립트의 모듈 docstring 첫 줄을 읽습니다) ·
-     ④제작 과정(`intro/miyonchat-making.html` — REF/ADD·제외 노드는 트리 태그에서 세고,
+     ④제작 과정(`intro/miyonchat-overview.html` — REF/ADD·제외 노드는 트리 태그에서 세고,
      ADD 근거 16건과 수치 근거 25건은 `rationale/…-addition-rationale.md`의 표를 그대로 읽습니다)
-     ⑤TC 설계 규칙(`intro/tc-design.html` — 영역별 규모·판정 방식 건수는 TC 원본에서,
+     ⑤TC 설계 규칙(`intro/miyonchat-tc-design.html` — 영역별 규모·판정 방식 건수는 TC 원본에서,
      제외 7건은 waiver 파일에서, 커버리지 그림은 `diagrams/coverage-axes.svg`에서 읽고,
      실제 케이스 한 건을 시트 모양으로 펼쳐 보입니다)
-     ⑥자동화 설계와 결과(`intro/automation.html` — 접점 4갈래는 `rules/sut-automation.md` §1 표,
+     ⑥자동화 설계와 결과(`intro/miyonchat-automation.html` — 접점 4갈래는 `rules/sut-automation.md` §1 표,
      담당 근거 16건은 결함 기대표, 실행 결과는 커밋된 `fault-matrix.md`, CI 단계는 워크플로
      파일에서 읽습니다)
    - **소개 층 6페이지 완료.** 사이드바에 회색으로 자리만 잡혀 있고,
@@ -180,7 +180,7 @@ python project-process/scripts/run_fault_matrix.py \
    - 재생성
      ```
      python project-process/scripts/gen_intro_html.py --page landing \n       --repo-root . --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css -o index.html
-     python project-process/scripts/gen_intro_html.py --page structure \n       --repo-root . --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css -o intro/repo-structure.html
+     python project-process/scripts/gen_intro_html.py --page central \n       --repo-root . --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css -o intro/main-central-rules.html
      ```
 
 ## TC 입력 형식 (참조)

@@ -2,6 +2,11 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.1 (2026-08-05) 사이드바에 카테고리 머리말(.nav-cat)을 더했다.
+     워크스페이스 문서와 프로젝트 문서가 한 줄로 섞여 있어 프로젝트가 늘면
+     무너지는 구조였다. 묶음(.nav-sec)보다 한 단 위의 머리말을 두어
+     「이 아래는 이 프로젝트의 것」을 구분한다. 문서 안 절 목록(.nav-sub)은
+     사이드바에서 걷어냈다 — 본문 제목과 겹쳐 항목만 두 배로 늘었다.
    v2.0 (2026-08-04) 라이트를 기본 테마로 삼고 다크를 토글로 내렸다.
      산출물이 늘어 「읽는 문서」 하나로는 부족해졌고, 지표를 한눈에 보여줄
      대시보드 셸이 필요했다(참고: Gentelella v4의 레이아웃 언어 —
@@ -173,6 +178,9 @@ hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
 .side-nav{flex:1;padding:10px 0 20px}
 .nav-sec{padding:14px 18px 6px;font-size:11.5px;letter-spacing:.04em;
   text-transform:uppercase;color:var(--side-ink);opacity:.55}
+/* 카테고리 머리말 — 아래 묶음들이 한 프로젝트에 속함을 보인다. 묶음 이름보다 한 단 위다 */
+.nav-cat{margin:18px 0 0;padding:14px 18px 2px;border-top:1px solid var(--side-hair);
+  font-size:12.5px;font-weight:700;color:var(--side-ink-strong)}
 .nav-i,.nav-sub{display:block;padding:7px 18px;color:var(--side-ink);font-size:13.5px;
   border-left:3px solid transparent}
 .nav-i:hover,.nav-sub:hover{background:var(--side-active);color:var(--side-ink-strong);

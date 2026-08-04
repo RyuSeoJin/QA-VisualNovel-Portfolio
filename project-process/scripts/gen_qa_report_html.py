@@ -200,16 +200,13 @@ def main():
     O = []
     w = O.append
 
-    TOC = (("vt", "검증유형별 집계"), ("area", "영역별 결과"),
-           ("matrix", "결함 주입 매트릭스"), ("cov", "커버리지 3축"),
-           ("rubric", "수동 채점"), ("limit", "SUT 한계와 검증 범위"),
-           ("issue", "검출 이슈"), ("repro", "재현 방법"))
     rel = os.path.relpath(P, os.path.dirname(os.path.abspath(args.output)))
     rel = "" if rel == "." else rel.replace("\\", "/") + "/"
 
     w(shell.head("%s — QA 검증 리포트" % S, css, js))
-    w(shell.open_body(S, "report", rel, "QA 리포트", TOC,
-                      "골격 v%s%s" % (tree_version, " · " + build if build else "")))
+    w(shell.open_body(S, "report", rel, "QA 리포트",
+                      "골격 v%s%s" % (tree_version, " · " + build if build else ""),
+                      out_path=args.output))
 
     # ── 헤더
     w('<div class="doc-header"><h1>%s — QA 검증 리포트</h1>' % esc(S))
