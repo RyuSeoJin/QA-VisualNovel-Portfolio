@@ -235,12 +235,8 @@ python project-process/scripts/run_fault_matrix.py \
 
 ## 사용자 결정 대기
 
-- **`rules/site-structure.md` §파생물과 재생성 순서 표에 TC 시트(xlsx) 줄 추가** (2026-08-04 제안) —
-  표가 HTML 파생물만 담고 있어 이번 재생성에서 빠질 뻔했습니다. 시트가 읽는 것은
-  `tc-input-v1.0.json`과 `issues.json`이며 HTML 산출물과 **병렬**입니다(선행이 아닙니다).
-  규칙 문서 수정이라 승인 전에는 손대지 않습니다
-
-아래는 2026-08-03 시점 기록입니다. 닫힌 결정과 그 사유는 change-log
+**비어 있습니다.** TC 시트 줄 추가는 2026-08-04 승인되어 `rules/site-structure.md`에
+반영했습니다(표 한 줄 + 순서 4번). 닫힌 결정과 그 사유는 change-log
 §확정된 결정 > 결정 대기 항목 정리에 있습니다 — 이슈·TC 연결 구조, 트리 미확인 2건,
 트리의 조사 후보 수치, `build_tc_xlsx.py` 삭제, 자동화 리포트 템플릿(기본 리포트로 시작).
 
