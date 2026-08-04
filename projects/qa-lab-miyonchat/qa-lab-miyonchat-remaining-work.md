@@ -16,7 +16,7 @@ change-log가 담당합니다. 갱신일: 2026-08-04 (결함 주입 매트릭스
 | CI | `.github/workflows/qa-lab-miyonchat.yml` — 커버리지 대조 → 매트릭스 → 리포트 재생성 → **커밋본이 최신인지** |
 | 산출물 | [프로젝트 허브](index.html) · [QA 리포트](automation/report/qa-lab-miyonchat-report.html) · [추적 매트릭스](automation/report/qa-lab-miyonchat-traceability.html) |
 | 설명 다이어그램 | `structure.svg`(전체 구조) + `diagrams/` 3종(커버리지 3축 · 결함 주입 · 자동화 격리) |
-| 다음 착수 지점 | **남은 묶기** — 프로젝트 용어집 |
+| 다음 착수 지점 | **산출물 디자인 개편 v2.0 마무리**(아래 7번) — 자동화를 돌려 산출물을 재생성해야 합니다. 그다음이 프로젝트 용어집 |
 
 **매트릭스를 다시 돌리는 법** (SUT나 자동화를 고쳤을 때 반드시 함께 돌립니다)
 
@@ -125,6 +125,63 @@ python project-process/scripts/run_fault_matrix.py \
      ```
      python project-process/scripts/gen_project_hub_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css --diagrams diagrams \n       -o projects/qa-lab-miyonchat/index.html
      python project-process/scripts/gen_traceability_html.py \n       --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css \n       -o projects/qa-lab-miyonchat/automation/report/qa-lab-miyonchat-traceability.html
+     ```
+
+7. **산출물 디자인 개편 v2.0** — **코드까지 완료 · 재생성 대기** (2026-08-04)
+   - 사용자 결정: Gentelella v4의 **디자인 언어만 차용**(코드 미복제 — MIT 고지 불필요) ·
+     **라이트 기본 + 다크 토글** · 토글은 **모든 문서**에 · 셸(사이드바·상단 바)은
+     **허브·QA 리포트·추적 매트릭스** 셋에만 · 표 도구는 **경량 자작 JS**
+   - **완료(렌더 확인함)**: `design-guide-master.css` **v2.0**(토큰 두 벌·셸·표 도구·
+     스탯 막대·`--on-accent`·`.sd` 다크 전용 덮기) · `design-guide-master.js` **v2.0 신설**
+     (테마 토글·서랍·목차 표시·표 검색/필터/정렬) · 시각 규칙서 v2.0 ·
+     `scripts/shell.py` 신설(사이드바 항목의 정본) · 생성기 4종 개편(허브·리포트·
+     추적 매트릭스·기능 트리) · `rules/html-report-guide.md` 반영
+   - **남음 ①(환경 필요)**: 산출물 재생성. **junit이 있어야 수치가 살아납니다** —
+     `automation/result/**/junit-*.xml`은 `.gitignore` 대상이라 매트릭스를 먼저 돌려야 하고,
+     안 돌리면 자동화 수치가 `0/0`으로 재생성됩니다(이 저장소에서 한 번 확인 후 되돌림).
+     **재생성 순서와 의존 관계의 정본은 `rules/site-structure.md` §파생물과 재생성 순서**입니다.
+     요약하면 `.venv` 준비 → `run_fault_matrix.py` → 커버리지 대조 → 리포트·추적 매트릭스·
+     프로젝트 허브·기능 트리 → **소개 랜딩과 「자동화 설계와 결과」**(둘 다 매트릭스 결과표를
+     읽습니다) → 렌더 확인(라이트·다크) → 커밋
+   - CI의 「커밋본이 최신인지」 검사는 아직 **리포트와 매트릭스 표 둘만** 봅니다. 파생물이 늘었으므로
+     검사 대상 확대(또는 재생성 스크립트 신설) 여지가 있으나, 2026-08-04 사용자 판단으로
+     **문서에 순서만 적어 두는 쪽**을 택했습니다
+   - **남음 ②(결정 대기)**: 중앙 `index.html`은 손으로 쓴 문서라 CSS 스냅샷이 v1.1에
+     멈춰 있습니다. 갈래는 둘 — **(a)** 스냅샷을 손으로 v2.0으로 교체하고 토글 버튼을 넣는다
+     **(b)** `inline_structure_svg.py`처럼 **주입 스크립트를 신설**해 마커 사이에 CSS·JS를
+     넣고 `--check`로 CI가 동기를 검사한다. (b)가 갈라짐을 구조적으로 막지만 도구가 하나 늘어
+     제안만 올려 둡니다
+   - 이 프로젝트의 `structure.svg`·`diagrams/*.svg`는 원래 밝은 배경 기준이라 손댈 것이 없습니다
+
+8. **소개 층(`intro/`) 신설** — **6/6 완료 · 커밋 대기** (2026-08-04)
+   - 사용자 결정: 루트 `index.html`을 **포트폴리오 랜딩으로 교체** · 소개 페이지는 **루트 `intro/`**
+     한 곳 · **단일 생성기**(`gen_intro_html.py --page …`) · 랜딩부터 한 장씩
+   - 랜딩의 서술 기준(사용자 확정): 만든 사람 정보는 넣지 않음 · 검출 결함은 **히어로에서 빼고
+     결과 절에서** 증상·원인·조치로 · 내부 용어는 문장에서 풀고 「이 문서의 말」 절에 한 줄 사전 ·
+     「자기가 만든 걸 자기가 찾았다」에 대한 변론 문단은 넣지 않음
+   - **완료**: ①랜딩(`index.html`) · ②저장소 구조(`intro/repo-structure.html`) ·
+     ③토대(`intro/foundation.html` — 절차 단계는 playbook의 STEP 제목을, 규칙 설명은 각 md의
+     첫 문단을, 도구 설명은 각 스크립트의 모듈 docstring 첫 줄을 읽습니다) ·
+     ④제작 과정(`intro/miyonchat-making.html` — REF/ADD·제외 노드는 트리 태그에서 세고,
+     ADD 근거 16건과 수치 근거 25건은 `rationale/…-addition-rationale.md`의 표를 그대로 읽습니다)
+     ⑤TC 설계 규칙(`intro/tc-design.html` — 영역별 규모·판정 방식 건수는 TC 원본에서,
+     제외 7건은 waiver 파일에서, 커버리지 그림은 `diagrams/coverage-axes.svg`에서 읽고,
+     실제 케이스 한 건을 시트 모양으로 펼쳐 보입니다)
+     ⑥자동화 설계와 결과(`intro/automation.html` — 접점 4갈래는 `rules/sut-automation.md` §1 표,
+     담당 근거 16건은 결함 기대표, 실행 결과는 커밋된 `fault-matrix.md`, CI 단계는 워크플로
+     파일에서 읽습니다)
+   - **소개 층 6페이지 완료.** 사이드바에 회색으로 자리만 잡혀 있고,
+     파일이 생기면 생성기가 자동으로 링크로 바꿉니다
+   - 수치는 junit을 읽지 않습니다 — 자동화 건수는 `automation/tests/*.py`의 테스트 함수를 세고,
+     매트릭스 결과는 커밋된 `result/matrix/fault-matrix.md`에서 읽습니다(환경 없이도 살아 있음)
+   - **딸린 정리 완료(2026-08-04)**: `inline_structure_svg.py` 삭제(사본이 사라져 할 일이 없어짐) ·
+     규칙 이관 — CLAUDE.md의 §산출물 출력 방식·§트랙별 허브 갱신을 **포인터 두 절로 줄이고**
+     정의는 `rules/html-report-guide.md`(출력 방식·Pages 링크)와 **`rules/site-structure.md` 신설**
+     (세 층·목록 자동화·셸·용어집 배치)로 옮김. SUT 예외는 `rules/sut-automation.md` §1
+   - 재생성
+     ```
+     python project-process/scripts/gen_intro_html.py --page landing \n       --repo-root . --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css -o index.html
+     python project-process/scripts/gen_intro_html.py --page structure \n       --repo-root . --project-dir projects/qa-lab-miyonchat --slug qa-lab-miyonchat \n       --css design-guide/design-guide-master.css -o intro/repo-structure.html
      ```
 
 ## TC 입력 형식 (참조)

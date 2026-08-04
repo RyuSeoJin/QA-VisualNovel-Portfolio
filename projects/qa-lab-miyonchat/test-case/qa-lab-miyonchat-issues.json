@@ -6,7 +6,7 @@
       "project": "miyonchat",
       "no": "miyonchat-1",
       "status": "Resolved",
-      "summary": "디버그 콘솔 > 전체 초기화(reset) 수행 > 계정 A 로그인 시, 성인 인증이 해제된 상태로 시작됨",
+      "summary": "전체 초기화 직후 성인 계정으로 로그인하면, 성인 인증이 해제된 상태로 시작됨",
       "description": "Pre-condition: SUT 진입\nReproduce Step: 디버그 콘솔 열기 > [전체 초기화] 선택 > 계정 A로 로그인 > 간편 프로필 확인\nActual Result: \"성인 미인증\"으로 표시되고 언세이프 게이트가 열리지 않음\nExpected Result: 계정 A는 기본값이 성인 인증 완료이므로 \"성인 인증 완료\"로 표시되어야 함\nQA Comment: 계정 상태 생성 함수에 계정 식별자를 전달하지 않아 기본값 판정이 항상 거짓이 됨. 자동화가 매 테스트 전 reset()을 호출하는 구조라, 남아 있으면 게이팅 계열 TC 전체가 미인증 상태에서 실행되어 결과를 신뢰할 수 없음",
       "priority": "High",
       "frequency": "Always",
