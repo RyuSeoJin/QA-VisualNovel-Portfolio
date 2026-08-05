@@ -218,8 +218,8 @@ def main():
          sum(1 for t in tcs if t[7] != "사람 전용")))
     w('<div class="meta-row">')
     for k, v in (("대상", "%s (%s)" % (S, build)), ("기능 골격", "v" + tree_version),
-                 ("케이스", "%d개" % len(tcs)),
-                 ("확인 항목", "%d개" % shell.check_items(tcs)),
+                 ("테스트 케이스",
+                  "%d개(확인 항목 %d개)" % (len(tcs), shell.check_items(tcs))),
                  ("자동화", "%d개" % (len(auto) + smoke)),
                  ("이슈", "%d건" % len(issues))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
@@ -229,7 +229,7 @@ def main():
     total_auto = len(auto) + smoke
     passed = sum(1 for v in auto.values() if v == "pass") + smoke
     w('<div class="stats">')
-    for num, lbl, ratio in ((len(tcs), "설계한 케이스", None),
+    for num, lbl, ratio in ((len(tcs), "설계한 테스트 케이스", None),
                             ("%d/%d" % (passed, total_auto), "자동화 통과",
                              (passed, total_auto, "ok")),
                             ("%d/%d" % (len(leaves), len(leaves)), "덮인 기능 단위",
@@ -251,27 +251,38 @@ def main():
     w('<p><strong>완전 검증과 계측을 한 평균으로 섞지 않습니다.</strong> 섞는 순간 '
       '「95% 통과」 같은 숫자가 나오는데, 그 안에 「반드시 참이어야 하는 것」과 '
       '「임계를 넘겼는가」가 뒤엉켜 있어 무엇을 말하는 수치인지 알 수 없게 됩니다.</p>')
+    # 표가 둘로 갈려 위 표만 보면 150에서 끊겨 보인다 — 합을 먼저 밝힌다
+    n_full = sum(by_vt[v]["total"] for v in VT_FULL if v in by_vt)
+    n_meas = sum(by_vt[v]["total"] for v in VT_MEASURE if v in by_vt)
+    w('<p class="foot">아래 두 표를 더한 것이 전체입니다 — 완전 검증 %d개 + 계측 %d개 '
+      '= <strong>테스트 케이스 %d개</strong>.</p>' % (n_full, n_meas, len(tcs)))
 
     w('<div class="card-grid">')
     w('<div class="card"><h3>완전 검증 — 통과/실패가 그대로 사실</h3>'
       '<p>기대값이 하나로 정해져 있어 결과가 곧 판정입니다. 결정적은 1회 실행으로, '
       '금칙은 시도 횟수 안에서 <strong>0건 통과</strong>로 봅니다.</p>')
-    w('<div class="tbl-scroll"><table><thead><tr><th>검증유형</th><th class="num">TC</th>'
+    w('<div class="tbl-scroll"><table><thead><tr><th>검증유형</th>'
+      '<th class="num">테스트 케이스</th>'
       '<th class="num">통과</th><th>비율</th></tr></thead><tbody>')
+    f_pass = 0
     for vt in VT_FULL:
         r = by_vt.get(vt)
         if not r:
             continue
+        f_pass += r["pass"]
         w('<tr><td><span class="chip chip-%s">%s</span></td><td class="num">%d</td>'
           '<td class="num">%d</td><td>%s</td></tr>'
           % (VT_CHIP[vt], esc(vt), r["total"], r["pass"], bar(r["pass"], r["total"])))
+    w('<tr><td><b>합계</b></td><td class="num"><b>%d</b></td>'
+      '<td class="num"><b>%d</b></td><td></td></tr>' % (n_full, f_pass))
     w('</tbody></table></div></div>')
 
     w('<div class="card"><h3>계측 — 임계 대비 값</h3>'
       '<p>같은 입력에도 결과가 갈리므로 한 번의 통과가 사실을 증명하지 않습니다. '
       '<strong>수치를 품질 지표로 서술하지 않습니다</strong> — 응답 변주를 우리가 직접 '
       '작성했기 때문에, 이 값이 재는 것은 제품 품질이 아니라 설계 의도의 반영도입니다.</p>')
-    w('<div class="tbl-scroll"><table><thead><tr><th>검증유형</th><th class="num">TC</th>'
+    w('<div class="tbl-scroll"><table><thead><tr><th>검증유형</th>'
+      '<th class="num">테스트 케이스</th>'
       '<th>판정 방식</th></tr></thead><tbody>')
     for vt in VT_MEASURE:
         r = by_vt.get(vt)
@@ -280,6 +291,7 @@ def main():
         w('<tr><td><span class="chip chip-%s">%s</span></td><td class="num">%d</td>'
           '<td>%s</td></tr>'
           % (VT_CHIP[vt], esc(vt), r["total"], esc(cfg.get("vt_note", {}).get(vt, ""))))
+    w('<tr><td><b>합계</b></td><td class="num"><b>%d</b></td><td></td></tr>' % n_meas)
     w('</tbody></table></div></div></div>')
 
     # ── 영역별
@@ -287,7 +299,8 @@ def main():
     w('<p>영역은 TC ID의 접두이며 기능 골격의 1-Depth와 짝을 이룹니다. '
       '뎁스는 「어디서 실행하나」를, 영역은 「무엇을 검증하나」를 담습니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>영역</th><th>코드</th>'
-      '<th class="num">TC</th><th class="num">자동 통과</th><th class="num">사람 전용</th>'
+      '<th class="num">테스트 케이스</th><th class="num">자동 통과</th>'
+      '<th class="num">사람 전용</th>'
       '<th>비율</th></tr></thead><tbody>')
     for code, r in sorted(by_area.items(), key=lambda x: -x[1]["total"]):
         auto_n = r["total"] - r["manual"]
@@ -430,7 +443,7 @@ def main():
 
     # ── 이슈
     w('<h2 id="issue">검출 이슈 — %d건</h2>' % len(issues))
-    w('<p>설계한 케이스를 실행하는 과정에서 나온 것입니다. 자동화가 검출한 것은 사람이 화면만 '
+    w('<p>설계한 테스트 케이스를 실행하는 과정에서 나온 것입니다. 자동화가 검출한 것은 사람이 화면만 '
       '봐서는 판정할 수 없던 것들입니다 — 만료 상태 복원, 죽은 차단 코드처럼 화면에 드러나지 '
       '않는 결함입니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>No</th><th>요약</th>'

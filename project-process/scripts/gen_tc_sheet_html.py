@@ -14,9 +14,9 @@
 
 시트를 그대로 옮기지 않는 자리
 ----------------------------
-  xlsx는 기대결과가 여럿이면 **행이 늘고 칸을 병합**합니다(케이스 153개 → 확인 항목
-  297행). 화면에서는
-  한 케이스를 한 행에 두고 스텝과 기대결과를 그 안에서 짝지어 보입니다. 종이(행 단위 실행
+  xlsx는 기대결과가 여럿이면 **행이 늘고 칸을 병합**합니다(테스트 케이스 153개 →
+  확인 항목 297행). 화면에서는 한 케이스를 한 행에 두고 스텝과 기대결과를 그 안에서
+  짝지어 보입니다. 종이(행 단위 실행
   기록)와 화면(읽기)은 좋은 모양이 다릅니다. 열은 하나도 빼지 않고 가로 스크롤로 봅니다.
 
   **실행 결과(Pass/Fail)는 싣지 않습니다.** 결과는 junit에서 나오는데 이 층은 junit을 읽지
@@ -109,7 +109,7 @@ def panel_summary(w, rows, cfg):
     w('<p>1-Depth를 기반으로 어떤 영역에 대한 검증인지 볼 수 있는 요약 영역입니다. '
       'Test Case 영역이 채워지면 <code>COUNTIFS</code> 수식에 의해 바로 반영되는 구조입니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>1-Depth (영역)</th>'
-      '<th class="num">케이스</th><th class="num">확인 항목</th>'
+      '<th class="num">테스트 케이스</th><th class="num">확인 항목</th>'
       '<th class="num">High</th><th class="num">Medium</th><th class="num">Low</th>'
       '<th>검증유형</th></tr></thead><tbody>')
     tot = [0, 0, 0, 0, 0]
@@ -261,7 +261,7 @@ def main():
     w = O.append
     w(shell.head("%s — TC 시트 구성" % S, css, js, extra))
     w(shell.open_body(S, "tcsheet", rel, "TC 시트 구성",
-                      "케이스 %d개 · 골격 v%s" % (len(rows), tree_version),
+                      "테스트 케이스 %d개 · 골격 v%s" % (len(rows), tree_version),
                       out_path=args.output))
 
     w('<div class="doc-header"><h1>TC 시트 구성</h1>')
@@ -269,10 +269,9 @@ def main():
       '때문에 어떻게 수행해야 할 지 모릅니다. 그래서 테스트 케이스를 설계하고 관리하는 데 '
       '필요한 장치들을 구성하였습니다.</p>')
     w('<div class="meta-row">')
-    for k, v in (("케이스", "%d개" % len(rows)),
-                 ("확인 항목", "%d개" % sum(
+    for k, v in (("테스트 케이스", "%d개(확인 항목 %d개)" % (len(rows), sum(
                      sum(max(1, len(g)) for g in expected_by_step(r["steps"], r["exp"])[1])
-                     for r in rows)),
+                     for r in rows))),
                  ("영역", "%d개" % len({r["path"][0] for r in rows if r["path"]})),
                  ("기준 골격", "v" + tree_version),
                  ("이슈", "%d건" % len(issues))):

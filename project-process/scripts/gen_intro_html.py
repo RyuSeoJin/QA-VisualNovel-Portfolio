@@ -671,8 +671,7 @@ def page_project(d, args, rel):
       % central_link)
     w('<div class="meta-row"><span class="badge">현재 프로젝트 <b>%d개</b></span>'
       '<span class="badge">기능 <b>%d개</b></span>'
-      '<span class="badge">케이스 <b>%d개</b></span>'
-      '<span class="badge">확인 항목 <b>%d개</b></span></div></div>'
+      '<span class="badge">테스트 케이스 <b>%d개(확인 항목 %d개)</b></span></div></div>'
       % (1, len(d["leaves"]), len(d["tcs"]), shell.check_items(d["tcs"])))
 
     # ── 왜 분리하나
@@ -696,7 +695,7 @@ def page_project(d, args, rel):
       % (R, esc(shell.intro_path("making")), esc(S)))
     w('<p>출시 서비스 역분석 → 기능 목록 → 확정 사양 → 검증 대상 제작 → 테스트 케이스 → '
       '자동화 → 고장 주입 → 리포트 → CI까지 한 바퀴를 완주한 프로젝트입니다.</p>')
-    w('<p class="foot">기능 %d개 · 케이스 %d개(확인 항목 %d개) · 자동화 %d개 · 빌드 %s</p>'
+    w('<p class="foot">기능 %d개 · 테스트 케이스 %d개(확인 항목 %d개) · 자동화 %d개 · 빌드 %s</p>'
       % (len(d["leaves"]), len(d["tcs"]), shell.check_items(d["tcs"]),
          d["auto"], esc(d["build"])))
 
@@ -1016,16 +1015,15 @@ def page_tc(d, args, rel):
       '상황)만 체크하면 <strong>결함을 놓칠 가능성이 높습니다.</strong> 그래서 테스트 항목의 기준을 '
       '어떻게 판정할지, 무엇을 확인해야 할지를 정의하였습니다.</p>')
     w('<div class="meta-row">'
-      '<span class="badge">케이스 <b>%d개</b></span>'
-      '<span class="badge">확인 항목 <b>%d개</b></span>'
+      '<span class="badge">테스트 케이스 <b>%d개(확인 항목 %d개)</b></span>'
       '<span class="badge">영역 <b>%d개</b></span>'
       '<span class="badge">사람이 직접 <b>%d개</b></span>'
       '<span class="badge">규칙 정본 <b>rules/</b></span></div></div>'
       % (len(tcs), shell.check_items(tcs), len(areas), n_manual))
 
     # ── 세는 단위 — 시트를 열면 행이 케이스 수보다 많아 보이므로 먼저 답한다
-    w('<h2 id="unit">무엇을 세는가 — 케이스와 확인 항목</h2>')
-    w('<p><strong>세는 단위는 TC ID입니다.</strong> <code>TC-ENT-001</code>처럼 '
+    w('<h2 id="unit">무엇을 세는가 — 테스트 케이스와 확인 항목</h2>')
+    w('<p><strong>테스트 케이스 하나는 TC ID 하나입니다.</strong> <code>TC-ENT-001</code>처럼 '
       '<code>TC-{영역코드}-{번호}</code> 형식이고, 번호는 <strong>영역 안에서만</strong> '
       '올라갑니다. 다른 영역에 케이스가 늘어도 이미 붙은 ID는 흔들리지 않습니다.</p>')
     w('<p>뎁스가 <strong>어디서 실행하나</strong>를 말한다면 <strong>ID 접두는 무엇을 '
@@ -1040,7 +1038,7 @@ def page_tc(d, args, rel):
     w('<p><strong>ID는 조인 키이기도 합니다.</strong> 자동화 함수 이름·추적 매트릭스·이슈 '
       '연결이 전부 이 ID를 참조하므로, ID를 나누고 합치는 판단이 곧 <strong>결과를 어느 '
       '단위로 읽을지</strong>를 정합니다.</p>')
-    w('<div class="callout">그래서 두 수를 함께 적습니다 — <strong>케이스 %d개</strong>는 '
+    w('<div class="callout">그래서 두 수를 함께 적습니다 — <strong>테스트 케이스 %d개</strong>는 '
       '설계 단위이고, <strong>확인 항목 %d개</strong>는 실제로 확인해야 하는 문장의 수입니다. '
       'TC 시트의 <strong>한 행이 확인 항목 하나</strong>이므로 시트 행 수가 곧 뒤엣 '
       '수입니다.</div>' % (len(tcs), shell.check_items(tcs)))
@@ -1278,8 +1276,8 @@ def page_auto(d, args, rel):
         w('<div class="step"><div class="body">%s</div></div>' % body)
     w('</div>')
     w('<div class="meta-row">'
-      '<span class="badge">자동화 <b>%d건</b></span>'
-      '<span class="badge">자동화 대상 케이스 <b>%d건</b></span>'
+      '<span class="badge">자동화 <b>%d개</b></span>'
+      '<span class="badge">자동화한 테스트 케이스 <b>%d개</b></span>'
       '<span class="badge">심은 고장 <b>%d종</b></span>'
       '<span class="badge">빌드 <b>%s</b></span></div></div>'
       % (d["auto"], n_auto_tc, len(faults), esc(d["build"])))

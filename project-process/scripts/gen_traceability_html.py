@@ -120,7 +120,7 @@ def main():
 
     w(shell.head("%s — 추적 매트릭스" % S, css, js))
     w(shell.open_body(S, "trace", rel, "추적 매트릭스",
-                      "골격 v%s · 케이스 %d개" % (tree_version, len(tcs)),
+                      "골격 v%s · 테스트 케이스 %d개" % (tree_version, len(tcs)),
                       out_path=args.output))
 
     w('<div class="doc-header"><h1>%s — 추적 매트릭스</h1>' % esc(S))
@@ -130,8 +130,8 @@ def main():
       '커버리지 수치가 의미를 가지려면 기획에서 나와 실행까지 닿아 있어야 합니다.</p>')
     w('<div class="meta-row">')
     for k, v in (("기능 골격", "v" + tree_version), ("구현 기능 단위", "%d개" % len(leaves)),
-                 ("케이스", "%d개" % len(tcs)),
-                 ("확인 항목", "%d개" % shell.check_items(tcs)),
+                 ("테스트 케이스",
+                  "%d개(확인 항목 %d개)" % (len(tcs), shell.check_items(tcs))),
                  ("자동화", "%d개" % len(auto)), ("이슈", "%d건" % len(issues))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
     w('</div></div>')
@@ -139,10 +139,10 @@ def main():
     linked = sum(1 for t in tcs if tc_leaves[t[0]])
     covered = sum(1 for f in leaf_full if leaf_tcs[f])
     w('<div class="stats">')
-    for num, lbl in (("%d/%d" % (covered, len(leaves)), "케이스가 붙은 기능 단위"),
-                     ("%d/%d" % (linked, len(tcs)), "기능 단위에 닿는 케이스"),
-                     ("%d/%d" % (len(auto), len(tcs)), "자동화된 케이스"),
-                     (len(issue_of), "이슈가 달린 케이스")):
+    for num, lbl in (("%d/%d" % (covered, len(leaves)), "테스트 케이스가 붙은 기능 단위"),
+                     ("%d/%d" % (linked, len(tcs)), "기능 단위에 닿는 테스트 케이스"),
+                     ("%d/%d" % (len(auto), len(tcs)), "자동화된 테스트 케이스"),
+                     (len(issue_of), "이슈가 달린 테스트 케이스")):
         w('<div class="stat"><div class="num">%s</div><div class="lbl">%s</div></div>'
           % (esc(num), esc(lbl)))
     w('</div>')
