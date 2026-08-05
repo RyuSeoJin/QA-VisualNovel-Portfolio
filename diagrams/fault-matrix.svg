@@ -7,8 +7,11 @@
                     확대한 그림 둘 중 하나다(다른 하나는 automation-isolation.svg).
 
   이 파일이 정본이다. 소개 생성기가 이 파일을 읽어 넣으므로 사본을 손으로
-  맞출 일이 없다 — 고친 뒤 그 페이지를 재생성하면 된다.
-      python project-process/scripts/gen_intro_html.py --page auto …
+  맞출 일이 없다 — 고친 뒤 gen_intro_html.py로 「자동화 설계와 결과」 페이지를
+  다시 만들면 된다.
+
+  여기에 옵션 표기를 그대로 적지 않는다. XML 주석에는 연속 하이픈을 쓸 수 없어서,
+  적는 순간 이 파일이 단독으로 열리지 않는다(브라우저가 파싱 오류를 낸다).
 
   변환 없이 그대로 주입되므로 root의 class="sd"와 id(fmt/fmd)는 바꾸지 않는다.
 -->
