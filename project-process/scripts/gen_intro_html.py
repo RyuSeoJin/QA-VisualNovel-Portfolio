@@ -379,7 +379,10 @@ def page_landing(d, args, rel):
           '<span class="foot">%s</span></div>'
           % (rel["root"], esc(paths[key]), esc(title), esc(desc)))
     for title, desc, link in (
-        ("서비스 웹 링크", "검증 대상을 직접 눌러 봅니다", "%ssut/index.html" % P),
+        # 이름은 사이드바와 같은 자리(shell.PROJECT_LABEL)에서 가져옵니다 — 한 대상을
+        # 두 이름으로 부르면 같은 곳으로 가는 길인지 눌러 봐야 압니다
+        ("%s 웹 링크" % shell.PROJECT_LABEL.get(S, S),
+         "검증 대상을 직접 눌러 봅니다", "%ssut/index.html" % P),
         ("TC 시트", "실무 서식 그대로의 엑셀 — 내려받아 엽니다",
          "%s/projects/%s/test-case/%s-tc-v1.0.xlsx" % (BLOB, S, S)),
     ):
@@ -791,8 +794,9 @@ def page_making(d, args, rel):
     w('<p class="doc-lead">출시된 AI 챗·미연시 서비스를 분석하며 <strong>「이런 서비스를 검증하려면 '
       '무엇을 중점적으로 봐야 할까」</strong>를 고민했습니다. 레퍼런스로 삼은 서비스의 공통점이나, '
       '핵심으로 가져올 만한 기능을 골라 AI 캐릭터와 대화하는 서비스 '
-      '<strong>MiyonChat</strong>을 설계해 만들었고, 그 위에서 테스트 케이스를 설계해 '
-      '<strong>자동화 테스트까지 돌려 검증했습니다.</strong></p>')
+      '<strong><a href="%ssut/index.html">MiyonChat</a></strong>을 설계해 만들었고, '
+      '그 위에서 테스트 케이스를 설계해 '
+      '<strong>자동화 테스트까지 돌려 검증했습니다.</strong></p>' % P)
     w('<div class="meta-row">'
       '<span class="badge">조사에서 채택 <b>%d개</b></span>'
       '<span class="badge">직접 세움 <b>%d개</b></span>'
@@ -903,7 +907,8 @@ def page_making(d, args, rel):
         ("<b>design 명세</b> — 기능 골격이 <b>어떤 기능이 들어갈 것인가</b>에 대한 정의라면, "
          "design 명세는 <b>얼마나, 어떤 규칙으로</b> 진행될 것인지 상세 규칙을 설계합니다.", ""),
         ("<b>테스트 환경(SUT) 제작</b> — 기능 골격과 design 명세를 기반으로 검증 대상을 직접 "
-         "만듭니다. <a href=\"%ssut/index.html\">서비스 웹 링크 →</a>" % P, ""),
+         "만듭니다. <a href=\"%ssut/index.html\">%s 웹 링크 →</a>"
+         % (P, shell.PROJECT_LABEL.get(S, S)), ""),
         ("<b>TC 설계</b> — 기능 골격과 design 명세를 기반으로 TC를 설계합니다. TC 설계 규칙은 "
          "%s 페이지를 참고합니다." % doc_link("tc", "TC 설계 규칙"), ""),
         ("<b>자동화</b> — 설계된 TC를 기반으로 SUT가 정상적으로 실행되는지 확인합니다.", ""),

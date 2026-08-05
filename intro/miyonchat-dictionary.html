@@ -2,6 +2,10 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.4 (2026-08-05) 카드 안 아이템(.item-grid/.item)을 더했다. 카드 안에 항목이
+     여럿일 때 <p>로 잇대면 경계가 없어 한 덩어리 텍스트로 읽혔다. 카드를 그대로
+     겹칠 수는 없다 — 바깥이 surface라 안쪽도 surface면 층이 보이지 않는다. 그래서
+     접이식(.fold)이 쓰는 surface-2를 그대로 따라 층만 만들고 모양은 새로 들이지 않는다.
    v2.3 (2026-08-05) 탭(.tabs/.tab-btn/.tab-panel)을 더했다. 한 문서가 성격이 다른
      큰 표를 여럿 담을 때 세로로 잇대면 페이지가 감당이 안 되고, 접이식(.fold)은
      본문 안 곁들임용이라 max-height에 갇힌다. 모양은 필터 버튼(.fbtn)을 그대로
@@ -247,6 +251,15 @@ hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
 .card h3{margin-top:0}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
 .card-grid .card{margin:0}
+
+/* ---------- 6-0. 카드 안 아이템 ---------- */
+/* 카드 안에 항목이 여럿일 때. 바깥이 surface라 안쪽은 surface-2로 층을 만든다 */
+.item-grid{display:grid;gap:8px;margin-top:12px}
+.item{background:var(--surface-2);border:1px solid var(--hair);border-radius:10px;
+  padding:11px 13px}
+.item a{font-weight:600}
+.item .foot{display:block;margin-top:3px}
+.item:hover{border-color:var(--accent)}
 
 /* ---------- 6-1. 접이식 블록 ---------- */
 /* 본문에 곁들이는 참고 자료. 기본은 접힘이라 흐름을 끊지 않는다 */
@@ -628,7 +641,7 @@ tbody tr.row-hide{display:none}
   });
 })();
 </script></head>
-<body><div class="app"><aside class="side"><div class="side-head"><a href="../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../index.html">포트폴리오 홈</a><a class="nav-i" href="../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../intro/miyonchat-tc-sheet.html">TC 시트 구성</a><a class="nav-i" href="../intro/miyonchat-automation.html">자동화 설계와 결과</a><a class="nav-i" href="../intro/miyonchat-report.html">자동화 QA 리포트</a><a class="nav-i" href="../intro/miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i" href="../intro/miyonchat-feature-tree.html">기능 골격</a><a class="nav-i on" href="../intro/miyonchat-dictionary.html">용어집</a><a class="nav-i" href="../projects/qa-lab-miyonchat/sut/index.html" target="_blank" rel="noopener">서비스 웹 링크</a></nav><div class="side-foot">수록 44개</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>용어집</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap">
+<body><div class="app"><aside class="side"><div class="side-head"><a href="../index.html">QA-VisualNovel-Portfolio</a><span class="sub">QA 포트폴리오</span></div><nav class="side-nav"><div class="nav-sec">소개</div><a class="nav-i" href="../index.html">포트폴리오 홈</a><a class="nav-i" href="../intro/main-central-rules.html">중앙 규칙 구조</a><a class="nav-i" href="../intro/main-project-rules.html">프로젝트 규칙 구조</a><a class="nav-i" href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio" target="_blank" rel="noopener">포트폴리오 깃허브 링크<span class="tag">git</span></a><a class="nav-i" href="../projects/qa-lab-miyonchat/sut/index.html" target="_blank" rel="noopener">MiyonChat 웹 링크</a><div class="nav-cat">프로젝트: MiyonChat</div><div class="nav-sec">문서</div><a class="nav-i" href="../intro/miyonchat-overview.html">프로젝트 개요</a><a class="nav-i" href="../intro/miyonchat-tc-design.html">TC 설계 규칙</a><a class="nav-i" href="../intro/miyonchat-tc-sheet.html">TC 시트 구성</a><a class="nav-i" href="../intro/miyonchat-automation.html">자동화 설계와 결과</a><a class="nav-i" href="../intro/miyonchat-report.html">자동화 QA 리포트</a><a class="nav-i" href="../intro/miyonchat-traceability.html">추적 매트릭스</a><a class="nav-i" href="../intro/miyonchat-feature-tree.html">기능 골격</a><a class="nav-i on" href="../intro/miyonchat-dictionary.html">용어집</a></nav><div class="side-foot">수록 44개</div></aside><div class="main"><header class="topbar"><button class="icon-btn side-toggle" aria-label="메뉴 열기">☰</button><div class="crumb">QA-VisualNovel-Portfolio · <b>용어집</b></div><span class="sp"></span><button class="icon-btn" data-theme-toggle>다크</button></header><div class="wrap">
 <header class="doc-header">
 <h1>qa-lab-miyonchat — 이 프로젝트에서만 통하는 말</h1>
 <p class="doc-lead">이 프로젝트의 <strong>고유명사 색인</strong>입니다. 화면 이름·재화 이름·테스트 설비처럼 「qa-lab-miyonchat」을 지우면 뜻이 성립하지 않는 말을 모았습니다. 범용 QA 용어는 중앙 <a href="https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio/blob/main/project-process/qa-dictionary.md">qa-dictionary</a>에 있습니다 — 배치 기준은 「정의 문장에서 프로젝트 이름을 지워도 성립하는가」입니다.</p>
@@ -689,5 +702,5 @@ tbody tr.row-hide{display:none}
 <tr><td>프로젝트 좌표</td><td><b>SPEC 값 · RUN 값</b></td><td>자동화 임계의 두 갈래. SPEC은 명세가 정한 확정값이고 RUN은 실행 설정(반복 횟수 등)이라 서로 섞지 않습니다</td><td><code>automation/tests/thresholds.py</code></td></tr>
 <tr><td>프로젝트 좌표</td><td><b>확인 버전</b></td><td>이슈가 관측된 SUT 빌드. 「발견 기록」이 TC ID와 이 값을 짝으로 들고 있어 그 회차에 발견된 이슈만 시트에 붙습니다</td><td><code>test-case/…-issues.json</code> · <code>rules/tc-sheet-format.md</code></td></tr>
 </tbody></table></div>
-<footer class="doc-footer">qa-lab-miyonchat 용어집 · 정본 qa-lab-miyonchat-dictionary.md · design-guide-master v2.3 스냅샷 · 파생 문서(직접 수정 금지)</footer>
+<footer class="doc-footer">qa-lab-miyonchat 용어집 · 정본 qa-lab-miyonchat-dictionary.md · design-guide-master v2.4 스냅샷 · 파생 문서(직접 수정 금지)</footer>
 </div></div></div><div class="backdrop"></div></body></html>

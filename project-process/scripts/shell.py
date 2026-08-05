@@ -24,9 +24,11 @@ import os
 REPO = "https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio"
 BLOB = REPO + "/blob/main"
 
-#: 검증 대상 자체로 가는 링크 — (키, 라벨, 프로젝트 폴더 기준 경로).
-#: 문서가 아니라 조작해 보는 제품이라 「문서」 묶음 끝에 붙되 새 탭으로 연다
-SUT_LINK = ("sut", "서비스 웹 링크", "sut/index.html")
+#: 검증 대상 자체로 가는 링크 — (키, 라벨 서식, 프로젝트 폴더 기준 경로).
+#: 문서가 아니라 조작해 보는 제품이라 새 탭으로 연다.
+#: 라벨의 {L}에는 프로젝트 표시 이름이 들어간다 — 「소개」로 올리면서 프로젝트 묶음을
+#: 벗어나므로, 어느 서비스인지가 이름 안에 없으면 알 수 없다
+SUT_LINK = ("sut", "{L} 웹 링크", "sut/index.html")
 
 #: 새 탭에서 여는 항목. 기준은 **사이트 밖으로 나가는가**이다 — SUT는 읽는 문서가 아니라
 #: 조작해 보는 제품이고, 내려받기·GitHub은 저장소 밖으로 나간다. 둘 다 읽던 문서를 덮지 않는다
@@ -224,15 +226,18 @@ def sidebar(slug, current, rel, foot="", out_path=None, exists=None):
         ws_title, ws_items = intro_group(current, root, exists=exists, keys=WORKSPACE_INTRO)
         # 저장소 링크는 워크스페이스 전체를 가리키므로 소개 묶음의 끝에 붙는다
         ws_items.append((REPO_LINK[0], REPO_LINK[1], False, REPO_LINK[2], True))
+        # 검증 대상은 이 프로젝트의 것이지만 「소개」 끝에 둡니다(2026-08-05 이동).
+        # 문서 묶음 끝에 두었더니 그 위로 문서가 길게 쌓여 눈에 띄지 않았습니다 —
+        # 처음 온 사람이 가장 먼저 눌러 볼 것이므로 저장소 링크와 나란히 올립니다
+        sut_key, sut_label, sut_path = SUT_LINK
+        ws_items.append((sut_label.format(L=PROJECT_LABEL.get(slug, slug)),
+                         rel + sut_path.format(S=slug), sut_key == current, "", True))
         groups.append((ws_title, ws_items))
         head_href = root + "index.html"
         head_title, head_sub = "QA-VisualNovel-Portfolio", "QA 포트폴리오"
         groups.append(("@프로젝트: %s" % PROJECT_LABEL.get(slug, slug), ()))
         doc_title, doc_items = intro_group(current, root, exists=exists,
                                            keys=PROJECT_INTRO, title="문서")
-        # 검증 대상은 문서가 아니지만 이 프로젝트의 것이므로 문서 묶음 끝에 둔다
-        key, label, path = SUT_LINK
-        doc_items.append((label, rel + path.format(S=slug), key == current, "", True))
         groups.append((doc_title, doc_items))
     # 「내려받기」는 GitHub으로 나가므로 전부 새 탭이다.
     # 비었으면 묶음을 만들지 않습니다 — nav_group은 항목 수와 무관하게 머리말을 찍으므로
