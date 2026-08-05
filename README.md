@@ -47,6 +47,7 @@ TC를 자동으로 작성하기 위해 세 단계를 거칩니다.
 | [프로젝트 개요](intro/miyonchat-overview.html) | 왜 직접 만들었나 · 플로우 구조 설계 · 문서 지도 |
 | [자동화 QA 리포트](intro/miyonchat-report.html) | 검증유형별 집계 · 결함 주입 매트릭스 · SUT 한계와 검증 범위 |
 | [기능 골격](intro/miyonchat-feature-tree.html) | 구현 기능 단위 86개 · 노드마다 검증유형 판정 |
+| [TC 시트](intro/miyonchat-tc-sheet.html) | xlsx를 내려받지 않고 워크북 시트를 화면에서 읽습니다 |
 | [SUT](projects/qa-lab-miyonchat/sut/index.html) | 검증 대상을 직접 실행 — 디버그 콘솔로 상태를 만듭니다 |
 
 **SUT를 직접 만든 이유**는 검증 방법 자체를 증명해야 했기 때문입니다. 남의 서비스로는 결함을
@@ -91,10 +92,10 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 <summary><a href="design-template/"><code>design-template/</code></a> — 문서 서식과 판별 기준</summary>
 
 - [`template-catalog.md`](design-template/template-catalog.md) — 템플릿 목록과 어떤 요청에 어떤 서식을 쓸지 판별하는 단일 소스
-- [`01-feature-tree.html`](design-template/01-feature-tree.html) — 기능 골격 트리·관계도 문서 서식
-- [`02-reverse-analysis.html`](design-template/02-reverse-analysis.html) — 출시 서비스 역분석 문서 서식
-- [`03-spec-analysis.html`](design-template/03-spec-analysis.html) — 기획서 분석 문서 서식
-- `tc-sheet-master.xlsx` — TC 시트 기준 서식. 내부 '명세서' 시트가 작성 규칙의 정본입니다 *(배치 예정)*
+- `NN-{템플릿명}.html` — 문서 종류별 서식(기능 골격 트리·역분석·기획서 분석 등). 다룰 문서가 늘면 이 자리에 더해집니다
+- [`tc-sheet-master.xlsx`](design-template/tc-sheet-master.xlsx) — TC 시트 기준 서식. 내부 '명세서' 시트가 작성 규칙의 정본입니다
+- [`tc-input-master.json`](design-template/tc-input-master.json) — TC 설계 입력의 빈 골격(전 프로젝트 공용). 프로젝트는 이 파일을 복사해 채우고, xlsx는 거기서 생성됩니다
+- [`xlsx-design-guide.md`](design-template/xlsx-design-guide.md) — xlsx 산출물이 **어떻게 보이는가**의 정본. 컬럼·구조 규칙은 `rules/tc-sheet-format.md`가 맡습니다
 
 </details>
 
@@ -103,18 +104,12 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 
 - [`qa-doc-playbook.md`](project-process/qa-doc-playbook.md) — 분석 → 골격 → TC 파이프라인 절차서. 확인 게이트와 체크리스트가 여기 있습니다
 - [`qa-dictionary.md`](project-process/qa-dictionary.md) — 중앙 용어집. 정의를 새로 쓰지 않고 정본 문서를 가리키는 색인입니다
-- [`rules/`](project-process/rules/) — 방법론·운영 규칙 정의
-  - [`depth-and-tn.md`](project-process/rules/depth-and-tn.md) — Depth 계층·TN 번호·우선순위
-  - [`verification-types.md`](project-process/rules/verification-types.md) — 검증유형과 PASS/FAIL 판정 규칙
-  - [`case-expansion.md`](project-process/rules/case-expansion.md) — 노드 하나를 정상·경계·예외·우회로 전개하는 규칙
-  - [`tc-relations.md`](project-process/rules/tc-relations.md) — 케이스 사이의 선행 관계와 실행 순서
-  - [`tc-sheet-format.md`](project-process/rules/tc-sheet-format.md) — TC 시트 컬럼·문체·수식
-  - [`html-report-guide.md`](project-process/rules/html-report-guide.md) — HTML 문서 디자인 규칙
-  - [`qa-git-rules.md`](project-process/rules/qa-git-rules.md) — 커밋·push·브랜치 운영 규칙
-- [`scripts/`](project-process/scripts/) — 정본에서 산출물을 찍어내는 도구
-  - [`parse_feature_tree.py`](project-process/scripts/parse_feature_tree.py) — 기능 골격 정본(md)을 구조 데이터로 변환
-  - [`build_tc_template_xlsx.py`](project-process/scripts/build_tc_template_xlsx.py) — TC 시트 생성
-  - [`norm.py`](project-process/scripts/norm.py) — Test-Step·Expected-Result 문체 정규화
+- [`rules/`](project-process/rules/) — 방법론·운영 규칙의 정의. 주제마다 파일이 갈려 있습니다 — 기능을
+  어디까지 쪼갤지, 무엇을 통과라고 부를지, 기능 하나를 몇 갈래로 펼칠지, 케이스 사이의 선행 관계,
+  TC 시트 서식, HTML 문서 디자인, 문서 문체, 사이트 배치, 남은 작업 운영, SUT·자동화, git 운영
+- [`scripts/`](project-process/scripts/) — 정본에서 산출물을 찍어내는 도구. 골격 정본(md)을 구조 데이터로
+  바꾸고, TC xlsx와 읽는 HTML을 생성하며, 문체를 정규화하고, 커버리지 3축과 결함 주입 매트릭스를
+  대조합니다. **손으로 만드는 산출물을 남기지 않기 위한 층**이라 산출물이 늘면 도구도 함께 늡니다
 
 </details>
 
@@ -125,15 +120,19 @@ TC 엑셀 하나를 만들어 냅니다. 마지막 묶음은 폴더 위치가 �
 
 - `{프로젝트}-dictionary.md` — 프로젝트 용어집 **정본** (고유명사 허용). 읽는 문서는 `intro/`에 있습니다
 - `{프로젝트}-change-log.md` — 문서 변경 이력. 작업 전 항상 먼저 읽는 파일
+- `{프로젝트}-remaining-work.md` — **남은 작업의 정본.** 다음 작업 큐·결정 대기·백로그가 여기 있고, 끝난 항목은 지웁니다(완료 기록은 change-log가 맡습니다)
 - `analysis/` — 조사 전량. 역분석 산출물과 원자료를 버리지 않고 모으는 곳
 - `reference/` — 채택분. analysis에서 쓰기로 고른 것들의 구체 사양만 추린 자료집
-- `spec/` — 확정 결정. TC의 기대값은 여기서만 가져옵니다
-  - `{프로젝트}-feature-tree.md` — **정본.** 손으로 고치는 유일한 파일
-  - `rationale/` — 레퍼런스에 없어 직접 세운 노드와 직접 정한 수치의 근거
+- `spec/` — 확정 결정. TC의 기대값은 여기서만 가져옵니다. **폴더 이름이 곧 참조 규칙입니다**
+  - `{프로젝트}-feature-tree.md` — 평면에 두는 기획 골격 **정본.** 손으로 고치는 유일한 파일
+  - `design/` — 기획 확정 사양. 서비스라면 가져야 할 수치·판정 기준이며, 기획 TC의 기대값은 평면의 트리와 여기에서만 옵니다
+  - `sut-design/` — SUT 전용 사양(세이브 스키마·mock 응답·결함 주입). SUT를 만드는 프로젝트에만 있고, 기획 TC는 여기를 보지 않습니다
+  - `rationale/` — 레퍼런스에 없어 직접 세운 노드와 직접 정한 수치의 근거. 확정안이 아니라 기대값으로 쓰지 않습니다
   - `archive/` — 지나간 상태. 골격 변경 이력(`{프로젝트}-tree-change-log.md`)과 큰 개정 직전의 동결 스냅샷이 함께 있고, 평소에는 열지 않습니다
-- `test-case/` — 산출된 TC 엑셀 (기준 골격 버전 기록 + 이슈 관리 시트 내장)
+- `test-case/` — TC 설계 입력(json 정본)과 산출된 엑셀 (기준 골격 버전 기록 + 이슈 관리 시트 내장)
+- `docs/` — 문서에 싣는 이미지·GIF
 - `sut/` — 테스트 대상. 대상을 직접 만드는 프로젝트에만 둡니다
-- `automation/` — 자동화 스크립트와 리포트. `sut/`가 있는 프로젝트에만 둡니다
+- `automation/` — 자동화. `tests/`에 테스트 코드, `result/`에 실행 결과를 두며 `sut/`가 있는 프로젝트에만 둡니다
 
 </details>
 
