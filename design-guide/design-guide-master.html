@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>design-guide-master — 시각 규칙서 v2.3</title>
+<title>design-guide-master — 시각 규칙서 v2.4</title>
 <!-- ============================================================
   CHANGELOG
+  v2.4 (2026-08-05) 카드 안 아이템(.item)을 실으면서, 밀려 있던 사이드바 카테고리
+    (.nav-cat)·접이식(.fold)도 함께 채웠다. 마스터 갱신과 규칙서 동기화를 한 묶음으로
+    강제하기로 정했으므로(template-catalog.md §Case B) 빚을 여기서 닫는다.
   v2.3 (2026-08-05) 탭(.tabs)을 실었다. 규칙서가 v2.0에 멈춰 있어 CSS v2.1·v2.2에서
     더한 사이드바 카테고리(.nav-cat)·접이식(.fold)이 실리지 않았다 — 버전 표기를
     정본에 맞추고, 빠진 둘은 다음에 채운다.
@@ -49,7 +52,7 @@
 <aside class="side">
   <div class="side-head">
     <a href="design-guide-master.html">design-guide-master</a>
-    <span class="sub">시각 규칙서 v2.3</span>
+    <span class="sub">시각 규칙서 v2.4</span>
   </div>
   <nav class="side-nav">
     <div class="nav-sec">기준</div>
@@ -65,6 +68,7 @@
     <a class="nav-sub" href="#type">타이포</a>
     <a class="nav-sub" href="#stat">스탯 타일</a>
     <a class="nav-sub" href="#card">카드</a>
+    <a class="nav-sub" href="#fold">접이식 블록</a>
     <a class="nav-sub" href="#table">표 · 표 도구</a>
     <a class="nav-sub" href="#chip">칩</a>
     <a class="nav-sub" href="#tabs">탭</a>
@@ -73,7 +77,7 @@
     <a class="nav-sub" href="#steps">파이프라인</a>
     <a class="nav-sub" href="#chart">차트 · 다이어그램</a>
   </nav>
-  <div class="side-foot">CSS 정본 v2.3 · JS 정본 v2.1</div>
+  <div class="side-foot">CSS 정본 v2.4 · JS 정본 v2.1</div>
 </aside>
 
 <div class="main">
@@ -93,8 +97,8 @@
   <code>design-guide-master.js</code>이고, 이 문서는 그 토큰과 컴포넌트가
   실제로 어떻게 보여야 하는지를 눈으로 확인하는 규칙서입니다.</p>
   <div class="meta-row">
-    <span class="badge">규칙서 <b>v2.3</b></span>
-    <span class="badge">CSS 정본 <b>v2.3</b></span>
+    <span class="badge">규칙서 <b>v2.4</b></span>
+    <span class="badge">CSS 정본 <b>v2.4</b></span>
     <span class="badge">JS 정본 <b>v2.1</b></span>
     <span class="badge">기반 <b>rules/html-report-guide.md</b></span>
     <span class="badge">테마 <b>라이트 기본 · 다크 토글</b></span>
@@ -190,6 +194,9 @@
 <p>사이드바는 위쪽에 <b>산출물 사이 이동</b>을, 아래쪽에 <b>지금 문서의 절 목록</b>을 둡니다. 절 목록은 스크롤에 따라
 현재 위치가 표시됩니다. 화면이 980px보다 좁아지면 사이드바는 서랍으로 내려가고 상단 바의 ☰ 버튼으로 엽니다.
 인쇄할 때는 셸과 표 도구가 빠지고 본문만 남습니다.</p>
+<p>문서가 워크스페이스와 프로젝트 양쪽으로 늘면 항목이 한 줄로 섞여 무너집니다. 그래서 묶음(<code>.nav-sec</code>)보다
+한 단 위에 <b>카테고리 머리말</b>(<code>.nav-cat</code>)을 두어 「이 아래는 이 프로젝트의 것」을 가릅니다. 위 그림에서
+「프로젝트」와 「이 문서」가 그 자리입니다. 구분선이 붙어 프로젝트가 몇 개로 늘어도 경계가 유지됩니다.</p>
 
 <h3>셸이 없는 문서의 테마 토글</h3>
 <p>테마 토글은 <b>모든 산출물에 답니다.</b> 셸이 있는 문서는 상단 바 오른쪽에, 셸이 없는 문서(기능 트리·중앙 허브·분석 문서)는
@@ -219,6 +226,30 @@
   <div class="card"><h3>카드 제목</h3><p>정의나 개념 설명에 씁니다. 표면 배경 + 헤어라인 테두리 + 12px 라운드 + 20px 패딩이며, 라이트에서는 옅은 그림자가 붙습니다.</p></div>
   <div class="card"><h3>카드 그리드</h3><p>노드가 많아 다이어그램이 장황해지면 계층 나열은 카드 그리드가 더 잘 읽힙니다.</p></div>
 </div>
+
+<h3>카드 안 아이템</h3>
+<p>카드 안에 항목이 여럿일 때 문단으로 잇대면 경계가 없어 한 덩어리 텍스트로 읽히고, 누를 곳이 제목 글자뿐이라
+무엇이 링크인지 눈에 띄지 않습니다. 그래서 항목마다 <code>.item</code>을 두어 경계를 줍니다.</p>
+<p><b>카드를 그대로 겹치지 않습니다.</b> 바깥 카드가 <code>--surface</code>인데 안쪽도 같은 표면이면 테두리만 남고
+층이 보이지 않기 때문입니다. 접이식(<code>.fold</code>)이 쓰는 <code>--surface-2</code>를 그대로 따라 층만 만들고
+모양은 새로 들이지 않습니다.</p>
+<div class="card"><h3>더 보기</h3>
+  <div class="item-grid">
+    <div class="item"><a href="#card">항목 제목은 링크입니다</a><span class="foot">설명은 foot으로 한 단 낮춰 답니다.</span></div>
+    <div class="item"><b>아직 없는 자리</b> <span class="chip chip-unk">준비 중</span><span class="foot">링크가 없어도 자리는 보입니다.</span></div>
+  </div>
+</div>
+
+<h2 id="fold">접이식 블록</h2>
+<p>본문 흐름을 끊지 않으면서 참고 자료를 곁들일 때 씁니다. 기본은 접힘이라 읽는 사람이 원할 때만 펼치고,
+펼치면 그 자리에서 바로 읽힙니다. 높이가 <code>max-height</code>에 갇히므로 <b>큰 표에는 쓰지 않습니다</b> —
+그쪽은 탭입니다.</p>
+<details class="fold"><summary>기능 골격 요약 보기 — 상위 두 단계</summary>
+<div class="fold-body">
+  <div class="body"><span class="depth-tag">D1</span>앱 진입</div>
+  <div class="body"><span class="depth-tag">D2</span>로그인 · 세션 유지</div>
+</div>
+</details>
 
 <h2 id="table">표 · 표 도구</h2>
 <p>헤더는 <code>--surface-2</code> 배경에 sticky로 두고, 행 구분선은 헤어라인, 얼룩(zebra)은 아주 옅게 넣습니다.
@@ -324,7 +355,7 @@
 </div>
 
 <footer class="doc-footer">
-  design-guide-master 규칙서 v2.3 (CSS 정본 v2.3 · JS 정본 v2.1) · QA-VisualNovel-Portfolio ·
+  design-guide-master 규칙서 v2.4 (CSS 정본 v2.4 · JS 정본 v2.1) · QA-VisualNovel-Portfolio ·
   갱신은 Case B/C 승인 후에만 하고, 기존 토큰 제거는 별도 승인을 받습니다.
 </footer>
 
