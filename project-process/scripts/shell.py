@@ -20,6 +20,7 @@
 import html
 import io
 import os
+import re
 
 REPO = "https://github.com/RyuSeoJin/QA-VisualNovel-Portfolio"
 BLOB = REPO + "/blob/main"
@@ -267,6 +268,40 @@ def open_body(slug, current, rel, crumb_doc, foot="", out_path=None):
 
 def close_body():
     return '</div></div></div><div class="backdrop"></div></body></html>'
+
+
+#: 저장소 밖으로 나가는 링크를 가리는 기준. 사이드바(NEW_TAB)와 같은 기준입니다 —
+#: GitHub으로 나가거나, 읽는 문서가 아니라 조작해 보는 제품(SUT)으로 갑니다
+_A_TAG = re.compile(r"<a\s[^>]*>")
+_HREF = re.compile(r'href="([^"]*)"')
+
+
+def new_tab_out(doc):
+    """저장소 밖으로 나가는 링크에 새 탭 표시를 단다.
+
+    링크마다 손으로 붙이면 새 링크가 생길 때마다 빠집니다. 어느 생성기가 찍었든
+    저장 직전에 한 번에 다는 이유입니다. 이미 표시가 있는 링크(사이드바)는 두 번
+    달지 않습니다.
+    """
+    def mark(m):
+        tag = m.group(0)
+        if "target=" in tag:
+            return tag
+        href = _HREF.search(tag)
+        if not href:
+            return tag
+        url = href.group(1)
+        if url.startswith(REPO) or url.startswith("https://github.com/") \
+                or url.endswith("sut/index.html"):
+            return tag[:-1] + ' target="_blank" rel="noopener">'
+        return tag
+    return _A_TAG.sub(mark, doc)
+
+
+def save(out_path, doc):
+    """산출물을 쓴다 — 나가는 링크에 새 탭 표시를 달고 저장한다."""
+    with io.open(out_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(new_tab_out(doc))
 
 
 def table_tools(table_id, placeholder="검색", buttons=()):

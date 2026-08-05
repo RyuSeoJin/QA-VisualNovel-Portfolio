@@ -214,8 +214,7 @@ def main():
 
     w(shell.close_body())
 
-    with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join(O))
+    shell.save(args.output, "".join(O))
     print("saved %s | 기능 단위 %d(덮임 %d) · TC %d(기능 단위 연결 %d) · 자동화 %d · 이슈 연결 %d"
           % (args.output, len(leaves), covered, len(tcs), linked, len(auto), len(issue_of)))
     return 0

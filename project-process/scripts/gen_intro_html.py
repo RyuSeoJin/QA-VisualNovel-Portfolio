@@ -1450,8 +1450,7 @@ def main():
         shell.topbar("QA-VisualNovel-Portfolio", crumb),
         '<div class="wrap">', body, shell.close_body(),
     ])
-    with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
-        f.write(html_out)
+    shell.save(args.output, html_out)
     print("saved %s | 기능 단위 %d · TC %d · 자동화 %d · 결함 %d종"
           % (args.output, len(d["leaves"]), len(d["tcs"]), d["auto"], len(d["faults"])))
     return 0

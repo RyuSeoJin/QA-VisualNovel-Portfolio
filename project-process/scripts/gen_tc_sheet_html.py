@@ -329,8 +329,7 @@ def main():
       '매트릭스가 담습니다.</div>')
     w(shell.close_body())
 
-    with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join(O))
+    shell.save(args.output, "".join(O))
     print("saved %s | 시트 %d · TC %d · 이슈 %d"
           % (args.output, len(TABS), len(rows), len(issues)))
     return 0

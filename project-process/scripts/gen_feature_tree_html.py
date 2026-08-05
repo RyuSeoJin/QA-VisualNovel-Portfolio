@@ -205,8 +205,7 @@ def main():
 
 {body_close}
 """
-    with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
-        f.write(doc)
+    shell.save(args.output, doc)
     print(f"{len(nodes)} nodes -> {args.output}")
 
 

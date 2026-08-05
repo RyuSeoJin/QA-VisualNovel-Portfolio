@@ -21,7 +21,6 @@
 import argparse
 import datetime
 import html
-import io
 import os
 import re
 import sys
@@ -170,8 +169,7 @@ def main():
       % (esc(slug), esc(slug), esc(css_version(css))))
     w(shell.close_body())
 
-    with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
-        f.write("\n".join(o))
+    shell.save(args.output, "\n".join(o))
     print("saved %s | 묶음 %d · 용어 %d" % (args.output, len(groups), total))
 
 

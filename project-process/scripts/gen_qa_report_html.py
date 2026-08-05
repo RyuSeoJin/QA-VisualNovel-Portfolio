@@ -464,8 +464,7 @@ def main():
     # newline을 고정합니다 — 기본값은 플랫폼 줄바꿈으로 바꿔 써서, 같은 입력인데 OS마다
     # 파일이 달라집니다. CI가 「커밋본이 낡았는가」를 재생성 결과와 비교하므로 그 차이가
     # 곧 거짓 실패가 됩니다
-    with io.open(args.output, "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join(O))
+    shell.save(args.output, "".join(O))
     print("saved %s | TC %d | 자동화 %d | 매트릭스 %s"
           % (args.output, len(tcs), total_auto, "통과" if ok else "어긋남"))
     return 0
