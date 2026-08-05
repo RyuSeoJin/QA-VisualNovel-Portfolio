@@ -145,8 +145,11 @@ def main():
     w('<span class="badge">정본 <b>%s-dictionary.md</b></span>' % esc(slug))
     w('<span class="badge">기준일 <b>%s</b></span>' % datetime.date.today().isoformat())
     w("</div>")
+    # 2026-08-05: 허브를 폐지해 「프로젝트 개요」로 잇는다. 경로는 shell.INTRO에서 읽으므로
+    # 파일명이 바뀌어도 따라온다 — 여기에 손으로 적으면 사이드바만 고쳐지고 이 줄이 남는다
     w('<nav class="toc"><a href="%s/project-process/qa-dictionary.md">중앙 용어집(범용 QA 용어)</a>'
-      '<a href="%sindex.html">프로젝트 허브</a></nav>' % (shell.BLOB, rel))
+      '<a href="%s">프로젝트 개요</a></nav>'
+      % (shell.BLOB, shell.intro_href("making", args.output)))
     w("</header>")
 
     w('<h2 id="terms">용어</h2>')

@@ -159,8 +159,7 @@ CSS 변수로 정의하고 역할로만 참조합니다. 원색 hex를 본문에
   클래스 선택자로만 씁니다.
 
 이 저장소의 적용 사례는 저장소 구조도와 설명 다이어그램입니다. 정본은 루트 `structure.svg`와
-`diagrams/*.svg`이고, 읽어 가는 쪽은 소개 페이지(`gen_intro_html.py`)와 프로젝트 허브
-(`gen_project_hub_html.py`)입니다.
+`diagrams/*.svg`이고, 읽어 가는 쪽은 소개 페이지(`gen_intro_html.py`)입니다.
 
 ---
 

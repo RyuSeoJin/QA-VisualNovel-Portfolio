@@ -179,6 +179,20 @@ def root_rel(out_path):
     return "" if r == "." else r + "/"
 
 
+def intro_path(key):
+    """소개 묶음 한 장의 저장소 루트 기준 경로. 정본은 INTRO 하나다 —
+    본문에서 링크를 손으로 적으면 파일명이 바뀔 때 사이드바만 따라오고 본문은 남는다."""
+    for k, _l, p in INTRO:
+        if k == key:
+            return p
+    raise KeyError(key)
+
+
+def intro_href(key, out_path):
+    """출력 파일에서 소개 페이지 한 장으로 가는 상대 경로."""
+    return root_rel(out_path) + intro_path(key)
+
+
 def sidebar(slug, current, rel, foot="", out_path=None, exists=None):
     """모든 문서가 쓰는 사이드바 — rel = 출력 파일에서 프로젝트 폴더로 가는 상대 경로 접두.
 

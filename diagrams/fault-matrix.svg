@@ -6,9 +6,9 @@
   v1.0 (2026-08-04) 최초 수립. 저장소 구조도(structure.svg)에서 automation/ 안쪽을
                     확대한 그림 둘 중 하나다(다른 하나는 automation-isolation.svg).
 
-  이 파일이 정본이다. 프로젝트 허브 생성기가 이 파일을 읽어 넣으므로 사본을 손으로
-  맞출 일이 없다 — 고친 뒤 허브를 재생성하면 된다.
-      python project-process/scripts/gen_project_hub_html.py …
+  이 파일이 정본이다. 소개 생성기가 이 파일을 읽어 넣으므로 사본을 손으로
+  맞출 일이 없다 — 고친 뒤 그 페이지를 재생성하면 된다.
+      python project-process/scripts/gen_intro_html.py --page auto …
 
   변환 없이 그대로 주입되므로 root의 class="sd"와 id(fmt/fmd)는 바꾸지 않는다.
 -->

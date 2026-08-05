@@ -646,7 +646,7 @@ def page_project(d, args, rel):
     폴더 목록과 참조 규칙은 이 저장소가 실제로 쓰는 구조 그대로이며, 수치는 정본에서 읽습니다.
     """
     S = d["slug"]
-    R, P = rel["root"], rel["project"]
+    R = rel["root"]
     o = []
     w = o.append
 
@@ -677,9 +677,12 @@ def page_project(d, args, rel):
 
     # ── 프로젝트 목록 — 카드 하나가 프로젝트 하나다. 구성과 규칙은 그 프로젝트가
     #    스스로 설명하므로 여기서는 어디로 가면 되는지만 가리킨다
+    #    2026-08-05: 허브를 폐지해 「프로젝트 개요」로 잇는다. 허브가 갖고 있던
+    #    파이프라인·문서 지도가 그리로 옮겨 갔으므로 누르는 사람이 기대하던 내용이 나온다
     w('<h2 id="proj">프로젝트 목록</h2>')
     w('<div class="card">')
-    w('<h3><a href="%sindex.html">%s</a></h3>' % (P, esc(S)))
+    w('<h3><a href="%s%s">%s</a></h3>'
+      % (R, esc(shell.intro_path("making")), esc(S)))
     w('<p>출시 서비스 역분석 → 기능 목록 → 확정 사양 → 검증 대상 제작 → 테스트 케이스 → '
       '자동화 → 고장 주입 → 리포트 → CI까지 한 바퀴를 완주한 프로젝트입니다.</p>')
     w('<p class="foot">기능 %d개 · TC %d건 · 자동화 %d건 · 빌드 %s</p>'
