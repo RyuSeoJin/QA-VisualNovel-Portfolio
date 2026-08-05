@@ -15,7 +15,7 @@ TC 입력 JSON -> TC 시트 xlsx (5시트 자기완결 산출물)
                  문체를 Test-Step '~한다' / Expected-Result '~된다'로 정규화
   Summary        케이스 단위 자동 집계(COUNTIFS). 기준 골격 버전을 C4에 자동 기입
   이슈 관리 시트   결함 기록(JIRA 미사용, 내장 운영). 드롭다운은 '목록' 시트 참조
-  목록           드롭다운 참조 목록의 정본. 숨기지 않고 맨 뒤 배치
+  목록           드롭다운 참조 목록의 정본. 숨기지 않음(탭 순서는 읽는 순서를 따름)
   명세서          구조 규칙의 정본 시트
 
 규칙 정본
@@ -920,17 +920,21 @@ def area_code_rows(area_codes):
     return rows
 
 
-def build_spec_sheet(wb, area_codes=None):
-    ws = wb.create_sheet("명세서")
-    ws.sheet_view.showGridLines = False
+def spec_rows(area_codes=None):
+    """명세서 시트의 내용 — **xlsx와 읽는 HTML이 함께 읽는 한 소스**다.
 
+    CLAUDE.md가 「명세서 시트가 규칙 정본」이라고 정하므로, 읽는 HTML(Test Case 시트
+    페이지)이 이 내용을 다시 적으면 정본이 둘이 되어 한쪽만 낡는다. 그래서 문구는 여기에만
+    두고 xlsx 생성기와 HTML 생성기가 같은 자료를 읽는다. 반환은 (종류, 값...) 튜플의 목록이며
+    종류는 title · note · section · head · row · gap 여섯이다.
+    """
     def H(*vals):
         return ("head",) + vals
 
     def R(*vals):
         return ("row",) + vals
 
-    SPEC = [
+    return [
         ("title", "명세서 — 시트 규칙 정본"),
         ("note", "이 시트가 구조 규칙의 정본입니다. rules/tc-sheet-format.md와 짝으로 교차 "
                  "검증하며, 불일치 발견 시 임의 판단 없이 사용자에게 기준을 확인합니다. "
@@ -1106,14 +1110,19 @@ def build_spec_sheet(wb, area_codes=None):
         ("section", "9. 목록 시트 규칙"),
         H("항목", "규칙"),
         R("지위", "드롭다운 참조의 정본 — 전 시트의 데이터 검증이 이 시트를 참조합니다"),
-        R("노출", "숨기지 않고 맨 뒤 배치 — 값 체계 자체가 전시물입니다"),
+        R("노출", "숨기지 않습니다 — 값 체계 자체가 전시물입니다. 탭 순서는 읽는 순서를 따라 규칙 다음 자리입니다"),
         R("갱신", "항목 추가는 행 추가로. 명칭 변경은 목록만 교체하고 기존 데이터 행은 소급 변경하지 "
                 "않습니다(검증은 신규 입력에만 작동)"),
         R("레이블 동기", "기능 트리 개정 시 레이블 목록을 함께 갱신합니다(정본 수정 체크리스트 연동)"),
     ]
 
+
+def build_spec_sheet(wb, area_codes=None):
+    ws = wb.create_sheet("명세서")
+    ws.sheet_view.showGridLines = False
+
     r = 2
-    for item in SPEC:
+    for item in spec_rows(area_codes):
         kind = item[0]
         if kind == "gap":
             r += 1
