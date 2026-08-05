@@ -207,9 +207,9 @@ def page_landing(d, args, rel):
          "그 구조대로 동작하는 서비스를 직접 만들었습니다. 테스트가 붙잡을 접점과 "
          "고장을 켜는 스위치를 처음부터 심었습니다."),
         ("④", "검증",
-         "테스트 케이스 %d건을 설계해 %d건을 자동화하고, 고장 %d종을 일부러 심어 "
-         "<strong>담당 케이스만 깨지는지</strong> 확인했습니다."
-         % (n_tc, n_auto_tc, len(d["faults"]))),
+         "테스트 케이스 %d개(확인 항목 %d개)를 설계해 %d개를 자동화하고, 고장 %d종을 "
+         "일부러 심어 <strong>담당 케이스만 깨지는지</strong> 확인했습니다."
+         % (n_tc, shell.check_items(d["tcs"]), n_auto_tc, len(d["faults"]))),
     ):
         w('<div class="card"><h3>%s %s</h3><p>%s</p></div>' % (step, esc(title), body))
     w('</div>')
@@ -671,8 +671,9 @@ def page_project(d, args, rel):
       % central_link)
     w('<div class="meta-row"><span class="badge">현재 프로젝트 <b>%d개</b></span>'
       '<span class="badge">기능 <b>%d개</b></span>'
-      '<span class="badge">TC <b>%d건</b></span></div></div>'
-      % (1, len(d["leaves"]), len(d["tcs"])))
+      '<span class="badge">케이스 <b>%d개</b></span>'
+      '<span class="badge">확인 항목 <b>%d개</b></span></div></div>'
+      % (1, len(d["leaves"]), len(d["tcs"]), shell.check_items(d["tcs"])))
 
     # ── 왜 분리하나
     w('<h2 id="why">왜 프로젝트마다 분리하나요?</h2>')
@@ -695,8 +696,9 @@ def page_project(d, args, rel):
       % (R, esc(shell.intro_path("making")), esc(S)))
     w('<p>출시 서비스 역분석 → 기능 목록 → 확정 사양 → 검증 대상 제작 → 테스트 케이스 → '
       '자동화 → 고장 주입 → 리포트 → CI까지 한 바퀴를 완주한 프로젝트입니다.</p>')
-    w('<p class="foot">기능 %d개 · TC %d건 · 자동화 %d건 · 빌드 %s</p>'
-      % (len(d["leaves"]), len(d["tcs"]), d["auto"], esc(d["build"])))
+    w('<p class="foot">기능 %d개 · 케이스 %d개(확인 항목 %d개) · 자동화 %d개 · 빌드 %s</p>'
+      % (len(d["leaves"]), len(d["tcs"]), shell.check_items(d["tcs"]),
+         d["auto"], esc(d["build"])))
 
     w('</div>')
 
@@ -1014,11 +1016,34 @@ def page_tc(d, args, rel):
       '상황)만 체크하면 <strong>결함을 놓칠 가능성이 높습니다.</strong> 그래서 테스트 항목의 기준을 '
       '어떻게 판정할지, 무엇을 확인해야 할지를 정의하였습니다.</p>')
     w('<div class="meta-row">'
-      '<span class="badge">케이스 <b>%d건</b></span>'
+      '<span class="badge">케이스 <b>%d개</b></span>'
+      '<span class="badge">확인 항목 <b>%d개</b></span>'
       '<span class="badge">영역 <b>%d개</b></span>'
-      '<span class="badge">사람이 직접 <b>%d건</b></span>'
+      '<span class="badge">사람이 직접 <b>%d개</b></span>'
       '<span class="badge">규칙 정본 <b>rules/</b></span></div></div>'
-      % (len(tcs), len(areas), n_manual))
+      % (len(tcs), shell.check_items(tcs), len(areas), n_manual))
+
+    # ── 세는 단위 — 시트를 열면 행이 케이스 수보다 많아 보이므로 먼저 답한다
+    w('<h2 id="unit">무엇을 세는가 — 케이스와 확인 항목</h2>')
+    w('<p><strong>세는 단위는 TC ID입니다.</strong> <code>TC-ENT-001</code>처럼 '
+      '<code>TC-{영역코드}-{번호}</code> 형식이고, 번호는 <strong>영역 안에서만</strong> '
+      '올라갑니다. 다른 영역에 케이스가 늘어도 이미 붙은 ID는 흔들리지 않습니다.</p>')
+    w('<p>뎁스가 <strong>어디서 실행하나</strong>를 말한다면 <strong>ID 접두는 무엇을 '
+      '검증하나</strong>를 말합니다. 한 영역의 케이스가 여러 화면에 흩어져도 ID가 다시 '
+      '모읍니다.</p>')
+    w('<p><strong>ID 하나에 확인 항목이 여럿 묶이는 이유는 결과를 읽기 위해서입니다.</strong> '
+      '검증유형과 Total Result가 케이스 단위 값이라, 성격이 다른 확인을 한 ID에 묶으면 '
+      '무엇이 깨졌는지 ID로 읽히지 않습니다. 그래서 넷을 묻고 하나라도 걸리면 ID를 '
+      '나눕니다 — 스텝을 떼어 내도 나머지가 수행되는가, 검증유형이 달라지는가, 앞은 '
+      '정상인데 뒤만 실패한 것을 남겨야 하는가, 앞이 실패하면 뒤는 확인 자체가 '
+      '불가능한가.</p>')
+    w('<p><strong>ID는 조인 키이기도 합니다.</strong> 자동화 함수 이름·추적 매트릭스·이슈 '
+      '연결이 전부 이 ID를 참조하므로, ID를 나누고 합치는 판단이 곧 <strong>결과를 어느 '
+      '단위로 읽을지</strong>를 정합니다.</p>')
+    w('<div class="callout">그래서 두 수를 함께 적습니다 — <strong>케이스 %d개</strong>는 '
+      '설계 단위이고, <strong>확인 항목 %d개</strong>는 실제로 확인해야 하는 문장의 수입니다. '
+      'TC 시트의 <strong>한 행이 확인 항목 하나</strong>이므로 시트 행 수가 곧 뒤엣 '
+      '수입니다.</div>' % (len(tcs), shell.check_items(tcs)))
 
     # ── 네 갈래 전개
     w('<h2 id="expand">테스트 항목의 기준 분류</h2>')

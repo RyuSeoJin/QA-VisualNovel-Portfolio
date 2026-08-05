@@ -11,7 +11,9 @@
 | 뎁스 경계·소속 규칙 | 도달 경로 뎁스에서 어떤 화면이 1-Depth가 되는지(경계 기준 셋 — 합류점·전역·오버레이)와 케이스가 어디 놓이는지(소속 규칙 — 트리거 화면)를 정하는 규칙 | `rules/depth-and-tn.md` §도달 경로 뎁스 |
 | 상태 축 | 게이팅·세션 상태처럼 여러 기능 단위를 가로지르는 횡단 축. 기능 단위의 [상태:] 선언과 TC 상태 열이 맞물려 기능 단위×상태 조합의 커버리지를 요구하고, 같은 값이 상태별 TC 추출 축이 된다 | `rules/depth-and-tn.md` §상태 축 |
 | 기생 상태 | 자기 기능 단위가 없어 트리에 집이 없는 상태. 동작이 갈리는 기능 단위마다 [상태:]로 선언해야 하며, 선언이 그 상태의 유일한 커버리지 요구 지점이다 | `rules/depth-and-tn.md` §상태 축 |
-| TN (테스트 넘버링) | 한 케이스 **안**의 스텝 번호. 마지막 Depth에서 이어지는 동작을 1→2→3으로 눕힌 것. 케이스 사이의 순서가 아니다 | `rules/depth-and-tn.md` |
+| 케이스 (TC) | 세는 단위이자 결과를 읽는 단위. **TC ID 하나가 케이스 하나**이며 `TC-{영역코드}-{번호}` 형식이다. 검증유형과 Total Result가 케이스 단위 값이라, ID를 나누고 합치는 판단이 곧 결과를 어느 단위로 읽을지를 정한다. 쪼개는 기준은 넷(연쇄 여부·검증유형·판정 단위·선행 관계) | `rules/depth-and-tn.md` §케이스를 쪼개는 기준 · `rules/tc-sheet-format.md` §TC ID와 영역코드 |
+| 확인 항목 | 실제로 확인해야 하는 문장 하나. **TC 시트의 한 행이 확인 항목 하나**다. 한 케이스가 확인 항목을 여럿 가지므로 케이스 수보다 크다 — 문서에 두 수를 함께 적는 이유다 | `rules/tc-sheet-format.md` §셀 병합 규칙 |
+| TN (테스트 넘버링) | 한 케이스 **안**의 스텝 번호. 마지막 Depth에서 이어지는 동작을 1→2→3으로 눕힌 것. 케이스 사이의 순서가 아니며, **세어서 보여 주는 수치가 아니다** — 읽기 좋게 흐름을 나눈 것이다 | `rules/depth-and-tn.md` |
 | Pre-Condition | 케이스 실행의 전제 상태(로그인·구독·플랫폼 등). 상태는 Depth로 쪼개지 않고 여기로 흡수한다 | `rules/depth-and-tn.md` |
 | 지원 표기 (O/X/△/?) | 노드별 지원 여부. O 확인 / X 미지원 확인 / △ 부분·조건부 / ? 미확인(실측 필요) | `rules/depth-and-tn.md` |
 | 우선순위 (High/Medium/Low) | 케이스의 속성(스텝 아님). High는 금전·보호·유실·중단·법규 축 | `rules/depth-and-tn.md` |
@@ -27,7 +29,7 @@
 | 실행 단계 | 선행을 루트까지 거슬러 올라간 깊이. 깊을수록 실행 비용이 높다 | `rules/tc-relations.md` |
 | Blocked | 기능은 구현됐으나 확인할 수 없는 상태(선행 Fail·환경 결함·데이터 준비 불가 등). 사유는 실행 중 Comment에 적는다. Fail로 적으면 결함이 과대 계상되므로 Pass율 분모에서 제외하되 개수를 Summary에 별도 노출 | `rules/tc-sheet-format.md` §상태값 4종 |
 | NI (Not Implemented) | 미구현이거나 스펙에 없어 실행 대상이 아닌 상태. Pass율 분모에서 제외 | `rules/tc-sheet-format.md` §상태값 4종 |
-| 한 행 = 한 TN = 한 스텝 | TC 시트의 핵심 배치 규칙. 케이스 단위 값(No·Depth·Priority·실행 주체·TC ID·검증유형)은 행마다 반복, TN·Test-Step·Note는 스텝 범위 병합. **병합 범위는 스텝 하나뿐** | `rules/tc-sheet-format.md` §셀 병합 규칙 |
+| 한 행 = 확인 항목 하나 | TC 시트의 핵심 배치 규칙. 케이스 단위 값(No·Depth·Priority·실행 주체·TC ID·검증유형)은 행마다 반복, TN·Test-Step·Note는 스텝 범위 병합. **병합 범위는 스텝 하나뿐**이며, 스텝 하나가 기대 결과를 여럿 가지면 그만큼 행이 늘어난다 — 그래서 행 수는 스텝 수가 아니라 확인 항목 수다 | `rules/tc-sheet-format.md` §셀 병합 규칙 |
 | Total Result | **그 행의** Result를 Fail 우선으로 요약하는 수식 열. 같은 플랫폼에 단말이 여럿일 때 요약하는 자리이며 병합하지 않는다 | `rules/tc-sheet-format.md` |
 | 명세서 시트 | `tc-sheet-master.xlsx` 안의 서식 규칙 정본 시트. `tc-sheet-format.md`와 교차 검증하는 짝 | `CLAUDE.md` §TC 시트 규칙 |
 | 기능 골격 / feature-tree | 프로젝트 기능을 Depth 계층으로 정규화한 트리. 정본은 `spec/{프로젝트}-feature-tree.md` 하나뿐 | `CLAUDE.md` §정본과 파생 |

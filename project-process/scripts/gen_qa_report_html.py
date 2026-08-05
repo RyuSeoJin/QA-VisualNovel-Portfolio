@@ -210,14 +210,17 @@ def main():
 
     # ── 헤더
     w('<div class="doc-header"><h1>%s — QA 검증 리포트</h1>' % esc(S))
-    w('<p class="doc-lead">테스트 케이스 %d건을 설계하고 그중 %d건을 자동화해 실행한 결과입니다. '
-      '이 문서가 답하려는 것은 둘입니다 — <strong>빠짐없이 봤는가</strong>(커버리지)와 '
-      '<strong>봤을 때 알아채는가</strong>(결함 주입 매트릭스). 통과 건수만으로는 뒤엣것을 '
-      '알 수 없기 때문에 두 축을 따로 둡니다.</p>'
-      % (len(tcs), sum(1 for t in tcs if t[7] != "사람 전용")))
+    w('<p class="doc-lead">테스트 케이스 %d개(확인 항목 %d개)를 설계하고 그중 %d개를 자동화해 '
+      '실행한 결과입니다. 이 문서가 답하려는 것은 둘입니다 — <strong>빠짐없이 봤는가</strong>'
+      '(커버리지)와 <strong>봤을 때 알아채는가</strong>(결함 주입 매트릭스). 통과 건수만으로는 '
+      '뒤엣것을 알 수 없기 때문에 두 축을 따로 둡니다.</p>'
+      % (len(tcs), shell.check_items(tcs),
+         sum(1 for t in tcs if t[7] != "사람 전용")))
     w('<div class="meta-row">')
     for k, v in (("대상", "%s (%s)" % (S, build)), ("기능 골격", "v" + tree_version),
-                 ("TC", "%d건" % len(tcs)), ("자동화", "%d건" % (len(auto) + smoke)),
+                 ("케이스", "%d개" % len(tcs)),
+                 ("확인 항목", "%d개" % shell.check_items(tcs)),
+                 ("자동화", "%d개" % (len(auto) + smoke)),
                  ("이슈", "%d건" % len(issues))):
         w('<span class="badge">%s <b>%s</b></span>' % (esc(k), esc(v)))
     w('</div></div>')
@@ -226,7 +229,7 @@ def main():
     total_auto = len(auto) + smoke
     passed = sum(1 for v in auto.values() if v == "pass") + smoke
     w('<div class="stats">')
-    for num, lbl, ratio in ((len(tcs), "설계한 TC", None),
+    for num, lbl, ratio in ((len(tcs), "설계한 케이스", None),
                             ("%d/%d" % (passed, total_auto), "자동화 통과",
                              (passed, total_auto, "ok")),
                             ("%d/%d" % (len(leaves), len(leaves)), "덮인 기능 단위",
@@ -427,7 +430,7 @@ def main():
 
     # ── 이슈
     w('<h2 id="issue">검출 이슈 — %d건</h2>' % len(issues))
-    w('<p>설계한 TC를 실행하는 과정에서 나온 것입니다. 자동화가 검출한 것은 사람이 화면만 '
+    w('<p>설계한 케이스를 실행하는 과정에서 나온 것입니다. 자동화가 검출한 것은 사람이 화면만 '
       '봐서는 판정할 수 없던 것들입니다 — 만료 상태 복원, 죽은 차단 코드처럼 화면에 드러나지 '
       '않는 결함입니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>No</th><th>요약</th>'

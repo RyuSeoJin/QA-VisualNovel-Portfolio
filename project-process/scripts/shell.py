@@ -270,6 +270,16 @@ def close_body():
     return '</div></div></div><div class="backdrop"></div></body></html>'
 
 
+def check_items(tcs):
+    """확인 항목 수 — 시트의 한 행이 확인 항목 하나입니다.
+
+    케이스(TC ID) 수와 다릅니다. 한 케이스가 확인 항목을 여럿 갖기 때문입니다.
+    두 수를 한 자리에서 세는 이유는, 문서마다 따로 세면 「문서는 153인데 시트는
+    297」처럼 갈라지기 때문입니다(2026-08-05 확정).
+    """
+    return sum(sum(max(1, len(e)) for e in t[5]) for t in tcs)
+
+
 #: 저장소 밖으로 나가는 링크를 가리는 기준. 사이드바(NEW_TAB)와 같은 기준입니다 —
 #: GitHub으로 나가거나, 읽는 문서가 아니라 조작해 보는 제품(SUT)으로 갑니다
 _A_TAG = re.compile(r"<a\s[^>]*>")
