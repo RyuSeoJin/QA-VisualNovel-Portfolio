@@ -251,8 +251,15 @@ python project-process/scripts/run_fault_matrix.py \
 
 ## 백로그
 
-- CLAUDE.md에 `automation/` 하위 구조(`tests`·`report`·`result/history`)와 "정본과 파일 지위"
-  표 반영 (현재 정본은 change-log §확정된 결정)
+- **「정본과 파일 지위」 표를 중앙으로 올릴지 — 두 번째 프로젝트를 시작할 때 판단합니다**
+  (2026-08-05 개정). 원래는 「CLAUDE.md에 반영」이라고 적혀 있었으나 그 뒤에 방향이 둘 갈렸습니다 —
+  ① CLAUDE.md는 **포인터만** 두기로 확정(2026-08-04)했으므로 표 본문이 들어갈 자리가 아니고,
+  ② `rules/site-structure.md`가 「정본이 무엇인지는 **프로젝트마다** change-log의 표가 정한다」로
+  확정했습니다. 표의 내용은 전부 중앙 성격이지만(프로젝트 이름이 안 들어감), 프로젝트가 하나뿐이라
+  복사가 아직 일어나지 않았습니다. **실제로 복사가 필요해지는 시점**에 옮길지 정합니다.
+  옮긴다면 자리는 `rules/` 아래 문서이고 CLAUDE.md는 가리키기만 합니다. 커밋 여부 열은
+  성격상 `qa-git-rules.md` 쪽입니다.
+  (`automation/` 하위 구조는 2026-08-05 CLAUDE.md에 반영 완료)
 - `scripts/gen_test_skeleton.py` — 시간 부족 시 버리는 순서 2번, 수동 작성으로 대체 가능
 - 플레이툰 잔여 실측 소소 2건 — 내 작품 탭·빈 검색 결과 UX (`analysis/…-plaitoon-inventory.md`
   B-3. 홈 칩별 목록 구성은 2026-08-02 실측 완료)

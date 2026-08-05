@@ -11,11 +11,11 @@
 - `project-process/` — 모든 작업이 따르는 절차·규칙. `qa-doc-playbook.md`(파이프라인 절차서), `qa-dictionary.md`(중앙 용어집 색인), `rules/`(방법론·운영 규칙 정의), `scripts/`(xlsx 생성 도구).
 - `design-guide/` — 디자인 일관성의 기준. `design-guide-master.css`(스타일 정본) + `design-guide-master.html`(시각 규칙서).
 - `design-template/` — 문서 포맷 템플릿(성장 영역). `template-catalog.md`(템플릿 목록+판별 기준의 단일 소스), `NN-{템플릿명}.html`, `tc-sheet-master.xlsx`(TC 시트 기준 서식 — '명세서' 시트가 규칙 정본).
-- `intro/` — 저장소를 처음 접하는 사람이 읽는 소개 층. 특정 프로젝트 소유가 아닌 서사(중앙 규칙·프로젝트 규칙·제작 과정·TC 설계·자동화)를 담으며, 루트 `index.html`이 그 진입점입니다. 전부 `scripts/gen_intro_html.py`가 만드는 파생물입니다.
+- `intro/` — 저장소를 처음 접하는 사람이 읽는 소개 층. 워크스페이스 서사(중앙 규칙·프로젝트 규칙 구조)와 프로젝트 문서·읽는 산출물이 **함께 삽니다.** 루트 `index.html`이 그 진입점이고, 둘은 파일명 접두로 가릅니다 — 워크스페이스는 `main-`, 프로젝트는 `{프로젝트}-`. 전부 생성기가 만드는 파생물이며, 무엇을 어느 생성기가 만드는지의 정본은 `rules/site-structure.md`입니다.
 
 **프로젝트 규칙**
 
-- `projects/{프로젝트}/` — 프로젝트별 산출물. 허브(`{프로젝트}-index.html`)·용어집(`{프로젝트}-dictionary.html`)·이력(`{프로젝트}-change-log.md`) + `analysis/`(조사 전량)·`reference/`(채택분)·`spec/`(확정 결정 — 정본이 사는 곳. 평면에는 기획 골격 트리 정본만 두고, 기획 확정 사양은 `design/`, SUT 전용 사양은 `sut-design/`, 판단 기록은 `rationale/`, 지나간 것은 `archive/`로 갈라 둡니다)·`test-case/`(기획 기반 TC — SUT 없이도 성립). 테스트 대상을 직접 만드는 프로젝트는 `spec/sut-design/`·`sut/`(테스트 대상)·`automation/`(자동화 스크립트·리포트)을 더합니다 — 기획 레이어(트리·design·test-case)는 SUT 유무와 무관하게 모든 프로젝트 공통입니다.
+- `projects/{프로젝트}/` — 프로젝트별 산출물. 이력(`{프로젝트}-change-log.md`)·남은 작업(`{프로젝트}-remaining-work.md`)·용어집 정본(`{프로젝트}-dictionary.md`) + `analysis/`(조사 전량)·`reference/`(채택분)·`spec/`(확정 결정 — 정본이 사는 곳. 평면에는 기획 골격 트리 정본만 두고, 기획 확정 사양은 `design/`, SUT 전용 사양은 `sut-design/`, 판단 기록은 `rationale/`, 지나간 것은 `archive/`로 갈라 둡니다)·`test-case/`(기획 기반 TC — SUT 없이도 성립). 테스트 대상을 직접 만드는 프로젝트는 `spec/sut-design/`·`sut/`(테스트 대상)·`automation/`(자동화 — `tests/`에 테스트 코드, `result/`에 실행 결과, 담당 기대표는 평면)을 더합니다 — 기획 레이어(트리·design·test-case)는 SUT 유무와 무관하게 모든 프로젝트 공통입니다. 읽는 HTML 산출물은 프로젝트 폴더가 아니라 `intro/`에 놓입니다(→ `rules/site-structure.md` §문서의 층).
 
 ## 수정 범위 규칙 (필수)
 
@@ -90,8 +90,8 @@
 
 역분석 대상 자료(스크린샷·원문 텍스트·상표)는 **처음 다루는 작업 시점부터** 저작권 점검 체크리스트(`qa-doc-playbook.md` 참조)를 적용합니다. 이 저장소는 public이므로 push 전 점검은 `qa-git-rules.md` §5를 따릅니다.
 
-## 진입 층과 허브 (필수)
+## 진입 층 (필수)
 
-루트 `index.html`(포트폴리오 랜딩)·`intro/`(소개)·프로젝트 허브는 **전부 생성기가 만드는 파생물**이라 직접 고치지 않습니다. 문서 목록도 손으로 갱신하지 않습니다 — 생성기가 폴더를 훑어 실재하는 파일에서 제목을 읽으므로, 새 문서는 **규칙대로 된 자리에 두기만** 하면 목록에 나타납니다.
+루트 `index.html`(포트폴리오 랜딩)과 `intro/`(소개·읽는 산출물)는 **전부 생성기가 만드는 파생물**이라 직접 고치지 않습니다. 문서 목록도 손으로 갱신하지 않습니다 — 생성기가 폴더를 훑어 실재하는 파일에서 제목을 읽으므로, 새 문서는 **규칙대로 된 자리에 두기만** 하면 목록에 나타납니다.
 
 배치 규칙(문서의 층·셸·사이드바 항목의 정본·용어집 배치)의 정본은 `rules/site-structure.md`입니다.
