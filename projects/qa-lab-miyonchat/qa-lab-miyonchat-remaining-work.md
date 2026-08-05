@@ -261,8 +261,6 @@ python project-process/scripts/run_fault_matrix.py \
   성격상 `qa-git-rules.md` 쪽입니다.
   (`automation/` 하위 구조는 2026-08-05 CLAUDE.md에 반영 완료)
 - `scripts/gen_test_skeleton.py` — 시간 부족 시 버리는 순서 2번, 수동 작성으로 대체 가능
-- 플레이툰 잔여 실측 소소 2건 — 내 작품 탭·빈 검색 결과 UX (`analysis/…-plaitoon-inventory.md`
-  B-3. 홈 칩별 목록 구성은 2026-08-02 실측 완료)
 - MY 프로필 편집 — 2026-08-02 미편입 확정, 추후 편입 가능성 있음(사용자 의향). 편입 시 트리
   개정 필요
 - **리그레션 TC 세트** — 결함에서 출발하는 케이스는 기능 TC와 섞지 않고 별도 세트로 만들어
