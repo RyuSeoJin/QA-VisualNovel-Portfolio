@@ -2,6 +2,10 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.4 (2026-08-05) 카드 안 아이템(.item-grid/.item)을 더했다. 카드 안에 항목이
+     여럿일 때 <p>로 잇대면 경계가 없어 한 덩어리 텍스트로 읽혔다. 카드를 그대로
+     겹칠 수는 없다 — 바깥이 surface라 안쪽도 surface면 층이 보이지 않는다. 그래서
+     접이식(.fold)이 쓰는 surface-2를 그대로 따라 층만 만들고 모양은 새로 들이지 않는다.
    v2.3 (2026-08-05) 탭(.tabs/.tab-btn/.tab-panel)을 더했다. 한 문서가 성격이 다른
      큰 표를 여럿 담을 때 세로로 잇대면 페이지가 감당이 안 되고, 접이식(.fold)은
      본문 안 곁들임용이라 max-height에 갇힌다. 모양은 필터 버튼(.fbtn)을 그대로
@@ -247,6 +251,15 @@ hr{border:none;border-top:1px solid var(--grid);margin:32px 0}
 .card h3{margin-top:0}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
 .card-grid .card{margin:0}
+
+/* ---------- 6-0. 카드 안 아이템 ---------- */
+/* 카드 안에 항목이 여럿일 때. 바깥이 surface라 안쪽은 surface-2로 층을 만든다 */
+.item-grid{display:grid;gap:8px;margin-top:12px}
+.item{background:var(--surface-2);border:1px solid var(--hair);border-radius:10px;
+  padding:11px 13px}
+.item a{font-weight:600}
+.item .foot{display:block;margin-top:3px}
+.item:hover{border-color:var(--accent)}
 
 /* ---------- 6-1. 접이식 블록 ---------- */
 /* 본문에 곁들이는 참고 자료. 기본은 접힘이라 흐름을 끊지 않는다 */

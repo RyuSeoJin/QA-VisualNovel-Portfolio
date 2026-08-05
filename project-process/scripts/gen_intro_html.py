@@ -342,7 +342,7 @@ def page_landing(d, args, rel):
     w('<h2 id="more">더 보기</h2>')
     w('<div class="card-grid">')
 
-    w('<div class="card"><h3>더 자세히</h3>')
+    w('<div class="card"><h3>더 자세히</h3><div class="item-grid">')
     for key, title, desc in (
         ("central", "중앙 규칙 — 모든 프로젝트가 따르는 것",
          "절차서·규칙 문서·형식 기준을 프로젝트 밖에 두고, 프로젝트가 늘어도 같은 방식으로 "
@@ -362,10 +362,11 @@ def page_landing(d, args, rel):
         exists = os.path.exists(os.path.join(args.repo_root, path))
         link = ('<a href="%s%s">%s</a>' % (rel["root"], esc(path), esc(title))
                 if exists else '<b>%s</b> <span class="chip chip-unk">준비 중</span>' % esc(title))
-        w('<p>%s<br><span class="foot">%s</span></p>' % (link, esc(desc)))
-    w('</div>')
+        w('<div class="item">%s<span class="foot">%s</span></div>'
+          % (link, esc(desc)))
+    w('</div></div>')
 
-    w('<div class="card"><h3>산출물 바로 가기</h3>')
+    w('<div class="card"><h3>산출물 바로 가기</h3><div class="item-grid">')
     paths = dict((k, p) for k, _l, p in shell.INTRO)
     for key, title, desc in (
         ("report", "자동화 QA 리포트", "무엇을 얼마나 통과했고, 무엇을 못 봤는지"),
@@ -374,16 +375,18 @@ def page_landing(d, args, rel):
         ("tree", "기능 목록", "검증 대상 %d개와 각각의 판정 방식" % n_leaf),
         ("dict", "용어집", "이 프로젝트에서만 통하는 말"),
     ):
-        w('<p><a href="%s%s">%s</a><br><span class="foot">%s</span></p>'
+        w('<div class="item"><a href="%s%s">%s</a>'
+          '<span class="foot">%s</span></div>'
           % (rel["root"], esc(paths[key]), esc(title), esc(desc)))
     for title, desc, link in (
         ("서비스 웹 링크", "검증 대상을 직접 눌러 봅니다", "%ssut/index.html" % P),
         ("TC 시트", "실무 서식 그대로의 엑셀 — 내려받아 엽니다",
          "%s/projects/%s/test-case/%s-tc-v1.0.xlsx" % (BLOB, S, S)),
     ):
-        w('<p><a href="%s">%s</a><br><span class="foot">%s</span></p>'
+        w('<div class="item"><a href="%s">%s</a>'
+          '<span class="foot">%s</span></div>'
           % (esc(link), esc(title), esc(desc)))
-    w('</div>')
+    w('</div></div>')
 
     w('</div>')
 
