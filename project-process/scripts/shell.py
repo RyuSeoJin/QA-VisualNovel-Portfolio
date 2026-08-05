@@ -45,7 +45,7 @@ REPO_LINK = ("포트폴리오 깃허브 링크", REPO, "git")
 #: 사이드바에서 워크스페이스 이야기와 프로젝트 이야기를 가르는 기준.
 #: 앞은 프로젝트가 늘어도 그대로이고, 뒤는 프로젝트마다 한 벌씩 생긴다
 WORKSPACE_INTRO = ("landing", "central", "project")
-PROJECT_INTRO = ("making", "tc", "auto", "report", "trace", "tree", "dict")
+PROJECT_INTRO = ("making", "tc", "tcsheet", "auto", "report", "trace", "tree", "dict")
 
 #: 프로젝트 카테고리에 표시할 이름. 없으면 slug를 그대로 쓴다
 PROJECT_LABEL = {"qa-lab-miyonchat": "MiyonChat"}
@@ -64,6 +64,7 @@ INTRO = (
     ("project", "프로젝트 규칙 구조", "intro/main-project-rules.html"),
     ("making", "프로젝트 개요", "intro/miyonchat-overview.html"),
     ("tc", "TC 설계 규칙", "intro/miyonchat-tc-design.html"),
+    ("tcsheet", "TC 시트 구성", "intro/miyonchat-tc-sheet.html"),
     ("auto", "자동화 설계와 결과", "intro/miyonchat-automation.html"),
     ("report", "자동화 QA 리포트", "intro/miyonchat-report.html"),
     ("trace", "추적 매트릭스", "intro/miyonchat-traceability.html"),

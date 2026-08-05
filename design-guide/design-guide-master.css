@@ -2,6 +2,10 @@
    design-guide-master.css — QA-VisualNovel-Portfolio 스타일 정본
    ------------------------------------------------------------
    CHANGELOG
+   v2.3 (2026-08-05) 탭(.tabs/.tab-btn/.tab-panel)을 더했다. 한 문서가 성격이 다른
+     큰 표를 여럿 담을 때 세로로 잇대면 페이지가 감당이 안 되고, 접이식(.fold)은
+     본문 안 곁들임용이라 max-height에 갇힌다. 모양은 필터 버튼(.fbtn)을 그대로
+     따라 새 디자인 언어를 들이지 않는다 — 더한 것은 「누르면 화면이 갈린다」뿐이다.
    v2.2 (2026-08-05) 접이식 블록(.fold)을 더했다. 본문 흐름을 끊지 않으면서
      참고 자료(기능 골격 요약 등)를 곁들일 자리가 없었다. 기본은 접힘이고,
      펼치면 그 자리에서 바로 읽힌다.
@@ -303,6 +307,19 @@ tbody tr.row-hide{display:none}
   color:var(--ink-2);padding:5px 14px;font-size:13px;cursor:pointer;font-family:inherit}
 .fbtn:hover{border-color:var(--accent)}
 .fbtn.on{background:var(--accent-dim);border-color:var(--accent-dim);color:var(--on-accent)}
+
+/* ---------- 9-1. 탭 ----------
+   성격이 다른 큰 표 여럿을 한 문서에 담을 때 씁니다. 세로로 잇대면 페이지가 감당이
+   안 되고, .fold는 곁들임용이라 max-height에 갇힙니다. 스크립트가 꺼져 있어도 첫
+   패널은 보입니다 — .tab-panel의 기본이 보임이고 감추는 쪽을 JS가 붙입니다. */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px;
+  border-bottom:1px solid var(--hair);padding-bottom:12px}
+.tab-btn{background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  color:var(--ink-2);padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit}
+.tab-btn:hover{border-color:var(--accent)}
+.tab-btn.on{background:var(--accent-dim);border-color:var(--accent-dim);color:var(--on-accent)}
+.tab-btn .n{opacity:.7;margin-left:6px;font-size:12px}
+.tab-panel[hidden]{display:none}
 
 /* ---------- 10. 콜아웃 ---------- */
 .callout{border-left:3px solid var(--accent);background:var(--surface);

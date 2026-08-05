@@ -1,5 +1,5 @@
 /* ============================================================
-   design-guide-master.js — 셸 동작 정본 (v2.0 · 2026-08-04)
+   design-guide-master.js — 셸 동작 정본 (v2.1 · 2026-08-05)
    ------------------------------------------------------------
    테마 토글 · 사이드바 서랍 · 표 도구(검색·필터·정렬)를 담습니다.
    CSS와 같은 방식으로 다룹니다 — 규칙서는 <script src>로 참조하고,
@@ -20,6 +20,12 @@
                         data-col은 그 열의 글자를, data-attr은 행의 data-* 값을
                         봅니다. 화면에 안 적힌 기준으로 거를 때 뒤엣것을 씁니다
    · 정렬               <th class="sortable">   (숫자 열은 class="num sortable")
+   · 탭                 <div class="tabs" data-tabs="묶음이름">
+                          <button class="tab-btn" data-panel="패널id">라벨</button>
+                        </div>
+                        <div class="tab-panel" id="패널id"> … </div>
+                        스크립트가 꺼져 있어도 **첫 패널은 보입니다** — 감추는 쪽을
+                        JS가 붙이므로 자바스크립트 없이도 문서가 죽지 않습니다
    ============================================================ */
 (function () {
   var KEY = 'qavn-theme';
@@ -186,10 +192,40 @@
     refresh();
   }
 
+  /* 탭 — 칩 하나가 패널 하나를 켠다. 감추는 일을 JS가 맡으므로 스크립트가
+     꺼져 있으면 패널이 전부 보인다(문서가 죽지 않는다). */
+  function initTabs(box) {
+    var btns = [].slice.call(box.querySelectorAll('.tab-btn'));
+    if (!btns.length) { return; }
+    var panels = btns.map(function (b) {
+      return document.getElementById(b.getAttribute('data-panel'));
+    });
+    function show(i) {
+      btns.forEach(function (b, j) {
+        var on = i === j;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+        if (panels[j]) { panels[j].hidden = !on; }
+      });
+    }
+    btns.forEach(function (b, i) {
+      b.setAttribute('role', 'tab');
+      b.addEventListener('click', function () { show(i); });
+    });
+    box.setAttribute('role', 'tablist');
+    // 처음 칠 자리는 .on이 붙은 칩, 없으면 첫째
+    var start = 0;
+    for (var k = 0; k < btns.length; k++) {
+      if (btns[k].classList.contains('on')) { start = k; break; }
+    }
+    show(start);
+  }
+
   ready(function () {
     initTheme();
     initDrawer();
     initScrollSpy();
     each('.tbl-tools[data-table]', initTable);
+    each('.tabs[data-tabs]', initTabs);
   });
 })();

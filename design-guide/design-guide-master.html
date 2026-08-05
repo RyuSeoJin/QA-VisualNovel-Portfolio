@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>design-guide-master — 시각 규칙서 v2.0</title>
+<title>design-guide-master — 시각 규칙서 v2.3</title>
 <!-- ============================================================
   CHANGELOG
+  v2.3 (2026-08-05) 탭(.tabs)을 실었다. 규칙서가 v2.0에 멈춰 있어 CSS v2.1·v2.2에서
+    더한 사이드바 카테고리(.nav-cat)·접이식(.fold)이 실리지 않았다 — 버전 표기를
+    정본에 맞추고, 빠진 둘은 다음에 채운다.
   v2.0 (2026-08-04) 라이트 기본 + 다크 토글로 전환하고, 대시보드 셸
     (사이드바·상단 바)·표 도구·스탯 타일 막대를 규칙서에 등재했다.
     이 규칙서 자체가 셸을 입어 실물로 보인다.
@@ -46,7 +49,7 @@
 <aside class="side">
   <div class="side-head">
     <a href="design-guide-master.html">design-guide-master</a>
-    <span class="sub">시각 규칙서 v2.0</span>
+    <span class="sub">시각 규칙서 v2.3</span>
   </div>
   <nav class="side-nav">
     <div class="nav-sec">기준</div>
@@ -64,12 +67,13 @@
     <a class="nav-sub" href="#card">카드</a>
     <a class="nav-sub" href="#table">표 · 표 도구</a>
     <a class="nav-sub" href="#chip">칩</a>
+    <a class="nav-sub" href="#tabs">탭</a>
     <a class="nav-sub" href="#callout">콜아웃</a>
     <a class="nav-sub" href="#tree">기능 트리</a>
     <a class="nav-sub" href="#steps">파이프라인</a>
     <a class="nav-sub" href="#chart">차트 · 다이어그램</a>
   </nav>
-  <div class="side-foot">CSS 정본 v2.0 · JS 정본 v2.0</div>
+  <div class="side-foot">CSS 정본 v2.3 · JS 정본 v2.1</div>
 </aside>
 
 <div class="main">
@@ -89,9 +93,9 @@
   <code>design-guide-master.js</code>이고, 이 문서는 그 토큰과 컴포넌트가
   실제로 어떻게 보여야 하는지를 눈으로 확인하는 규칙서입니다.</p>
   <div class="meta-row">
-    <span class="badge">규칙서 <b>v2.0</b></span>
-    <span class="badge">CSS 정본 <b>v2.0</b></span>
-    <span class="badge">JS 정본 <b>v2.0</b></span>
+    <span class="badge">규칙서 <b>v2.3</b></span>
+    <span class="badge">CSS 정본 <b>v2.3</b></span>
+    <span class="badge">JS 정본 <b>v2.1</b></span>
     <span class="badge">기반 <b>rules/html-report-guide.md</b></span>
     <span class="badge">테마 <b>라이트 기본 · 다크 토글</b></span>
   </div>
@@ -270,6 +274,20 @@
   <button class="fbtn">금칙</button>
 </div>
 
+<h2 id="tabs">탭</h2>
+<p>한 문서가 <strong>성격이 다른 큰 표를 여럿</strong> 담을 때 씁니다. 세로로 잇대면 페이지가 감당이 안 되고,
+접이식(<code>.fold</code>)은 본문 안 곁들임용이라 높이에 갇힙니다. 모양은 필터 버튼(<code>.fbtn</code>)을 그대로
+따라 새 디자인 언어를 들이지 않았고, 더한 것은 <strong>「누르면 화면이 갈린다」</strong>뿐입니다.</p>
+<div class="tabs" data-tabs="demo">
+  <button class="tab-btn on" data-panel="demo-1">첫 칩</button>
+  <button class="tab-btn" data-panel="demo-2">둘째 칩</button>
+</div>
+<div class="tab-panel" id="demo-1"><p>첫 패널입니다. 처음 칠 자리는 <code>.on</code>이 붙은 칩이고, 없으면 첫째입니다.</p></div>
+<div class="tab-panel" id="demo-2"><p>둘째 패널입니다.</p></div>
+<div class="callout"><strong>스크립트가 꺼져 있어도 문서가 죽지 않습니다.</strong> 감추는 일을 JS가 맡으므로,
+자바스크립트가 없으면 패널이 전부 보일 뿐입니다. 적용 사례는 「Test Case 시트」이며 워크북의 다섯 시트를
+탭 순서 그대로 담습니다.</div>
+
 <h2 id="callout">콜아웃</h2>
 <div class="callout">기본 콜아웃 — 방법론의 전제나 읽는 법 안내.</div>
 <div class="callout warn">주의 콜아웃 — 실측 필요, 상충 자료 등에 씁니다. 남발하면 주의 표시가 무뎌지므로 아껴 씁니다.</div>
@@ -306,7 +324,7 @@
 </div>
 
 <footer class="doc-footer">
-  design-guide-master 규칙서 v2.0 (CSS 정본 v2.0 · JS 정본 v2.0) · QA-VisualNovel-Portfolio ·
+  design-guide-master 규칙서 v2.3 (CSS 정본 v2.3 · JS 정본 v2.1) · QA-VisualNovel-Portfolio ·
   갱신은 Case B/C 승인 후에만 하고, 기존 토큰 제거는 별도 승인을 받습니다.
 </footer>
 
