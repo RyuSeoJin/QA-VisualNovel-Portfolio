@@ -878,6 +878,18 @@ def main():
     # ══ 명세서 ═══════════════════════════════════════════════
     build_spec_sheet(wb, CFG.get("area_codes"))
 
+    # ══ 시트 순서 ════════════════════════════════════════════
+    # 만드는 순서와 보이는 순서를 가릅니다. 만들 때는 Test Case가 먼저여야 하고
+    # (Summary의 COUNTIFS가 그 열을 가리킵니다), 보일 때는 「이 시트가 무엇인가」부터
+    # 읽히는 편이 낫습니다 — 명세서(규칙) → 목록(값) → Summary(집계) → Test Case(본문)
+    # → 이슈 관리 시트(결함). 2026-08-05 사용자 확정.
+    # 수식은 위치가 아니라 **시트 이름**으로 참조하므로 순서를 바꿔도 집계·드롭다운은
+    # 그대로 삽니다.
+    wb._sheets = [wb[n] for n in
+                  ("명세서", "목록", "Summary", "Test Case", "이슈 관리 시트")]
+    # 다만 **열었을 때는 본문이 뜨게** 합니다. 읽는 순서와 작업 동선은 다릅니다
+    wb.active = wb.index(wb["Test Case"])
+
     wb.save(args.output)
     print(f"saved {args.output} | TC {len(TCS)} | rows {last_row - 10} | "
           f"platforms {PLATFORMS} | tree {TREE_VERSION}")
@@ -925,14 +937,16 @@ def build_spec_sheet(wb, area_codes=None):
                  "서식(색·테두리·폰트)의 정본은 design-template/xlsx-design-guide.md입니다."),
         ("gap",),
         ("section", "1. 시트 구성"),
+        ("note", "탭 순서가 곧 읽는 순서입니다 — 규칙과 값을 먼저 보이고, 집계를 지나 본문으로 "
+                 "갑니다. 다만 파일을 열면 작업 자리인 Test Case가 선택된 채로 뜹니다."),
         H("시트", "역할"),
-        R("Test Case", "TC 작성과 실행 기록. 노란 셀은 실행 단계에서 채워집니다"),
+        R("명세서", "이 시트 — 구조 규칙의 정본"),
+        R("목록", "드롭다운 참조 목록의 정본. 값 체계를 색까지 함께 보여 줍니다"),
         R("Summary", "행 단위 자동 집계(1-Depth 기준). 기준 골격 버전(C4)은 생성 시 자동 기입됩니다"),
+        R("Test Case", "TC 작성과 실행 기록. 노란 셀은 실행 단계에서 채워집니다"),
         R("이슈 관리 시트", "결함 기록(내장 운영, JIRA 미사용) — JIRA 이슈 등록·관리 방식을 "
                        "시트로 표현. Issue No.로 Test Case와 연결합니다. 정본은 별도 파일 "
                        "test-case/{프로젝트}-issues.json이며 이 시트는 그 파생입니다"),
-        R("목록", "드롭다운 참조 목록의 정본. 숨기지 않고 맨 뒤에 둡니다"),
-        R("명세서", "이 시트 — 구조 규칙의 정본"),
         ("gap",),
         ("section", "2. 컬럼 정의 (Test Case)"),
         H("컬럼", "내용", "채우는 규칙"),
