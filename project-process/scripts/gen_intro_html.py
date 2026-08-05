@@ -338,57 +338,61 @@ def page_landing(d, args, rel):
              ('%s에서 수정' % esc(fix)) if fix else esc(iss.get("resolution", ""))))
     w('</tbody></table></div>')
 
-    # ── ⑤ 더 보기 — 읽을 것과 열어 볼 것을 한 절에 좌우로 둔다
-    w('<h2 id="more">더 보기</h2>')
+    # ── ⑤ 문서 요약 — 저장소가 어떻게 생겼는가와 이 프로젝트가 무엇을 냈는가를
+    # 좌우로 가른다. 사이드바의 두 묶음(소개 · 문서)과 같은 갈래이고 이름도 같게 쓴다
+    w('<h2 id="more">문서 요약</h2>')
     w('<div class="card-grid">')
+    paths = dict((k, p) for k, _l, p in shell.INTRO)
 
-    w('<div class="card"><h3>더 자세히</h3><div class="item-grid">')
+    w('<div class="card"><h3>깃허브 폴더 구조</h3><div class="item-grid">')
     for key, title, desc in (
-        ("central", "중앙 규칙 — 모든 프로젝트가 따르는 것",
+        ("central", "중앙 규칙",
          "절차서·규칙 문서·형식 기준을 프로젝트 밖에 두고, 프로젝트가 늘어도 같은 방식으로 "
          "일하게 했습니다."),
-        ("project", "프로젝트 규칙 — 프로젝트마다 따로 쌓이는 규칙",
+        ("project", "프로젝트 규칙",
          "한 프로젝트의 결정이 다른 프로젝트로 새지 않도록, 프로젝트 폴더와 중앙 규칙만 "
          "보게 했습니다."),
-        ("making", "MiyonChat 프로젝트 개요",
-         "왜 검증 대상을 직접 만들었고, 레퍼런스 조사에서 어떤 기능을 왜 넣고 뺐는지를 "
-         "따라갑니다."),
-        ("tc", "테스트 케이스 설계 규칙",
-         "케이스를 어떻게 펼쳤고, 시트가 왜 그 서식이며, 무엇을 근거로 「다 봤다」고 하는지."),
-        ("auto", "자동화 설계와 결과",
-         "테스트가 붙잡을 접점을 어떻게 심었고, 고장을 심어 무엇을 확인했는지."),
     ):
-        path = dict((k, p) for k, _l, p in shell.INTRO)[key]
-        exists = os.path.exists(os.path.join(args.repo_root, path))
-        link = ('<a href="%s%s">%s</a>' % (rel["root"], esc(path), esc(title))
+        exists = os.path.exists(os.path.join(args.repo_root, paths[key]))
+        link = ('<a href="%s%s">%s</a>' % (rel["root"], esc(paths[key]), esc(title))
                 if exists else '<b>%s</b> <span class="chip chip-unk">준비 중</span>' % esc(title))
-        w('<div class="item">%s<span class="foot">%s</span></div>'
-          % (link, esc(desc)))
-    w('</div></div>')
-
-    w('<div class="card"><h3>산출물 바로 가기</h3><div class="item-grid">')
-    paths = dict((k, p) for k, _l, p in shell.INTRO)
-    for key, title, desc in (
-        ("report", "자동화 QA 리포트", "무엇을 얼마나 통과했고, 무엇을 못 봤는지"),
-        ("trace", "추적 매트릭스",
-         "기능 하나가 어떤 케이스·어떤 테스트 함수·어떤 결함으로 이어지는지"),
-        ("tree", "기능 목록", "검증 대상 %d개와 각각의 판정 방식" % n_leaf),
-        ("dict", "용어집", "이 프로젝트에서만 통하는 말"),
-    ):
-        w('<div class="item"><a href="%s%s">%s</a>'
-          '<span class="foot">%s</span></div>'
-          % (rel["root"], esc(paths[key]), esc(title), esc(desc)))
+        # 아직 없는 장은 누를 곳이 없으므로 강조도 걷는다(.item-off)
+        w('<div class="item%s">%s<span class="foot">%s</span></div>'
+          % ("" if exists else " item-off", link, esc(desc)))
+    # 저장소 밖으로 나가는 둘은 실재 판정을 하지 않습니다 — 소개 페이지가 아니라
+    # 언제나 거기 있는 자리입니다. 이름은 사이드바와 같은 자리에서 가져옵니다
     for title, desc, link in (
-        # 이름은 사이드바와 같은 자리(shell.PROJECT_LABEL)에서 가져옵니다 — 한 대상을
-        # 두 이름으로 부르면 같은 곳으로 가는 길인지 눌러 봐야 압니다
+        ("깃허브 링크", "저장소 전체를 GitHub에서 봅니다", shell.REPO),
         ("%s 웹 링크" % shell.PROJECT_LABEL.get(S, S),
-         "검증 대상을 직접 눌러 봅니다", "%ssut/index.html" % P),
-        ("TC 시트", "실무 서식 그대로의 엑셀 — 내려받아 엽니다",
-         "%s/projects/%s/test-case/%s-tc-v1.0.xlsx" % (BLOB, S, S)),
+         "임시로 만든 AI 채팅 서비스로 이동하는 링크입니다.", "%ssut/index.html" % P),
     ):
         w('<div class="item"><a href="%s">%s</a>'
           '<span class="foot">%s</span></div>'
           % (esc(link), esc(title), esc(desc)))
+    w('</div></div>')
+
+    w('<div class="card"><h3>%s 관련</h3><div class="item-grid">'
+      % esc(shell.PROJECT_LABEL.get(S, S)))
+    for key, title, desc in (
+        ("making", "프로젝트 개요", "프로젝트 MiyonChat에 대한 구조를 설명합니다."),
+        ("tc", "TC 설계 규칙", "TC를 설계한 방식에 대해 정리했습니다."),
+        ("tcsheet", "TC 시트 구성", "설계 규칙에 따른 시트의 구성을 정리했습니다."),
+        ("auto", "자동화 설계와 결과",
+         "자동화 설계 과정과 그에 따른 결과를 정리했습니다."),
+        ("report", "자동화 QA 리포트", "자동화 테스트를 결과물로 보여줍니다."),
+        ("trace", "추적 매트릭스",
+         "기능 하나가 어떤 케이스·어떤 테스트 함수·어떤 결함으로 이어지는지 정리했습니다."),
+        ("tree", "기능 골격",
+         "MiyonChat을 구현하기 위해 사용된 전체 기능 구조에 대해 정리했습니다."),
+        ("dict", "용어집",
+         "MiyonChat을 구현하면서 사용된 프로젝트만의 용어를 정리했습니다."),
+    ):
+        exists = os.path.exists(os.path.join(args.repo_root, paths[key]))
+        link = ('<a href="%s%s">%s</a>' % (rel["root"], esc(paths[key]), esc(title))
+                if exists else '<b>%s</b> <span class="chip chip-unk">준비 중</span>' % esc(title))
+        # 아직 없는 장은 누를 곳이 없으므로 강조도 걷는다(.item-off)
+        w('<div class="item%s">%s<span class="foot">%s</span></div>'
+          % ("" if exists else " item-off", link, esc(desc)))
     w('</div></div>')
 
     w('</div>')

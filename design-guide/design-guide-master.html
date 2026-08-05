@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>design-guide-master — 시각 규칙서 v2.4</title>
+<title>design-guide-master — 시각 규칙서 v2.5</title>
 <!-- ============================================================
   CHANGELOG
+  v2.5 (2026-08-05) 카드 안 아이템을 카드 전체로 누르게 한 것(.item a::after)과, 링크가
+    없는 항목의 강조를 걷은 것(.item-off)을 실었다. 두 상태를 나란히 두어 마우스를
+    올리면 차이가 보인다. 링크가 하나여야 한다는 조건도 주의 콜아웃으로 못박았다.
   v2.4 (2026-08-05) 카드 안 아이템(.item)을 실으면서, 밀려 있던 사이드바 카테고리
     (.nav-cat)·접이식(.fold)도 함께 채웠다. 마스터 갱신과 규칙서 동기화를 한 묶음으로
     강제하기로 정했으므로(template-catalog.md §Case B) 빚을 여기서 닫는다.
@@ -52,7 +55,7 @@
 <aside class="side">
   <div class="side-head">
     <a href="design-guide-master.html">design-guide-master</a>
-    <span class="sub">시각 규칙서 v2.4</span>
+    <span class="sub">시각 규칙서 v2.5</span>
   </div>
   <nav class="side-nav">
     <div class="nav-sec">기준</div>
@@ -77,7 +80,7 @@
     <a class="nav-sub" href="#steps">파이프라인</a>
     <a class="nav-sub" href="#chart">차트 · 다이어그램</a>
   </nav>
-  <div class="side-foot">CSS 정본 v2.4 · JS 정본 v2.1</div>
+  <div class="side-foot">CSS 정본 v2.5 · JS 정본 v2.1</div>
 </aside>
 
 <div class="main">
@@ -97,8 +100,8 @@
   <code>design-guide-master.js</code>이고, 이 문서는 그 토큰과 컴포넌트가
   실제로 어떻게 보여야 하는지를 눈으로 확인하는 규칙서입니다.</p>
   <div class="meta-row">
-    <span class="badge">규칙서 <b>v2.4</b></span>
-    <span class="badge">CSS 정본 <b>v2.4</b></span>
+    <span class="badge">규칙서 <b>v2.5</b></span>
+    <span class="badge">CSS 정본 <b>v2.5</b></span>
     <span class="badge">JS 정본 <b>v2.1</b></span>
     <span class="badge">기반 <b>rules/html-report-guide.md</b></span>
     <span class="badge">테마 <b>라이트 기본 · 다크 토글</b></span>
@@ -233,12 +236,18 @@
 <p><b>카드를 그대로 겹치지 않습니다.</b> 바깥 카드가 <code>--surface</code>인데 안쪽도 같은 표면이면 테두리만 남고
 층이 보이지 않기 때문입니다. 접이식(<code>.fold</code>)이 쓰는 <code>--surface-2</code>를 그대로 따라 층만 만들고
 모양은 새로 들이지 않습니다.</p>
+<p><b>카드 어디를 눌러도 그 링크로 갑니다.</b> 테두리는 카드 전체가 밝아지는데 눌리는 곳이 제목뿐이면 신호와 동작이
+어긋나기 때문입니다. 링크의 클릭 영역만 넓히는 방식이라 마크업은 그대로입니다. 반대로 <b>링크가 없는 항목
+(<code>.item-off</code>)은 강조를 걷습니다</b> — 밝아지는데 눌리지 않으면 같은 어긋남이 뒤집힌 채로 남습니다.
+아래 두 카드에 각각 마우스를 올려 차이를 확인하세요.</p>
 <div class="card"><h3>더 보기</h3>
   <div class="item-grid">
-    <div class="item"><a href="#card">항목 제목은 링크입니다</a><span class="foot">설명은 foot으로 한 단 낮춰 답니다.</span></div>
-    <div class="item"><b>아직 없는 자리</b> <span class="chip chip-unk">준비 중</span><span class="foot">링크가 없어도 자리는 보입니다.</span></div>
+    <div class="item"><a href="#card">항목 제목은 링크입니다</a><span class="foot">카드 어느 곳을 눌러도 이 링크로 갑니다.</span></div>
+    <div class="item item-off"><b>아직 없는 자리</b> <span class="chip chip-unk">준비 중</span><span class="foot">링크가 없으면 자리만 보이고 눌리지 않습니다.</span></div>
   </div>
 </div>
+<div class="callout warn"><strong>카드 안 링크는 하나여야 합니다.</strong> 둘을 넣으면 넓힌 클릭 영역이 서로 덮어
+뒤엣것을 누를 수 없습니다. 링크가 둘 이상 필요하면 아이템을 나눕니다.</div>
 
 <h2 id="fold">접이식 블록</h2>
 <p>본문 흐름을 끊지 않으면서 참고 자료를 곁들일 때 씁니다. 기본은 접힘이라 읽는 사람이 원할 때만 펼치고,
@@ -355,7 +364,7 @@
 </div>
 
 <footer class="doc-footer">
-  design-guide-master 규칙서 v2.4 (CSS 정본 v2.4 · JS 정본 v2.1) · QA-VisualNovel-Portfolio ·
+  design-guide-master 규칙서 v2.5 (CSS 정본 v2.5 · JS 정본 v2.1) · QA-VisualNovel-Portfolio ·
   갱신은 Case B/C 승인 후에만 하고, 기존 토큰 제거는 별도 승인을 받습니다.
 </footer>
 
