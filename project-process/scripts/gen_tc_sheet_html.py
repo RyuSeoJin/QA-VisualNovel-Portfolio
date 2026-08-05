@@ -63,9 +63,8 @@ def lines(text):
 
 def panel_spec(w, cfg):
     """명세서 — build_tc_template_xlsx.spec_rows()가 정본입니다."""
-    w('<p>시트 구조 규칙의 <strong>정본</strong>입니다. 아래 내용은 xlsx의 「명세서」 시트와 '
-      '<strong>같은 자료에서 나옵니다</strong> — 여기에 다시 적어 두면 한쪽만 낡기 때문에, '
-      '생성기가 시트를 만들 때 쓰는 목록을 그대로 읽습니다.</p>')
+    w('<p>해당 xlsx 파일의 모든 시트의 구조나 데이터 컬럼을 나열한 매뉴얼입니다. html '
+      '단독으로 설정한 것이 아닌, xlsx의 명세서 시트를 그대로 읽어 보여줍니다.</p>')
     tbl = False
     for item in spec_rows(cfg.get("area_codes")):
         kind = item[0]
@@ -93,10 +92,7 @@ def panel_lists(w, cfg, project):
     lists = dict(DEFAULT_LISTS)
     lists["프로젝트"] = [project]
     lists.update(cfg.get("lists") or {})
-    w('<p>시트의 드롭다운이 참조하는 값의 <strong>정본</strong>입니다. 숨기지 않는 이유는 '
-      '<strong>값 체계 자체가 전시물</strong>이기 때문입니다 — 어떤 상태와 등급을 두고 일하는지가 '
-      '여기서 보입니다. 값을 고치면 기존 데이터 행은 소급 변경하지 않습니다(검증은 신규 입력에만 '
-      '작동 — 이력 보존).</p>')
+    w('<p>특정 데이터 컬럼에서 어떤 값이 드롭다운의 형태로 참조되는 지 정리한 시트입니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>목록</th><th>값</th></tr></thead><tbody>')
     for name, vals in lists.items():
         chips = " ".join('<span class="chip">%s</span>' % esc(v) for v in vals)
@@ -104,14 +100,13 @@ def panel_lists(w, cfg, project):
     w('</tbody></table></div>')
 
 
-def panel_summary(w, rows, cfg, tree_version):
+def panel_summary(w, rows, cfg):
     """Summary — 1-Depth(영역) 기준 집계. xlsx는 COUNTIFS 수식, 여기는 계산된 값입니다."""
     order = cfg.get("d1_order") or []
     seen = [d for d in order if any(r["path"] and r["path"][0] == d for r in rows)]
     seen += sorted({r["path"][0] for r in rows if r["path"] and r["path"][0] not in order})
-    w('<p>1-Depth(도달 경로의 첫 칸) 기준 집계입니다. xlsx에서는 <code>COUNTIFS</code> 수식이라 '
-      '실행 결과를 채우면 바로 따라 움직이고, 여기서는 <strong>설계 시점의 계산된 값</strong>입니다. '
-      '기준 골격 버전은 <b>v%s</b>입니다.</p>' % esc(tree_version))
+    w('<p>1-Depth를 기반으로 어떤 영역에 대한 검증인지 볼 수 있는 요약 영역입니다. '
+      'Test Case 영역이 채워지면 <code>COUNTIFS</code> 수식에 의해 바로 반영되는 구조입니다.</p>')
     w('<div class="tbl-scroll"><table><thead><tr><th>1-Depth (영역)</th>'
       '<th class="num">케이스</th><th class="num">스텝 행</th>'
       '<th class="num">High</th><th class="num">Medium</th><th class="num">Low</th>'
@@ -138,10 +133,9 @@ def panel_summary(w, rows, cfg, tree_version):
 
 def panel_cases(w, rows, code_of):
     """Test Case — 열을 하나도 빼지 않고 가로로 봅니다."""
-    w('<p>시트의 본문입니다. <strong>열은 하나도 빼지 않았고</strong> 표를 옆으로 밀어 전부 볼 수 '
-      '있습니다. 다만 <strong>한 케이스를 한 행</strong>에 두고, 스텝과 기대결과를 그 안에서 '
-      '짝지었습니다 — xlsx는 기대결과가 여럿이면 행이 늘고 칸을 병합하는데(153건 → 296행), '
-      '화면에서는 그러면 어느 판정이 어느 동작의 것인지 되레 흐려집니다.</p>')
+    w('<p>Test Case 시트입니다. 표를 옆으로 밀어 전부 볼 수 있습니다. 실제 xlsx 파일과 '
+      '데이터를 표현하는 방식은 비슷하나, 셀 단위로 들어가는 값들에 대해서는 정확한 표현이 '
+      '되지 않았으니, 정확한 확인은 xlsx 파일 다운을 통해 확인해주시길 바랍니다.</p>')
     w('<div class="callout">실행 결과(Pass/Fail) 열은 <strong>비어 있습니다.</strong> 시트에서 '
       '노란 칸이 그 자리이고 <strong>실행 단계에서 채웁니다.</strong> 실제 수행 결과는 '
       '자동화 QA 리포트가 담습니다.</div>')
@@ -189,9 +183,8 @@ def panel_cases(w, rows, code_of):
 
 def panel_issues(w, issues):
     """이슈 관리 시트 — 정본은 issues.json이고 시트는 그 파생입니다."""
-    w('<p>결함 기록입니다. JIRA를 쓰지 않고 <strong>이슈 등록·관리 방식을 시트로 표현</strong>했습니다. '
-      '<code>Issue No.</code>로 Test Case와 이어지며, 정본은 <code>issues.json</code>이고 '
-      '시트는 그 파생입니다.</p>')
+    w('<p>JIRA 를 쓰지 않고 이슈 등록, 관리 방식을 시트로 표현한 시트입니다. '
+      '<code>Issue No.</code>로 Test Case와 이어집니다.</p>')
     if not issues:
         w('<div class="callout">등록된 이슈가 없습니다.</div>')
         return
@@ -268,8 +261,9 @@ def main():
                       "TC %d건 · 골격 v%s" % (len(rows), tree_version), out_path=args.output))
 
     w('<div class="doc-header"><h1>TC 시트 구성</h1>')
-    w('<p class="doc-lead">테스트 케이스를 설계하고 관리하는 데 필요한 장치를 '
-      '구성하였습니다.</p>')
+    w('<p class="doc-lead">Test Case 목록만 넘기면, 받는 사람은 해당 TC의 규칙을 모르기 '
+      '때문에 어떻게 수행해야 할 지 모릅니다. 그래서 테스트 케이스를 설계하고 관리하는 데 '
+      '필요한 장치들을 구성하였습니다.</p>')
     w('<div class="meta-row">')
     for k, v in (("케이스", "%d건" % len(rows)),
                  ("스텝 행", "%d행" % sum(len(expected_by_step(r["steps"], r["exp"])[0])
@@ -282,15 +276,15 @@ def main():
 
     # ── 받는 법
     w('<h2 id="get">시트를 직접 다운받아서 보는 법</h2>')
-    w('<p>하단에 있는 「다운받지 않고 시트 목록 구경하기」 탭을 통해 TC를 다운받지 않고 '
-      '볼수는 있습니다. 하지만 하단의 시트는 html 디자인에 따라 표 형태로 보기 좋게 구성한 '
+    w('<p>하단의 「다운받지 않고 시트 구경하기」 탭을 통해 TC를 다운받지 않고 볼수는 '
+      '있습니다.<br>하지만 하단의 시트는 html 디자인에 따라 표 형태로 보기 좋게 구성한 '
       '방식이라 데이터 컬럼이나 수식 등이 어떻게 들어갔는지는 정확한 판단이 힘듭니다.</p>')
-    w('<p>Excel에서 열어야 수식, 데이터 컬럼, 수식, 디자인 등을 정확하게 볼 수 있어 '
-      'Excel에서 다운받아 보는 것을 추천드립니다.</p>')
+    w('<p>Excel에서 열어야 수식, 데이터 컬럼, 시트 디자인 등을 정확하게 볼 수 있어 '
+      'xlsx 파일을 다운받아 보는 것을 추천드립니다.</p>')
     w('<p><a class="fbtn" href="%s" target="_blank" rel="noopener">TC 시트 내려받기 (xlsx)</a></p>'
       % esc(xlsx))
-    w('<div class="callout">GitHub에서 열리며 <b>Download</b> 버튼으로 받습니다. '
-      '미리보기는 제공되지 않아 이 페이지를 함께 두었습니다.</div>')
+    w('<div class="callout">[TC 시트 내려받기 (xlsx)] 버튼을 클릭 시 GitHub 사이트가 '
+      '열리며, <b>Download</b> 버튼을 통해 다운받으실 수 있습니다.</div>')
     # 안내 사진 — 없으면 통째로 건너뜁니다. 사진이 빠져도 위 문장만으로 성립해야 한다는
     # 규칙(html-report-guide.md §1 래스터 이미지)을 코드로도 지키는 자리입니다.
     # 자기완결 예외라 base64가 아니라 상대 경로로 겁니다
@@ -303,11 +297,11 @@ def main():
           'border-radius:8px"></p>' % esc(src.replace(os.sep, "/")))
 
     # ── 시트 칩
-    w('<h2 id="sheets">다운받지 않고 시트 구성 구경하기</h2>')
+    w('<h2 id="sheets">다운받지 않고 시트 구경하기</h2>')
+    w('<p>앞서 말했듯이, html로 표현된 시트의 경우 xlsx 파일에서 열어 확인하는 것과 데이터 '
+      '컬럼이 달라서, 정확한 파일은 xlsx 파일을 다운받아 확인해주시길 바랍니다.</p>')
     w('<p>시트는 「명세서」, 「목록」, 「Summary」, 「Test Case」, 「이슈 관리 시트」로 '
       '이루어져 있으며, 하단의 chip을 눌러 각각의 html로 구현한 시트를 확인할 수 있습니다.</p>')
-    w('<p>앞서 말했듯이, 실제 데이터컬럼은 xlsx 파일에서 연 것과는 다를 수 있어, 정확한 파일은 '
-      'xlsx 파일을 다운받아 확인해주시길 바랍니다.</p>')
     w('<div class="tabs" data-tabs="sheets">')
     for i, name in enumerate(TABS):
         w('<button class="tab-btn%s" data-panel="pane-%d">%s</button>'
@@ -321,7 +315,7 @@ def main():
         elif name == "목록":
             panel_lists(w, cfg, cfg.get("project", S))
         elif name == "Summary":
-            panel_summary(w, rows, cfg, tree_version)
+            panel_summary(w, rows, cfg)
         elif name == "Test Case":
             panel_cases(w, rows, code_of)
         else:
