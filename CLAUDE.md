@@ -11,6 +11,7 @@
 - `project-process/` — 모든 작업이 따르는 절차·규칙. `qa-doc-playbook.md`(파이프라인 절차서), `qa-dictionary.md`(중앙 용어집 색인), `rules/`(방법론·운영 규칙 정의), `scripts/`(xlsx 생성 도구).
 - `design-guide/` — 디자인 일관성의 기준. `design-guide-master.css`(스타일 정본) + `design-guide-master.html`(시각 규칙서).
 - `design-template/` — 문서 포맷 템플릿(성장 영역). `template-catalog.md`(템플릿 목록+판별 기준의 단일 소스), `NN-{템플릿명}.html`, `tc-sheet-master.xlsx`(TC 시트 기준 서식 — '명세서' 시트가 규칙 정본).
+- `diagrams/` · `structure.svg` — 문서에 실리는 설명 그림의 정본. 한 장을 여러 페이지가 읽어 가므로 **사본을 만들지 않고 이 자리를 고칩니다.** 그리는 규칙과 테마 처리는 `rules/html-report-guide.md` §다이어그램.
 - `intro/` — 저장소를 처음 접하는 사람이 읽는 소개 층. 워크스페이스 서사(중앙 규칙·프로젝트 규칙 구조)와 프로젝트 문서·읽는 산출물이 **함께 삽니다.** 루트 `index.html`이 그 진입점이고, 둘은 파일명 접두로 가릅니다 — 워크스페이스는 `main-`, 프로젝트는 `{프로젝트}-`. 전부 생성기가 만드는 파생물이며, 무엇을 어느 생성기가 만드는지의 정본은 `rules/site-structure.md`입니다.
 
 **프로젝트 규칙**
