@@ -268,4 +268,3 @@ python project-process/scripts/run_fault_matrix.py \
 - **리그레션 TC 세트** — 결함에서 출발하는 케이스는 기능 TC와 섞지 않고 별도 세트로 만들어
   진행합니다(2026-08-02 사용자 확정). 결함이 쌓인 뒤 착수하며, 기능 TC(v1.0)와 파일·번호
   체계를 어떻게 가를지는 착수 시점에 결정
-- 워크스페이스 잔재 파일 정리 — SKILL.md·feature-tree-ai-chat.md 제거(사용자 요청 대기)
