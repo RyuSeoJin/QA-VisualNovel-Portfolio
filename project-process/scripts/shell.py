@@ -33,10 +33,14 @@ SUT_LINK = ("sut", "서비스 웹 링크", "sut/index.html")
 NEW_TAB = ("sut",)
 
 #: 사이드바 「내려받기」 묶음 — 열어 보는 문서가 아니라 받아 가는 파일이다.
-#: Pages에서 404가 나므로 절대 URL로 걸고, 저장소를 벗어나므로 새 탭이다
-OUT = (
-    ("TC 시트", BLOB + "/projects/{S}/test-case/{S}-tc-v1.0.xlsx", "xlsx"),
-)
+#: Pages에서 404가 나므로 절대 URL로 걸고, 저장소를 벗어나므로 새 탭이다.
+#:
+#: **2026-08-05 비웠습니다.** 여기 있던 「TC 시트」(xlsx)는 GitHub blob으로 곧장 나가
+#: 저장소를 모르는 사람에게는 미리보기 없는 내려받기 버튼 하나가 전부였습니다. 「TC 시트
+#: 구성」 문서가 같은 파일을 **받는 법과 함께** 주므로 사이드바 링크는 걷어냈습니다 —
+#: 같은 파일로 가는 길이 둘이면 이름이 겹쳐 무엇이 다른지 눌러 봐야 압니다.
+#: 비어 있으면 묶음 자체를 만들지 않으므로, 내려받을 것이 생기면 한 줄 넣는 것으로 살아납니다
+OUT = ()
 
 #: 저장소 자체로 가는 링크. 프로젝트가 아니라 **워크스페이스 전체**를 가리키므로
 #: 프로젝트 묶음이 아니라 「소개」 끝에 붙인다
@@ -230,9 +234,12 @@ def sidebar(slug, current, rel, foot="", out_path=None, exists=None):
         key, label, path = SUT_LINK
         doc_items.append((label, rel + path.format(S=slug), key == current, "", True))
         groups.append((doc_title, doc_items))
-    # 「내려받기」는 GitHub으로 나가므로 전부 새 탭이다
+    # 「내려받기」는 GitHub으로 나가므로 전부 새 탭이다.
+    # 비었으면 묶음을 만들지 않습니다 — nav_group은 항목 수와 무관하게 머리말을 찍으므로
+    # 그냥 두면 빈 「내려받기」 제목만 남습니다
     repo_items = [(label, url.format(S=slug), False, tag, True) for label, url, tag in OUT]
-    groups.append(("내려받기", repo_items))
+    if repo_items:
+        groups.append(("내려받기", repo_items))
     return sidebar_from(groups, head_href, head_title, head_sub, foot)
 
 
